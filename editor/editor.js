@@ -1403,35 +1403,47 @@
 
   // editor/src/components/rows/HeadingElement.jsx
   function HeadingElement({ element }) {
+    const ref = A2(null);
     const Tag = element.props.level || "h2";
+    function onBlur() {
+      if (!ref.current) return;
+      const text = ref.current.textContent;
+      if (text !== element.props.text) {
+        updateElementProps(element.id, { text });
+        commitChange();
+      }
+    }
     return /* @__PURE__ */ u2(
       Tag,
       {
+        ref,
         contentEditable: true,
-        suppressContentEditableWarning: true,
         style: { outline: "none" },
-        onBlur: (e4) => {
-          updateElementProps(element.id, { text: e4.target.textContent });
-          commitChange();
-        },
-        children: element.props.text
+        onBlur,
+        dangerouslySetInnerHTML: { __html: element.props.text }
       }
     );
   }
 
   // editor/src/components/rows/TextElement.jsx
   function TextElement({ element }) {
+    const ref = A2(null);
+    function onBlur() {
+      if (!ref.current) return;
+      const html = ref.current.innerHTML;
+      if (html !== element.props.text) {
+        updateElementProps(element.id, { text: html });
+        commitChange();
+      }
+    }
     return /* @__PURE__ */ u2(
-      "p",
+      "div",
       {
+        ref,
         contentEditable: true,
-        suppressContentEditableWarning: true,
         style: { outline: "none" },
-        onBlur: (e4) => {
-          updateElementProps(element.id, { text: e4.target.textContent });
-          commitChange();
-        },
-        children: element.props.text
+        onBlur,
+        dangerouslySetInnerHTML: { __html: element.props.text }
       }
     );
   }

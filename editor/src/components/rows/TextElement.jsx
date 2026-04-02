@@ -1,14 +1,25 @@
+import { useRef } from 'preact/hooks';
 import { updateElementProps, commitChange } from '../../state';
 
 export function TextElement({ element }) {
+  const ref = useRef(null);
+
+  function onBlur() {
+    if (!ref.current) return;
+    const html = ref.current.innerHTML;
+    if (html !== element.props.text) {
+      updateElementProps(element.id, { text: html });
+      commitChange();
+    }
+  }
+
   return (
-    <p
+    <div
+      ref={ref}
       contentEditable
-      suppressContentEditableWarning
       style={{ outline: 'none' }}
-      onBlur={e => { updateElementProps(element.id, { text: e.target.textContent }); commitChange(); }}
-    >
-      {element.props.text}
-    </p>
+      onBlur={onBlur}
+      dangerouslySetInnerHTML={{ __html: element.props.text }}
+    />
   );
 }
