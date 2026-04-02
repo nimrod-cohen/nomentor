@@ -312,20 +312,6 @@
     /* @__PURE__ */ u2("path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" })
   ] }));
 
-  // editor/src/components/Toolbar.jsx
-  function Toolbar({ title, backUrl, viewUrl }) {
-    return /* @__PURE__ */ u2("div", { class: "nomentor-toolbar", children: [
-      /* @__PURE__ */ u2("a", { href: backUrl, children: [
-        /* @__PURE__ */ u2(ArrowLeft, { size: 16 }),
-        "Back"
-      ] }),
-      /* @__PURE__ */ u2("span", { class: "separator" }),
-      /* @__PURE__ */ u2("span", { class: "page-title", children: title }),
-      /* @__PURE__ */ u2("span", { class: "spacer" }),
-      /* @__PURE__ */ u2("a", { href: viewUrl || "#", target: "_blank", class: viewUrl ? "" : "disabled", title: "View page", children: /* @__PURE__ */ u2(Eye, { size: 16 }) })
-    ] });
-  }
-
   // node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
@@ -1042,6 +1028,55 @@
   }
 
   // editor/src/state.js
+  var saveStatus = y3("saved");
+  var history = y3([]);
+  var MAX_HISTORY = 50;
+  function pushHistory() {
+    const snapshot = JSON.stringify(rows.value);
+    const list = [...history.value];
+    list.push({ timestamp: Date.now(), snapshot });
+    if (list.length > MAX_HISTORY) list.shift();
+    history.value = list;
+  }
+  function autoSave() {
+    const { ajaxUrl, nonce, postId } = window.nomentor;
+    const data = JSON.stringify(rows.value);
+    saveStatus.value = "saving";
+    fetch(ajaxUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}`
+    }).then((r4) => r4.json()).then((r4) => {
+      saveStatus.value = r4.success ? "saved" : "error";
+    }).catch(() => {
+      saveStatus.value = "error";
+    });
+  }
+  var saveTimer = null;
+  function debouncedSave() {
+    pushHistory();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSave, 800);
+  }
+  var initialized = false;
+  j3(() => {
+    rows.value;
+    if (!initialized) {
+      initialized = true;
+      return;
+    }
+    debouncedSave();
+  });
+  function undoTo(index) {
+    const entry = history.value[index];
+    if (!entry) return;
+    try {
+      rows.value = JSON.parse(entry.snapshot);
+      history.value = history.value.slice(0, index);
+    } catch {
+    }
+  }
+  var sidebarMode = y3("toolbox");
   var rows = y3([]);
   var selectedId = y3(null);
   var _nextId = 1;
@@ -1165,6 +1200,53 @@
   var dragging = y3(null);
   var dropTargetId = y3(null);
 
+  // editor/src/components/Toolbar.jsx
+  function Toolbar({ title, backUrl, viewUrl }) {
+    const status = saveStatus.value;
+    const mode = sidebarMode.value;
+    return /* @__PURE__ */ u2("div", { class: "nomentor-toolbar", children: [
+      /* @__PURE__ */ u2("a", { href: backUrl, children: [
+        /* @__PURE__ */ u2(ArrowLeft, { size: 16 }),
+        "Back"
+      ] }),
+      /* @__PURE__ */ u2("span", { class: "separator" }),
+      /* @__PURE__ */ u2("span", { class: "page-title", children: title }),
+      /* @__PURE__ */ u2("span", { class: "separator" }),
+      /* @__PURE__ */ u2("div", { class: "toolbar-toggle", children: [
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: mode === "toolbox" ? "active" : "",
+            onClick: () => sidebarMode.value = "toolbox",
+            title: "Toolbox",
+            children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }),
+              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "14", y: "3", rx: "1" }),
+              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "14", rx: "1" }),
+              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "14", y: "14", rx: "1" })
+            ] })
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: mode === "history" ? "active" : "",
+            onClick: () => sidebarMode.value = "history",
+            title: "History",
+            children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+              /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+              /* @__PURE__ */ u2("path", { d: "M3 3v5h5" }),
+              /* @__PURE__ */ u2("path", { d: "M12 7v5l4 2" })
+            ] })
+          }
+        )
+      ] }),
+      /* @__PURE__ */ u2("span", { class: "spacer" }),
+      /* @__PURE__ */ u2("span", { class: `save-status ${status}`, children: status === "saving" ? "Saving..." : status === "error" ? "Save failed" : "Saved" }),
+      /* @__PURE__ */ u2("a", { href: viewUrl || "#", target: "_blank", class: viewUrl ? "" : "disabled", title: "View page", children: /* @__PURE__ */ u2(Eye, { size: 16 }) })
+    ] });
+  }
+
   // editor/src/components/Toolbox.jsx
   var COMPONENTS = [
     { type: "grid", label: "Grid", icon: Grid },
@@ -1198,6 +1280,25 @@
         c4.type
       )) }) })
     ] });
+  }
+
+  // editor/src/components/History.jsx
+  function History() {
+    const entries = history.value;
+    return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-left", children: [
+      /* @__PURE__ */ u2("div", { class: "sidebar-header", children: "History" }),
+      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: entries.length === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: entries.map((entry, i5) => /* @__PURE__ */ u2("li", { class: "history-item", onClick: () => undoTo(i5), children: [
+        /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
+        /* @__PURE__ */ u2("span", { class: "history-action", children: [
+          "Snapshot ",
+          i5 + 1
+        ] })
+      ] }, i5)).reverse() }) })
+    ] });
+  }
+  function formatTime(ts) {
+    const d4 = new Date(ts);
+    return d4.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   }
 
   // editor/src/components/rows/HeadingElement.jsx
@@ -1395,8 +1496,8 @@
             selectedId.value = row.id;
           },
           children: [
-            /* @__PURE__ */ u2("div", { class: "row-label", children: "row" }),
-            row.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "row-empty", children: "Empty row \u2014 drag a component here" }),
+            /* @__PURE__ */ u2("div", { class: "row-label", children: "container" }),
+            row.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "row-empty", children: "Empty container \u2014 drag a component here" }),
             row.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
           ]
         }
@@ -1426,7 +1527,7 @@
         {
           class: `nav-item ${isSelected ? "selected" : ""}`,
           onClick: () => selectedId.value = row.id,
-          children: "row"
+          children: "container"
         }
       ),
       row.elements.length > 0 && /* @__PURE__ */ u2("ul", { class: "nav-children", children: row.elements.map((el) => /* @__PURE__ */ u2(NavElement, { element: el }, el.id)) })
@@ -1454,12 +1555,28 @@
   }
 
   // editor/src/App.jsx
+  (async function loadLayout() {
+    const { ajaxUrl, postId } = window.nomentor;
+    try {
+      const resp = await fetch(`${ajaxUrl}?action=nomentor_load&post_id=${postId}`);
+      const data = await resp.json();
+      if (data.success && data.data?.layout) {
+        const layout = JSON.parse(data.data.layout);
+        if (Array.isArray(layout) && layout.length > 0) {
+          rows.value = layout;
+        }
+      }
+    } catch (e4) {
+      console.warn("Failed to load layout:", e4);
+    }
+  })();
   function App() {
     const { title, backUrl, viewUrl } = window.nomentor;
+    const mode = sidebarMode.value;
     return /* @__PURE__ */ u2(k, { children: [
       /* @__PURE__ */ u2(Toolbar, { title, backUrl, viewUrl }),
       /* @__PURE__ */ u2("div", { class: "nomentor-editor", children: [
-        /* @__PURE__ */ u2(Toolbox, {}),
+        mode === "toolbox" ? /* @__PURE__ */ u2(Toolbox, {}) : /* @__PURE__ */ u2(History, {}),
         /* @__PURE__ */ u2(Canvas, {}),
         /* @__PURE__ */ u2(Navigator, {})
       ] })

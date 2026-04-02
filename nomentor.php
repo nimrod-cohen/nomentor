@@ -99,6 +99,36 @@ add_action('edit_form_after_title', function ($post) {
   echo '<div style="margin:12px 0"><a href="' . esc_url($url) . '" class="button button-primary button-large">Open Designer</a></div>';
 });
 
+// AJAX: save page layout
+add_action('wp_ajax_nomentor_save', function () {
+  check_ajax_referer('nomentor_editor', 'nonce');
+
+  $post_id = intval($_POST['post_id'] ?? 0);
+  $post = get_post($post_id);
+
+  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {
+    wp_send_json_error('Unauthorized');
+  }
+
+  $data = wp_unslash($_POST['data'] ?? '[]');
+  update_post_meta($post_id, '_nomentor_layout', $data);
+
+  wp_send_json_success();
+});
+
+// AJAX: load page layout
+add_action('wp_ajax_nomentor_load', function () {
+  $post_id = intval($_GET['post_id'] ?? 0);
+  $post = get_post($post_id);
+
+  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {
+    wp_send_json_error('Unauthorized');
+  }
+
+  $data = get_post_meta($post_id, '_nomentor_layout', true);
+  wp_send_json_success(['layout' => $data ?: '[]']);
+});
+
 // Register hidden admin page so WP allows the URL
 add_action('admin_menu', function () {
   add_submenu_page(null, 'Nomentor Designer', '', 'edit_pages', 'nomentor-designer', '__return_null');

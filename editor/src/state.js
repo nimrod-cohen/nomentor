@@ -1,4 +1,62 @@
-import { signal } from '@preact/signals';
+import { signal, effect } from '@preact/signals';
+
+// ── Save state ──
+export const saveStatus = signal('saved'); // 'saved' | 'saving' | 'error'
+export const history = signal([]); // { timestamp, snapshot }
+const MAX_HISTORY = 50;
+
+function pushHistory() {
+  const snapshot = JSON.stringify(rows.value);
+  const list = [...history.value];
+  list.push({ timestamp: Date.now(), snapshot });
+  if (list.length > MAX_HISTORY) list.shift();
+  history.value = list;
+}
+
+function autoSave() {
+  const { ajaxUrl, nonce, postId } = window.nomentor;
+  const data = JSON.stringify(rows.value);
+
+  saveStatus.value = 'saving';
+
+  fetch(ajaxUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}`
+  })
+    .then(r => r.json())
+    .then(r => { saveStatus.value = r.success ? 'saved' : 'error'; })
+    .catch(() => { saveStatus.value = 'error'; });
+}
+
+let saveTimer = null;
+function debouncedSave() {
+  pushHistory();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(autoSave, 800);
+}
+
+// Watch rows for changes and auto-save
+let initialized = false;
+effect(() => {
+  rows.value; // subscribe
+  if (!initialized) { initialized = true; return; }
+  debouncedSave();
+});
+
+// ── Undo to history snapshot ──
+export function undoTo(index) {
+  const entry = history.value[index];
+  if (!entry) return;
+  try {
+    rows.value = JSON.parse(entry.snapshot);
+    // Trim history to this point
+    history.value = history.value.slice(0, index);
+  } catch {}
+}
+
+// ── Left sidebar mode ──
+export const sidebarMode = signal('toolbox'); // 'toolbox' | 'history'
 
 /**
  * Page structure:

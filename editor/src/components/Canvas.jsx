@@ -95,9 +95,9 @@ function CanvasRow({ row }) {
         data-row-id={row.id}
         onClick={e => { e.stopPropagation(); selectedId.value = row.id; }}
       >
-        <div class="row-label">row</div>
+        <div class="row-label">container</div>
         {row.elements.length === 0 && (
-          <div class="row-empty">Empty row — drag a component here</div>
+          <div class="row-empty">Empty container — drag a component here</div>
         )}
         {row.elements.map(el => (
           <ElementRenderer key={el.id} element={el} />

@@ -37,7 +37,7 @@ function NavRow({ row }) {
         class={`nav-item ${isSelected ? 'selected' : ''}`}
         onClick={() => selectedId.value = row.id}
       >
-        row
+        container
       </div>
       {row.elements.length > 0 && (
         <ul class="nav-children">

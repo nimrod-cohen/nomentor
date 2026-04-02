@@ -42,6 +42,19 @@ html, body, #nomentor-root {
 .nomentor-toolbar .separator { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
 .nomentor-toolbar .disabled { opacity: 0.3; pointer-events: none; }
 
+.toolbar-toggle { display: flex; gap: 2px; background: rgba(255,255,255,0.08); border-radius: 4px; padding: 2px; }
+.toolbar-toggle button {
+  padding: 4px 8px; border-radius: 3px; background: none; border: none;
+  color: #888; cursor: pointer; display: flex; align-items: center; transition: all 0.15s;
+}
+.toolbar-toggle button:hover { color: #ccc; }
+.toolbar-toggle button.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+.save-status { font-size: 11px; padding: 0 8px; }
+.save-status.saved { color: #6b6; }
+.save-status.saving { color: #cc6; }
+.save-status.error { color: #c66; }
+
 /* ── Editor layout ── */
 .nomentor-editor {
   position: fixed;
@@ -164,3 +177,15 @@ html, body, #nomentor-root {
 .nav-item:hover { background: #f4f4f4; }
 .nav-item.selected { font-weight: 600; color: var(--accent); background: #f0f4ff; }
 .nav-cell { color: var(--text-dim); font-style: italic; }
+
+/* ── History ── */
+.history-empty { color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
+.history-list { list-style: none; }
+.history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border-radius: 4px; cursor: pointer;
+  font-size: 12px; transition: background 0.1s;
+}
+.history-item:hover { background: #f0f4ff; }
+.history-time { color: var(--text-dim); font-family: monospace; font-size: 11px; }
+.history-action { color: var(--text-secondary); }
