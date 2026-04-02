@@ -74,3 +74,93 @@ add_action('manage_nomentor_page_posts_custom_column', function ($column, $post_
     }
   }
 }, 10, 2);
+
+// Add "Design" row action to the list
+add_filter('post_row_actions', function ($actions, $post) {
+  if ($post->post_type === 'nomentor_page') {
+    $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
+    $actions['design'] = '<a href="' . esc_url($url) . '">Design</a>';
+  }
+  return $actions;
+}, 10, 2);
+
+// Add "Design" button on the edit screen
+add_action('edit_form_after_title', function ($post) {
+  if ($post->post_type !== 'nomentor_page') return;
+  $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
+  echo '<div style="margin:12px 0"><a href="' . esc_url($url) . '" class="button button-primary button-large">Open Designer</a></div>';
+});
+
+// Register the designer page (hidden from menu)
+add_action('admin_menu', function () {
+  add_submenu_page(
+    null, // hidden, no parent
+    'Nomentor Designer',
+    'Designer',
+    'edit_pages',
+    'nomentor-designer',
+    'nomentor_render_designer'
+  );
+});
+
+// Render the full-screen designer
+function nomentor_render_designer() {
+  $post_id = intval($_GET['post_id'] ?? 0);
+  $post = get_post($post_id);
+
+  if (!$post || $post->post_type !== 'nomentor_page') {
+    wp_die('Invalid page');
+  }
+
+  $back_url = admin_url('edit.php?post_type=nomentor_page');
+  $title = esc_html($post->post_title);
+
+  // Kill the WP admin chrome — output a clean page
+  ?><!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nomentor — <?= $title ?></title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f0f0; }
+
+    .nomentor-toolbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      height: 48px; background: #1e1e1e; color: #fff;
+      display: flex; align-items: center; padding: 0 16px; gap: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .nomentor-toolbar a {
+      color: #ccc; text-decoration: none; font-size: 13px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 4px; transition: background 0.15s;
+    }
+    .nomentor-toolbar a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nomentor-toolbar .page-title { font-size: 14px; font-weight: 600; }
+    .nomentor-toolbar .spacer { flex: 1; }
+
+    .nomentor-canvas {
+      margin-top: 48px; min-height: calc(100vh - 48px);
+      display: flex; align-items: center; justify-content: center;
+      color: #888; font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="nomentor-toolbar">
+    <a href="<?= esc_url($back_url) ?>">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      Back
+    </a>
+    <span class="page-title"><?= $title ?></span>
+    <span class="spacer"></span>
+  </div>
+  <div class="nomentor-canvas">
+    Nomentor Designer
+  </div>
+</body>
+</html><?php
+  exit; // prevent WP from rendering anything after
+}
