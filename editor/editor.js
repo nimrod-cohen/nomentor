@@ -1058,15 +1058,6 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(autoSave, 800);
   }
-  var initialized = false;
-  j3(() => {
-    rows.value;
-    if (!initialized) {
-      initialized = true;
-      return;
-    }
-    debouncedSave();
-  });
   function undoTo(index) {
     const entry = history.value[index];
     if (!entry) return;
@@ -1199,6 +1190,15 @@
   }
   var dragging = y3(null);
   var dropTargetId = y3(null);
+  var _initialized = false;
+  j3(() => {
+    rows.value;
+    if (!_initialized) {
+      _initialized = true;
+      return;
+    }
+    debouncedSave();
+  });
 
   // editor/src/components/Toolbar.jsx
   function Toolbar({ title, backUrl, viewUrl }) {

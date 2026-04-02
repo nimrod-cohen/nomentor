@@ -36,13 +36,7 @@ function debouncedSave() {
   saveTimer = setTimeout(autoSave, 800);
 }
 
-// Watch rows for changes and auto-save
-let initialized = false;
-effect(() => {
-  rows.value; // subscribe
-  if (!initialized) { initialized = true; return; }
-  debouncedSave();
-});
+// Auto-save effect — initialized after rows is declared (see bottom of file)
 
 // ── Undo to history snapshot ──
 export function undoTo(index) {
@@ -206,3 +200,11 @@ export function dropComponent(type, beforeRowId = null) {
 // ── Drag state ──
 export const dragging = signal(null);
 export const dropTargetId = signal(null);
+
+// ── Auto-save effect (must be after rows is declared) ──
+let _initialized = false;
+effect(() => {
+  rows.value; // subscribe to changes
+  if (!_initialized) { _initialized = true; return; }
+  debouncedSave();
+});
