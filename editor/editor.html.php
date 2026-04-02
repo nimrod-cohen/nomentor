@@ -21,8 +21,21 @@
     </a>
   </div>
 
-  <div class="nomentor-canvas" id="nomentor-canvas">
-    Nomentor Designer
+  <div class="nomentor-editor">
+    <aside class="nomentor-sidebar-left" id="nomentor-sidebar-left">
+      <div class="sidebar-header">Toolbox</div>
+      <div class="sidebar-content" id="nomentor-toolbox">
+      </div>
+    </aside>
+
+    <main class="nomentor-canvas" id="nomentor-canvas">
+    </main>
+
+    <aside class="nomentor-sidebar-right" id="nomentor-sidebar-right">
+      <div class="sidebar-header">Navigator</div>
+      <div class="sidebar-content" id="nomentor-navigator">
+      </div>
+    </aside>
   </div>
 
   <script>
