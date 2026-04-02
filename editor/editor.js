@@ -1185,20 +1185,36 @@
     }));
   }
   function dropComponent(type, beforeRowId = null) {
-    const rowId = addRow(beforeRowId);
+    if (beforeRowId) {
+      const targetRow = rows.value.find((r4) => r4.id === beforeRowId);
+      if (targetRow) {
+        addElementToRow(beforeRowId, type);
+        commitChange();
+        return;
+      }
+    }
+    const selRow = rows.value.find((r4) => r4.id === selectedId.value);
+    if (selRow) {
+      addElementToRow(selRow.id, type);
+      commitChange();
+      return;
+    }
+    if (rows.value.length > 0) {
+      const lastRow = rows.value[rows.value.length - 1];
+      addElementToRow(lastRow.id, type);
+      commitChange();
+      return;
+    }
+    const rowId = addRow();
     addElementToRow(rowId, type);
+    commitChange();
+  }
+  function commitChange() {
+    pushHistory();
+    debouncedSave();
   }
   var dragging = y3(null);
   var dropTargetId = y3(null);
-  var _initialized = false;
-  j3(() => {
-    rows.value;
-    if (!_initialized) {
-      _initialized = true;
-      return;
-    }
-    debouncedSave();
-  });
 
   // editor/src/components/Toolbar.jsx
   function Toolbar({ title, backUrl, viewUrl }) {
@@ -1310,7 +1326,10 @@
         contentEditable: true,
         suppressContentEditableWarning: true,
         style: { outline: "none" },
-        onBlur: (e4) => updateElementProps(element.id, { text: e4.target.textContent }),
+        onBlur: (e4) => {
+          updateElementProps(element.id, { text: e4.target.textContent });
+          commitChange();
+        },
         children: element.props.text
       }
     );
@@ -1324,7 +1343,10 @@
         contentEditable: true,
         suppressContentEditableWarning: true,
         style: { outline: "none" },
-        onBlur: (e4) => updateElementProps(element.id, { text: e4.target.textContent }),
+        onBlur: (e4) => {
+          updateElementProps(element.id, { text: e4.target.textContent });
+          commitChange();
+        },
         children: element.props.text
       }
     );
@@ -1368,6 +1390,7 @@
       if (type === "grid") return;
       addElementToCell(cellId, type);
       dragging.value = null;
+      commitChange();
     }
     return /* @__PURE__ */ u2("div", { style: { display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: "12px" }, children: element.children.map((cell) => /* @__PURE__ */ u2(
       "div",
@@ -1457,9 +1480,11 @@
         const row = rows.value.find((r4) => r4.id === sel);
         if (row) {
           removeRow(sel);
+          commitChange();
           return;
         }
         removeElement(sel);
+        commitChange();
       }
       document.addEventListener("keydown", onKeyDown);
       return () => document.removeEventListener("keydown", onKeyDown);

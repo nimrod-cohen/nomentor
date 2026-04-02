@@ -1,4 +1,4 @@
-import { updateElementProps } from '../../state';
+import { updateElementProps, commitChange } from '../../state';
 
 export function HeadingElement({ element }) {
   const Tag = element.props.level || 'h2';
@@ -7,7 +7,7 @@ export function HeadingElement({ element }) {
       contentEditable
       suppressContentEditableWarning
       style={{ outline: 'none' }}
-      onBlur={e => updateElementProps(element.id, { text: e.target.textContent })}
+      onBlur={e => { updateElementProps(element.id, { text: e.target.textContent }); commitChange(); }}
     >
       {element.props.text}
     </Tag>

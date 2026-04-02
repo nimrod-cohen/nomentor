@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'preact/hooks';
-import { rows, dragging, dropTargetId, dropComponent, selectedId, removeRow, removeElement } from '../state';
+import { rows, dragging, dropTargetId, dropComponent, selectedId, removeRow, removeElement, commitChange } from '../state';
 import { ElementRenderer } from './rows/ElementRenderer';
 import { useEffect } from 'preact/hooks';
 
@@ -52,9 +52,10 @@ export function Canvas() {
 
       // Check if it's a row or element
       const row = rows.value.find(r => r.id === sel);
-      if (row) { removeRow(sel); return; }
+      if (row) { removeRow(sel); commitChange(); return; }
 
       removeElement(sel);
+      commitChange();
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);

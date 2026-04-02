@@ -1,4 +1,4 @@
-import { addElementToCell, dragging } from '../../state';
+import { addElementToCell, dragging, commitChange } from '../../state';
 import { ElementRenderer } from './ElementRenderer';
 
 export function GridElement({ element }) {
@@ -24,6 +24,7 @@ export function GridElement({ element }) {
     if (type === 'grid') return; // no nested grids
     addElementToCell(cellId, type);
     dragging.value = null;
+    commitChange();
   }
 
   return (

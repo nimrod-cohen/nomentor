@@ -1,4 +1,4 @@
-import { signal, effect } from '@preact/signals';
+import { signal } from '@preact/signals';
 
 // ── Save state ──
 export const saveStatus = signal('saved'); // 'saved' | 'saving' | 'error'
@@ -36,7 +36,7 @@ function debouncedSave() {
   saveTimer = setTimeout(autoSave, 800);
 }
 
-// Auto-save effect — initialized after rows is declared (see bottom of file)
+// Changes are committed explicitly via commitChange() — no auto-effect
 
 // ── Undo to history snapshot ──
 export function undoTo(index) {
@@ -191,20 +191,46 @@ export function updateElementProps(elementId, props) {
   }));
 }
 
-// ── Drop: add element type into a row (creates row if needed) ──
+// ── Drop: add element to the appropriate container ──
 export function dropComponent(type, beforeRowId = null) {
-  const rowId = addRow(beforeRowId);
+  // If dropping on an existing container, add element to it
+  if (beforeRowId) {
+    const targetRow = rows.value.find(r => r.id === beforeRowId);
+    if (targetRow) {
+      addElementToRow(beforeRowId, type);
+      commitChange();
+      return;
+    }
+  }
+
+  // If a container is selected, add to it
+  const selRow = rows.value.find(r => r.id === selectedId.value);
+  if (selRow) {
+    addElementToRow(selRow.id, type);
+    commitChange();
+    return;
+  }
+
+  // If containers exist, add to the last one
+  if (rows.value.length > 0) {
+    const lastRow = rows.value[rows.value.length - 1];
+    addElementToRow(lastRow.id, type);
+    commitChange();
+    return;
+  }
+
+  // No containers — create one and add the element
+  const rowId = addRow();
   addElementToRow(rowId, type);
+  commitChange();
+}
+
+// ── Explicit change tracking (no auto-effect) ──
+export function commitChange() {
+  pushHistory();
+  debouncedSave();
 }
 
 // ── Drag state ──
 export const dragging = signal(null);
 export const dropTargetId = signal(null);
-
-// ── Auto-save effect (must be after rows is declared) ──
-let _initialized = false;
-effect(() => {
-  rows.value; // subscribe to changes
-  if (!_initialized) { _initialized = true; return; }
-  debouncedSave();
-});
