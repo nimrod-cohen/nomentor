@@ -1371,15 +1371,19 @@
       /* @__PURE__ */ u2("div", { class: "sidebar-content", children: entries.length === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
         const i5 = entries.length - 1 - ri;
         const isActive = previewing === i5;
-        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, children: [
-          /* @__PURE__ */ u2("div", { class: "history-item-row", onClick: () => previewVersion(i5), children: [
-            /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
-            /* @__PURE__ */ u2("span", { class: "history-action", children: [
-              "Version ",
-              i5 + 1
-            ] })
+        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, onClick: () => previewVersion(i5), children: [
+          /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
+          /* @__PURE__ */ u2("span", { class: "history-action", children: [
+            "Version ",
+            i5 + 1
           ] }),
-          isActive && /* @__PURE__ */ u2("button", { class: "history-revert-btn", onClick: () => revertToVersion(i5), children: "Revert to this version" })
+          isActive && /* @__PURE__ */ u2("button", { class: "history-revert-btn", onClick: (e4) => {
+            e4.stopPropagation();
+            revertToVersion(i5);
+          }, title: "Revert to this version", children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+            /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+            /* @__PURE__ */ u2("path", { d: "M3 3v5h5" })
+          ] }) })
         ] }, i5);
       }) }) })
     ] });
