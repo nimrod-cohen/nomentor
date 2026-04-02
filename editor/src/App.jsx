@@ -3,7 +3,7 @@ import { Toolbox } from './components/Toolbox';
 import { History } from './components/History';
 import { Canvas } from './components/Canvas';
 import { Navigator } from './components/Navigator';
-import { sidebarMode, rows } from './state';
+import { sidebarMode, rows, syncIdCounter } from './state';
 
 // Load saved layout on mount
 (async function loadLayout() {
@@ -15,6 +15,7 @@ import { sidebarMode, rows } from './state';
       const layout = JSON.parse(data.data.layout);
       if (Array.isArray(layout) && layout.length > 0) {
         rows.value = layout;
+        syncIdCounter(layout);
       }
     }
   } catch (e) {

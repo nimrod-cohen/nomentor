@@ -44,15 +44,16 @@ let _liveSnapshot = null; // stash live state while previewing
 
 export function previewVersion(index) {
   const entry = history.value[index];
-  if (!entry) return;
+  if (!entry) { console.warn('No history entry at index', index); return; }
   try {
     if (previewIndex.value === null) {
-      // Stash live state before first preview
       _liveSnapshot = JSON.stringify(rows.value);
     }
-    rows.value = JSON.parse(entry.snapshot);
+    const parsed = JSON.parse(entry.snapshot);
+    console.log('Preview version', index, '- rows:', parsed.length);
+    rows.value = parsed;
     previewIndex.value = index;
-  } catch {}
+  } catch (e) { console.error('Preview error:', e); }
 }
 
 export function exitPreview() {
@@ -96,6 +97,22 @@ export const selectedId = signal(null);
 
 let _nextId = 1;
 function nextId(prefix = 'el') { return prefix + '-' + (_nextId++); }
+
+// After loading layout, ensure _nextId is higher than any existing ID
+export function syncIdCounter(rowList) {
+  let max = 0;
+  function scan(items) {
+    if (!items) return;
+    for (const item of items) {
+      const num = parseInt((item.id || '').split('-').pop());
+      if (num > max) max = num;
+      if (item.elements) scan(item.elements);
+      if (item.children) scan(item.children);
+    }
+  }
+  scan(rowList);
+  if (max >= _nextId) _nextId = max + 1;
+}
 
 // ── Default props per element type ──
 function defaultProps(type) {
