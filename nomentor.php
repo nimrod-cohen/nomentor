@@ -75,23 +75,22 @@ add_action('manage_nomentor_page_posts_custom_column', function ($column, $post_
   }
 }, 10, 2);
 
-// Add "Design" row action to the list (nomentor_page is hierarchical=false, so use post_row_actions)
-add_filter('post_row_actions', function ($actions, $post) {
-  if ($post->post_type === 'nomentor_page') {
-    $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
-    $actions['design'] = '<a href="' . esc_url($url) . '">Design</a>';
-  }
-  return $actions;
-}, 10, 2);
+// Add "Design" and "View" row actions
+function nomentor_add_row_actions($actions, $post) {
+  if ($post->post_type !== 'nomentor_page') return $actions;
 
-// Also hook page_row_actions in case WP uses that
-add_filter('page_row_actions', function ($actions, $post) {
-  if ($post->post_type === 'nomentor_page') {
-    $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
-    $actions['design'] = '<a href="' . esc_url($url) . '">Design</a>';
+  $design_url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
+  $actions['design'] = '<a href="' . esc_url($design_url) . '">Design</a>';
+
+  if ($post->post_status === 'publish' && $post->post_name) {
+    $view_url = home_url('/static/' . $post->post_name . '/');
+    $actions['view'] = '<a href="' . esc_url($view_url) . '" target="_blank">View</a>';
   }
+
   return $actions;
-}, 10, 2);
+}
+add_filter('post_row_actions', 'nomentor_add_row_actions', 10, 2);
+add_filter('page_row_actions', 'nomentor_add_row_actions', 10, 2);
 
 // Add "Design" button on the edit screen
 add_action('edit_form_after_title', function ($post) {
@@ -186,6 +185,9 @@ add_action('admin_init', function () {
   }
 
   $back_url = admin_url('edit.php?post_type=nomentor_page');
+  $view_url = ($post->post_status === 'publish' && $post->post_name)
+    ? home_url('/static/' . $post->post_name . '/')
+    : '';
   $title = esc_html($post->post_title);
 
   ?><!DOCTYPE html>
@@ -201,17 +203,20 @@ add_action('admin_init', function () {
     .nomentor-toolbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       height: 48px; background: #1e1e1e; color: #fff;
-      display: flex; align-items: center; padding: 0 16px; gap: 16px;
+      display: flex; align-items: center; padding: 0 16px; gap: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
-    .nomentor-toolbar a {
-      color: #ccc; text-decoration: none; font-size: 13px;
+    .nomentor-toolbar a, .nomentor-toolbar button {
+      color: #ccc; text-decoration: none; font-size: 13px; background: none; border: none;
       display: flex; align-items: center; gap: 6px;
       padding: 6px 12px; border-radius: 4px; transition: background 0.15s;
+      cursor: pointer; font-family: inherit;
     }
-    .nomentor-toolbar a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nomentor-toolbar a:hover, .nomentor-toolbar button:hover { background: rgba(255,255,255,0.1); color: #fff; }
     .nomentor-toolbar .page-title { font-size: 14px; font-weight: 600; }
     .nomentor-toolbar .spacer { flex: 1; }
+    .nomentor-toolbar .separator { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
+    .nomentor-toolbar .disabled { opacity: 0.3; pointer-events: none; }
 
     .nomentor-canvas {
       margin-top: 48px; min-height: calc(100vh - 48px);
@@ -223,11 +228,15 @@ add_action('admin_init', function () {
 <body>
   <div class="nomentor-toolbar">
     <a href="<?= esc_url($back_url) ?>">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       Back
     </a>
+    <span class="separator"></span>
     <span class="page-title"><?= $title ?></span>
     <span class="spacer"></span>
+    <a href="<?= esc_url($view_url) ?>" target="_blank" class="<?= $view_url ? '' : 'disabled' ?>" title="View page">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+    </a>
   </div>
   <div class="nomentor-canvas">
     Nomentor Designer
