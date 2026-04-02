@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'preact/hooks';
-import { rows, dragging, dropTargetId, dropComponent, selectedId, removeRow, removeElement, commitChange } from '../state';
+import { rows, dragging, dropTargetId, dropOnCanvas, dropOnContainer, selectedId, removeRow, removeElement, commitChange } from '../state';
 import { ElementRenderer } from './rows/ElementRenderer';
 import { useEffect } from 'preact/hooks';
 
@@ -35,7 +35,7 @@ export function Canvas() {
     e.preventDefault();
     const type = dragging.value.type;
     const beforeId = dropTargetId.value;
-    dropComponent(type, beforeId);
+    dropOnCanvas(type, beforeId);
     dragging.value = null;
     dropTargetId.value = null;
   }
@@ -88,6 +88,22 @@ function CanvasRow({ row }) {
   const isSelected = selectedId.value === row.id;
   const isDropTarget = dropTargetId.value === row.id;
 
+  function onRowDragOver(e) {
+    if (!dragging.value) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  }
+
+  function onRowDrop(e) {
+    if (!dragging.value) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dropOnContainer(dragging.value.type, row.id);
+    dragging.value = null;
+    dropTargetId.value = null;
+  }
+
   return (
     <>
       {isDropTarget && <div class="drop-indicator" />}
@@ -95,6 +111,8 @@ function CanvasRow({ row }) {
         class={`canvas-row ${isSelected ? 'selected' : ''}`}
         data-row-id={row.id}
         onClick={e => { e.stopPropagation(); selectedId.value = row.id; }}
+        onDragOver={onRowDragOver}
+        onDrop={onRowDrop}
       >
         <div class="row-label">container</div>
         {row.elements.length === 0 && (

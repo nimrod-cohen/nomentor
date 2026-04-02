@@ -191,36 +191,15 @@ export function updateElementProps(elementId, props) {
   }));
 }
 
-// ── Drop: add element to the appropriate container ──
-export function dropComponent(type, beforeRowId = null) {
-  // If dropping on an existing container, add element to it
-  if (beforeRowId) {
-    const targetRow = rows.value.find(r => r.id === beforeRowId);
-    if (targetRow) {
-      addElementToRow(beforeRowId, type);
-      commitChange();
-      return;
-    }
-  }
+// ── Drop on canvas: always creates a new container with the element ──
+export function dropOnCanvas(type, beforeRowId = null) {
+  const rowId = addRow(beforeRowId);
+  addElementToRow(rowId, type);
+  commitChange();
+}
 
-  // If a container is selected, add to it
-  const selRow = rows.value.find(r => r.id === selectedId.value);
-  if (selRow) {
-    addElementToRow(selRow.id, type);
-    commitChange();
-    return;
-  }
-
-  // If containers exist, add to the last one
-  if (rows.value.length > 0) {
-    const lastRow = rows.value[rows.value.length - 1];
-    addElementToRow(lastRow.id, type);
-    commitChange();
-    return;
-  }
-
-  // No containers — create one and add the element
-  const rowId = addRow();
+// ── Drop on existing container: adds element to bottom of that container ──
+export function dropOnContainer(type, rowId) {
   addElementToRow(rowId, type);
   commitChange();
 }

@@ -58,10 +58,9 @@ function ContextMenu() {
 function openContextMenu(e, id, kind) {
   e.preventDefault();
   e.stopPropagation();
-  const rect = e.currentTarget.closest('.nomentor-sidebar-right').getBoundingClientRect();
   contextMenu.value = {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top,
+    x: e.clientX,
+    y: e.clientY,
     id,
     kind
   };

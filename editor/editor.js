@@ -1184,28 +1184,12 @@
       })
     }));
   }
-  function dropComponent(type, beforeRowId = null) {
-    if (beforeRowId) {
-      const targetRow = rows.value.find((r4) => r4.id === beforeRowId);
-      if (targetRow) {
-        addElementToRow(beforeRowId, type);
-        commitChange();
-        return;
-      }
-    }
-    const selRow = rows.value.find((r4) => r4.id === selectedId.value);
-    if (selRow) {
-      addElementToRow(selRow.id, type);
-      commitChange();
-      return;
-    }
-    if (rows.value.length > 0) {
-      const lastRow = rows.value[rows.value.length - 1];
-      addElementToRow(lastRow.id, type);
-      commitChange();
-      return;
-    }
-    const rowId = addRow();
+  function dropOnCanvas(type, beforeRowId = null) {
+    const rowId = addRow(beforeRowId);
+    addElementToRow(rowId, type);
+    commitChange();
+  }
+  function dropOnContainer(type, rowId) {
     addElementToRow(rowId, type);
     commitChange();
   }
@@ -1466,7 +1450,7 @@
       e4.preventDefault();
       const type = dragging.value.type;
       const beforeId = dropTargetId.value;
-      dropComponent(type, beforeId);
+      dropOnCanvas(type, beforeId);
       dragging.value = null;
       dropTargetId.value = null;
     }
@@ -1509,6 +1493,20 @@
   function CanvasRow({ row }) {
     const isSelected = selectedId.value === row.id;
     const isDropTarget = dropTargetId.value === row.id;
+    function onRowDragOver(e4) {
+      if (!dragging.value) return;
+      e4.preventDefault();
+      e4.stopPropagation();
+      e4.dataTransfer.dropEffect = "copy";
+    }
+    function onRowDrop(e4) {
+      if (!dragging.value) return;
+      e4.preventDefault();
+      e4.stopPropagation();
+      dropOnContainer(dragging.value.type, row.id);
+      dragging.value = null;
+      dropTargetId.value = null;
+    }
     return /* @__PURE__ */ u2(k, { children: [
       isDropTarget && /* @__PURE__ */ u2("div", { class: "drop-indicator" }),
       /* @__PURE__ */ u2(
@@ -1520,6 +1518,8 @@
             e4.stopPropagation();
             selectedId.value = row.id;
           },
+          onDragOver: onRowDragOver,
+          onDrop: onRowDrop,
           children: [
             /* @__PURE__ */ u2("div", { class: "row-label", children: "container" }),
             row.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "row-empty", children: "Empty container \u2014 drag a component here" }),
@@ -1570,10 +1570,9 @@
   function openContextMenu(e4, id, kind) {
     e4.preventDefault();
     e4.stopPropagation();
-    const rect = e4.currentTarget.closest(".nomentor-sidebar-right").getBoundingClientRect();
     contextMenu.value = {
-      x: e4.clientX - rect.left,
-      y: e4.clientY - rect.top,
+      x: e4.clientX,
+      y: e4.clientY,
       id,
       kind
     };
