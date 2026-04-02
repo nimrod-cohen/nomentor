@@ -2,3 +2,7 @@
 2. page tags and comment
 done 3. support draft/public/trash modes
 4. global font sizes and theme colors, overridable on page level.
+5. responsivity - mobile/tablet/desktop
+6. body - use full width
+7. add buttons to change view to mobile/tablet/desktop
+8. hide/show toolbox and navigator.

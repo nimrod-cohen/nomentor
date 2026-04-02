@@ -1,0 +1,16 @@
+{
+  "name": "nomentor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild editor/src/index.jsx --bundle --outfile=editor/editor.js --jsx=automatic --jsx-import-source=preact --minify --sourcemap",
+    "dev": "esbuild editor/src/index.jsx --bundle --outfile=editor/editor.js --jsx=automatic --jsx-import-source=preact --sourcemap --watch"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.9.0",
+    "preact": "^10.25.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
