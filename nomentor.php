@@ -113,6 +113,13 @@ add_action('wp_ajax_nomentor_save', function () {
   $data = wp_unslash($_POST['data'] ?? '[]');
   update_post_meta($post_id, '_nomentor_layout', $data);
 
+  // Regenerate static HTML if published
+  if ($post->post_status === 'publish' && $post->post_name) {
+    $static_dir = ABSPATH . 'static/' . $post->post_name;
+    if (!is_dir($static_dir)) wp_mkdir_p($static_dir);
+    file_put_contents($static_dir . '/index.html', nomentor_generate_static_html($post));
+  }
+
   wp_send_json_success();
 });
 

@@ -1531,18 +1531,52 @@
   }
 
   // editor/src/components/Navigator.jsx
+  var contextMenu = y3(null);
+  if (typeof document !== "undefined") {
+    document.addEventListener("click", () => {
+      contextMenu.value = null;
+    });
+  }
   function Navigator() {
     const rowList = rows.value;
-    if (!rowList.length) {
-      return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-right", children: [
-        /* @__PURE__ */ u2("div", { class: "sidebar-header", children: "Navigator" }),
-        /* @__PURE__ */ u2("div", { class: "sidebar-content", children: /* @__PURE__ */ u2("div", { class: "nav-empty", children: "No elements yet" }) })
-      ] });
-    }
     return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-right", children: [
       /* @__PURE__ */ u2("div", { class: "sidebar-header", children: "Navigator" }),
-      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: /* @__PURE__ */ u2("ul", { class: "nav-tree", children: rowList.map((row) => /* @__PURE__ */ u2(NavRow, { row }, row.id)) }) })
+      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: !rowList.length ? /* @__PURE__ */ u2("div", { class: "nav-empty", children: "No elements yet" }) : /* @__PURE__ */ u2("ul", { class: "nav-tree", children: rowList.map((row) => /* @__PURE__ */ u2(NavRow, { row }, row.id)) }) }),
+      contextMenu.value && /* @__PURE__ */ u2(ContextMenu, {})
     ] });
+  }
+  function ContextMenu() {
+    const { x: x4, y: y5, id, kind } = contextMenu.value;
+    function onRemove(e4) {
+      e4.stopPropagation();
+      if (kind === "container") {
+        removeRow(id);
+      } else {
+        removeElement(id);
+      }
+      commitChange();
+      contextMenu.value = null;
+    }
+    return /* @__PURE__ */ u2("div", { class: "nav-context-menu", style: { top: y5, left: x4 }, onClick: (e4) => e4.stopPropagation(), children: /* @__PURE__ */ u2("button", { onClick: onRemove, children: [
+      /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+        /* @__PURE__ */ u2("path", { d: "M3 6h18" }),
+        /* @__PURE__ */ u2("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
+        /* @__PURE__ */ u2("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
+      ] }),
+      "Remove ",
+      kind
+    ] }) });
+  }
+  function openContextMenu(e4, id, kind) {
+    e4.preventDefault();
+    e4.stopPropagation();
+    const rect = e4.currentTarget.closest(".nomentor-sidebar-right").getBoundingClientRect();
+    contextMenu.value = {
+      x: e4.clientX - rect.left,
+      y: e4.clientY - rect.top,
+      id,
+      kind
+    };
   }
   function NavRow({ row }) {
     const isSelected = selectedId.value === row.id;
@@ -1552,6 +1586,7 @@
         {
           class: `nav-item ${isSelected ? "selected" : ""}`,
           onClick: () => selectedId.value = row.id,
+          onContextMenu: (e4) => openContextMenu(e4, row.id, "container"),
           children: "container"
         }
       ),
@@ -1569,6 +1604,7 @@
             e4.stopPropagation();
             selectedId.value = element.id;
           },
+          onContextMenu: (e4) => openContextMenu(e4, element.id, "element"),
           children: element.type
         }
       ),
