@@ -114,7 +114,7 @@ add_action('wp_ajax_nomentor_save', function () {
   }
 
   $data = wp_unslash($_POST['data'] ?? '[]');
-  $historyData = wp_unslash($_POST['history'] ?? '[]');
+  $historyData = wp_unslash($_POST['page_history'] ?? '[]');
   update_post_meta($post_id, '_nomentor_layout', $data);
   update_post_meta($post_id, '_nomentor_history', $historyData);
 

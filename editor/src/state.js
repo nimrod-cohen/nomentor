@@ -25,7 +25,7 @@ function autoSave() {
     nonce,
     post_id: postId,
     data,
-    history: historyData
+    page_history: historyData
   });
 
   fetch(ajaxUrl, { method: 'POST', body })

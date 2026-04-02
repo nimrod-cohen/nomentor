@@ -1048,7 +1048,7 @@
       nonce,
       post_id: postId,
       data,
-      history: historyData
+      page_history: historyData
     });
     fetch(ajaxUrl, { method: "POST", body }).then((r4) => r4.json()).then((r4) => {
       saveStatus.value = r4.success ? "saved" : "error";
