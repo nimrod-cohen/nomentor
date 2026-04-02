@@ -114,7 +114,9 @@ add_action('wp_ajax_nomentor_save', function () {
   }
 
   $data = wp_unslash($_POST['data'] ?? '[]');
+  $historyData = wp_unslash($_POST['history'] ?? '[]');
   update_post_meta($post_id, '_nomentor_layout', $data);
+  update_post_meta($post_id, '_nomentor_history', $historyData);
 
   // Regenerate static HTML if published
   if ($post->post_status === 'publish' && $post->post_name) {
@@ -136,7 +138,8 @@ add_action('wp_ajax_nomentor_load', function () {
   }
 
   $data = get_post_meta($post_id, '_nomentor_layout', true);
-  wp_send_json_success(['layout' => $data ?: '[]']);
+  $historyData = get_post_meta($post_id, '_nomentor_history', true);
+  wp_send_json_success(['layout' => $data ?: '[]', 'history' => $historyData ?: '[]']);
 });
 
 // Register hidden admin page so WP allows the URL

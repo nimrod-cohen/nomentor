@@ -1041,16 +1041,20 @@
   function autoSave() {
     const { ajaxUrl, nonce, postId } = window.nomentor;
     const data = JSON.stringify(rows.value);
+    const historyData = JSON.stringify(history.value);
     saveStatus.value = "saving";
     fetch(ajaxUrl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}`
+      body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}&history=${encodeURIComponent(historyData)}`
     }).then((r4) => r4.json()).then((r4) => {
       saveStatus.value = r4.success ? "saved" : "error";
     }).catch(() => {
       saveStatus.value = "error";
     });
+  }
+  function loadHistory(entries) {
+    if (Array.isArray(entries)) history.value = entries;
   }
   var saveTimer = null;
   function debouncedSave() {
@@ -1755,6 +1759,13 @@
         if (Array.isArray(layout) && layout.length > 0) {
           rows.value = layout;
           syncIdCounter(layout);
+        }
+      }
+      if (data.success && data.data?.history) {
+        try {
+          const h4 = JSON.parse(data.data.history);
+          loadHistory(h4);
+        } catch {
         }
       }
     } catch (e4) {

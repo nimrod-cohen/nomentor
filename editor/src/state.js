@@ -16,17 +16,22 @@ function pushHistory() {
 function autoSave() {
   const { ajaxUrl, nonce, postId } = window.nomentor;
   const data = JSON.stringify(rows.value);
+  const historyData = JSON.stringify(history.value);
 
   saveStatus.value = 'saving';
 
   fetch(ajaxUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}`
+    body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}&history=${encodeURIComponent(historyData)}`
   })
     .then(r => r.json())
     .then(r => { saveStatus.value = r.success ? 'saved' : 'error'; })
     .catch(() => { saveStatus.value = 'error'; });
+}
+
+export function loadHistory(entries) {
+  if (Array.isArray(entries)) history.value = entries;
 }
 
 let saveTimer = null;
