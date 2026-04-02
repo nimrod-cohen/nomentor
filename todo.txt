@@ -1,0 +1,2 @@
+1. version history (undo/redo)
+2. page tags and comment

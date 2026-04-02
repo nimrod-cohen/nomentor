@@ -75,8 +75,17 @@ add_action('manage_nomentor_page_posts_custom_column', function ($column, $post_
   }
 }, 10, 2);
 
-// Add "Design" row action to the list
+// Add "Design" row action to the list (nomentor_page is hierarchical=false, so use post_row_actions)
 add_filter('post_row_actions', function ($actions, $post) {
+  if ($post->post_type === 'nomentor_page') {
+    $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
+    $actions['design'] = '<a href="' . esc_url($url) . '">Design</a>';
+  }
+  return $actions;
+}, 10, 2);
+
+// Also hook page_row_actions in case WP uses that
+add_filter('page_row_actions', function ($actions, $post) {
   if ($post->post_type === 'nomentor_page') {
     $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
     $actions['design'] = '<a href="' . esc_url($url) . '">Design</a>';
@@ -91,20 +100,11 @@ add_action('edit_form_after_title', function ($post) {
   echo '<div style="margin:12px 0"><a href="' . esc_url($url) . '" class="button button-primary button-large">Open Designer</a></div>';
 });
 
-// Register the designer page (hidden from menu)
-add_action('admin_menu', function () {
-  add_submenu_page(
-    null, // hidden, no parent
-    'Nomentor Designer',
-    'Designer',
-    'edit_pages',
-    'nomentor-designer',
-    'nomentor_render_designer'
-  );
-});
+// Intercept early to render designer without WP admin chrome
+add_action('admin_init', function () {
+  if (!isset($_GET['page']) || $_GET['page'] !== 'nomentor-designer') return;
+  if (!current_user_can('edit_pages')) wp_die('Access denied');
 
-// Render the full-screen designer
-function nomentor_render_designer() {
   $post_id = intval($_GET['post_id'] ?? 0);
   $post = get_post($post_id);
 
@@ -115,7 +115,6 @@ function nomentor_render_designer() {
   $back_url = admin_url('edit.php?post_type=nomentor_page');
   $title = esc_html($post->post_title);
 
-  // Kill the WP admin chrome — output a clean page
   ?><!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -162,5 +161,5 @@ function nomentor_render_designer() {
   </div>
 </body>
 </html><?php
-  exit; // prevent WP from rendering anything after
-}
+  exit;
+});
