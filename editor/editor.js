@@ -1043,11 +1043,14 @@
     const data = JSON.stringify(rows.value);
     const historyData = JSON.stringify(history.value);
     saveStatus.value = "saving";
-    fetch(ajaxUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `action=nomentor_save&nonce=${encodeURIComponent(nonce)}&post_id=${postId}&data=${encodeURIComponent(data)}&history=${encodeURIComponent(historyData)}`
-    }).then((r4) => r4.json()).then((r4) => {
+    const body = new URLSearchParams({
+      action: "nomentor_save",
+      nonce,
+      post_id: postId,
+      data,
+      history: historyData
+    });
+    fetch(ajaxUrl, { method: "POST", body }).then((r4) => r4.json()).then((r4) => {
       saveStatus.value = r4.success ? "saved" : "error";
     }).catch(() => {
       saveStatus.value = "error";
@@ -1058,7 +1061,6 @@
   }
   var saveTimer = null;
   function debouncedSave() {
-    pushHistory();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(autoSave, 800);
   }
