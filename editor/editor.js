@@ -1096,11 +1096,13 @@
     const entry = history.value[index];
     if (!entry) return;
     try {
+      clearTimeout(saveTimer);
       const reverted = JSON.parse(entry.snapshot);
       rows.value = reverted;
       _liveSnapshot = null;
       previewIndex.value = null;
-      commitChange();
+      pushHistory();
+      autoSave();
     } catch {
     }
   }

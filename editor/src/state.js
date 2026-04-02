@@ -73,12 +73,15 @@ export function revertToVersion(index) {
   const entry = history.value[index];
   if (!entry) return;
   try {
+    // Clear any pending saves from preview clicks
+    clearTimeout(saveTimer);
     const reverted = JSON.parse(entry.snapshot);
     rows.value = reverted;
     _liveSnapshot = null;
     previewIndex.value = null;
-    // Add a new history entry for the revert (don't trim)
-    commitChange();
+    // Single history entry + save for the revert
+    pushHistory();
+    autoSave();
   } catch {}
 }
 
