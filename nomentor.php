@@ -133,6 +133,15 @@ add_action('transition_post_status', function ($new_status, $old_status, $post) 
   }
 }, 10, 3);
 
+// Also regenerate on save (covers edge cases like direct DB inserts, REST API, etc.)
+add_action('save_post_nomentor_page', function ($post_id, $post) {
+  if ($post->post_status === 'publish' && $post->post_name) {
+    $static_dir = ABSPATH . 'static/' . $post->post_name;
+    if (!is_dir($static_dir)) wp_mkdir_p($static_dir);
+    file_put_contents($static_dir . '/index.html', nomentor_generate_static_html($post));
+  }
+}, 10, 2);
+
 // Also clean up when trashed
 add_action('wp_trash_post', function ($post_id) {
   $post = get_post($post_id);
