@@ -1,3 +1,4 @@
 1. version history (undo/redo)
 2. page tags and comment
-3. support draft/public/trash modes
+done 3. support draft/public/trash modes
+4. global font sizes and theme colors, overridable on page level.
