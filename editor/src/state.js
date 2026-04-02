@@ -153,6 +153,35 @@ export function addElementToCell(cellId, type) {
   return el.id;
 }
 
+export function addGridCell(elementId) {
+  rows.value = rows.value.map(row => ({
+    ...row,
+    elements: row.elements.map(el => {
+      if (el.id !== elementId || !el.children) return el;
+      const newCell = { id: nextId('cell'), elements: [] };
+      return {
+        ...el,
+        props: { ...el.props, columns: el.children.length + 1 },
+        children: [...el.children, newCell]
+      };
+    })
+  }));
+}
+
+export function removeGridCell(elementId, cellId) {
+  rows.value = rows.value.map(row => ({
+    ...row,
+    elements: row.elements.map(el => {
+      if (el.id !== elementId || !el.children || el.children.length <= 1) return el;
+      return {
+        ...el,
+        props: { ...el.props, columns: el.children.length - 1 },
+        children: el.children.filter(c => c.id !== cellId)
+      };
+    })
+  }));
+}
+
 export function removeElement(elementId) {
   rows.value = rows.value.map(row => ({
     ...row,

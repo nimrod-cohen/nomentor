@@ -1,4 +1,4 @@
-import { addElementToCell, dragging, commitChange } from '../../state';
+import { addElementToCell, addGridCell, removeGridCell, dragging, commitChange } from '../../state';
 import { ElementRenderer } from './ElementRenderer';
 
 export function GridElement({ element }) {
@@ -21,30 +21,54 @@ export function GridElement({ element }) {
     e.currentTarget.classList.remove('cell-drag-over');
     if (!dragging.value) return;
     const type = dragging.value.type;
-    if (type === 'grid') return; // no nested grids
+    if (type === 'grid') return;
     addElementToCell(cellId, type);
     dragging.value = null;
     commitChange();
   }
 
+  function onAddCell(e) {
+    e.stopPropagation();
+    addGridCell(element.id);
+    commitChange();
+  }
+
+  function onRemoveCell(e, cellId) {
+    e.stopPropagation();
+    removeGridCell(element.id, cellId);
+    commitChange();
+  }
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '12px' }}>
-      {element.children.map(cell => (
-        <div
-          key={cell.id}
-          class="grid-cell"
-          onDragOver={onCellDragOver}
-          onDragLeave={onCellDragLeave}
-          onDrop={e => onCellDrop(e, cell.id)}
-        >
-          {cell.elements.length === 0 && (
-            <div class="cell-empty">Drop here</div>
-          )}
-          {cell.elements.map(el => (
-            <ElementRenderer key={el.id} element={el} />
-          ))}
-        </div>
-      ))}
+    <div class="grid-wrapper">
+      <div class="grid-element" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+        {element.children.map(cell => (
+          <div
+            key={cell.id}
+            class="grid-cell"
+            onDragOver={onCellDragOver}
+            onDragLeave={onCellDragLeave}
+            onDrop={e => onCellDrop(e, cell.id)}
+          >
+            {element.children.length > 1 && (
+              <button
+                class="cell-remove-btn"
+                onClick={e => onRemoveCell(e, cell.id)}
+                title="Remove cell"
+              >×</button>
+            )}
+            {cell.elements.length === 0 && (
+              <div class="cell-empty">Drop here</div>
+            )}
+            {cell.elements.map(el => (
+              <ElementRenderer key={el.id} element={el} />
+            ))}
+          </div>
+        ))}
+      </div>
+      <button class="grid-add-cell-btn" onClick={onAddCell} title="Add cell">
+        + Add cell
+      </button>
     </div>
   );
 }

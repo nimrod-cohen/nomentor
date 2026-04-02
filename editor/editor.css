@@ -158,13 +158,35 @@ html, body, #nomentor-root {
 .element-wrapper:hover .element-label,
 .element-wrapper.selected .element-label { display: block; }
 
-/* ── Grid cells ── */
+/* ── Grid ── */
+.grid-wrapper { position: relative; }
+.grid-element {
+  display: grid; gap: 12px;
+}
 .grid-cell {
+  position: relative;
   background: #fafafa; border: 1px dashed #ddd; border-radius: 4px;
   min-height: 60px; padding: 8px; transition: border-color 0.15s;
 }
 .grid-cell.cell-drag-over { border-color: var(--accent); background: rgba(74, 144, 217, 0.05); }
 .cell-empty { color: #ccc; font-size: 12px; text-align: center; padding: 16px; }
+
+.cell-remove-btn {
+  display: none; position: absolute; top: 2px; right: 2px; z-index: 5;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #e74c3c; color: #fff; border: none;
+  font-size: 12px; line-height: 1; cursor: pointer;
+  align-items: center; justify-content: center;
+}
+.grid-cell:hover .cell-remove-btn { display: flex; }
+
+.grid-add-cell-btn {
+  display: block; width: 100%; margin-top: 6px;
+  padding: 4px; border: 1px dashed #ccc; border-radius: 4px;
+  background: none; color: #999; font-size: 11px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.grid-add-cell-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(74, 144, 217, 0.03); }
 
 /* ── Navigator tree ── */
 .nav-empty { color: #bbb; font-size: 13px; text-align: center; padding: 20px; }

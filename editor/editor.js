@@ -1150,6 +1150,33 @@
     selectedId.value = el.id;
     return el.id;
   }
+  function addGridCell(elementId) {
+    rows.value = rows.value.map((row) => ({
+      ...row,
+      elements: row.elements.map((el) => {
+        if (el.id !== elementId || !el.children) return el;
+        const newCell = { id: nextId("cell"), elements: [] };
+        return {
+          ...el,
+          props: { ...el.props, columns: el.children.length + 1 },
+          children: [...el.children, newCell]
+        };
+      })
+    }));
+  }
+  function removeGridCell(elementId, cellId) {
+    rows.value = rows.value.map((row) => ({
+      ...row,
+      elements: row.elements.map((el) => {
+        if (el.id !== elementId || !el.children || el.children.length <= 1) return el;
+        return {
+          ...el,
+          props: { ...el.props, columns: el.children.length - 1 },
+          children: el.children.filter((c4) => c4.id !== cellId)
+        };
+      })
+    }));
+  }
   function removeElement(elementId) {
     rows.value = rows.value.map((row) => ({
       ...row,
@@ -1376,20 +1403,42 @@
       dragging.value = null;
       commitChange();
     }
-    return /* @__PURE__ */ u2("div", { style: { display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: "12px" }, children: element.children.map((cell) => /* @__PURE__ */ u2(
-      "div",
-      {
-        class: "grid-cell",
-        onDragOver: onCellDragOver,
-        onDragLeave: onCellDragLeave,
-        onDrop: (e4) => onCellDrop(e4, cell.id),
-        children: [
-          cell.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "cell-empty", children: "Drop here" }),
-          cell.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
-        ]
-      },
-      cell.id
-    )) });
+    function onAddCell(e4) {
+      e4.stopPropagation();
+      addGridCell(element.id);
+      commitChange();
+    }
+    function onRemoveCell(e4, cellId) {
+      e4.stopPropagation();
+      removeGridCell(element.id, cellId);
+      commitChange();
+    }
+    return /* @__PURE__ */ u2("div", { class: "grid-wrapper", children: [
+      /* @__PURE__ */ u2("div", { class: "grid-element", style: { gridTemplateColumns: `repeat(${cols}, 1fr)` }, children: element.children.map((cell) => /* @__PURE__ */ u2(
+        "div",
+        {
+          class: "grid-cell",
+          onDragOver: onCellDragOver,
+          onDragLeave: onCellDragLeave,
+          onDrop: (e4) => onCellDrop(e4, cell.id),
+          children: [
+            element.children.length > 1 && /* @__PURE__ */ u2(
+              "button",
+              {
+                class: "cell-remove-btn",
+                onClick: (e4) => onRemoveCell(e4, cell.id),
+                title: "Remove cell",
+                children: "\xD7"
+              }
+            ),
+            cell.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "cell-empty", children: "Drop here" }),
+            cell.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
+          ]
+        },
+        cell.id
+      )) }),
+      /* @__PURE__ */ u2("button", { class: "grid-add-cell-btn", onClick: onAddCell, title: "Add cell", children: "+ Add cell" })
+    ] });
   }
 
   // editor/src/components/rows/ElementRenderer.jsx
