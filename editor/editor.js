@@ -1385,7 +1385,7 @@
             "Version ",
             i5 + 1
           ] }),
-          isActive && /* @__PURE__ */ u2("button", { class: "history-revert-btn", onClick: (e4) => {
+          /* @__PURE__ */ u2("button", { class: `history-revert-btn ${isActive ? "" : "hidden"}`, onClick: (e4) => {
             e4.stopPropagation();
             revertToVersion(i5);
           }, title: "Revert to this version", children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [

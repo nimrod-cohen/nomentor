@@ -216,6 +216,7 @@ html, body, #nomentor-root {
   transition: background 0.15s;
 }
 .history-revert-btn:hover { background: rgba(74,144,217,0.12); }
+.history-revert-btn.hidden { visibility: hidden; }
 
 .history-exit-btn {
   float: left; border: none; background: none; color: var(--accent);
