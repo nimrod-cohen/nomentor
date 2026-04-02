@@ -100,6 +100,11 @@ add_action('edit_form_after_title', function ($post) {
   echo '<div style="margin:12px 0"><a href="' . esc_url($url) . '" class="button button-primary button-large">Open Designer</a></div>';
 });
 
+// Register hidden admin page so WP allows the URL
+add_action('admin_menu', function () {
+  add_submenu_page(null, 'Nomentor Designer', '', 'edit_pages', 'nomentor-designer', '__return_null');
+});
+
 // Intercept early to render designer without WP admin chrome
 add_action('admin_init', function () {
   if (!isset($_GET['page']) || $_GET['page'] !== 'nomentor-designer') return;
