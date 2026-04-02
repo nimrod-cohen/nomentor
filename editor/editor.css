@@ -4,12 +4,12 @@
   --toolbar-height: 48px;
   --sidebar-width: 260px;
   --bg-toolbar: #1e1e1e;
-  --bg-sidebar: #252525;
-  --bg-canvas: #e8e8e8;
-  --border-color: #333;
+  --bg-sidebar: #ffffff;
+  --bg-canvas: #f0f0f0;
+  --border-color: #e5e5e5;
   --text-primary: #fff;
-  --text-secondary: #aaa;
-  --text-dim: #666;
+  --text-secondary: #333;
+  --text-dim: #999;
 }
 
 body {
