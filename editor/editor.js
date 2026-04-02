@@ -1403,42 +1403,20 @@
       dragging.value = null;
       commitChange();
     }
-    function onAddCell(e4) {
-      e4.stopPropagation();
-      addGridCell(element.id);
-      commitChange();
-    }
-    function onRemoveCell(e4, cellId) {
-      e4.stopPropagation();
-      removeGridCell(element.id, cellId);
-      commitChange();
-    }
-    return /* @__PURE__ */ u2("div", { class: "grid-wrapper", children: [
-      /* @__PURE__ */ u2("div", { class: "grid-element", style: { gridTemplateColumns: `repeat(${cols}, 1fr)` }, children: element.children.map((cell) => /* @__PURE__ */ u2(
-        "div",
-        {
-          class: "grid-cell",
-          onDragOver: onCellDragOver,
-          onDragLeave: onCellDragLeave,
-          onDrop: (e4) => onCellDrop(e4, cell.id),
-          children: [
-            element.children.length > 1 && /* @__PURE__ */ u2(
-              "button",
-              {
-                class: "cell-remove-btn",
-                onClick: (e4) => onRemoveCell(e4, cell.id),
-                title: "Remove cell",
-                children: "\xD7"
-              }
-            ),
-            cell.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "cell-empty", children: "Drop here" }),
-            cell.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
-          ]
-        },
-        cell.id
-      )) }),
-      /* @__PURE__ */ u2("button", { class: "grid-add-cell-btn", onClick: onAddCell, title: "Add cell", children: "+ Add cell" })
-    ] });
+    return /* @__PURE__ */ u2("div", { class: "grid-element", style: { gridTemplateColumns: `repeat(${cols}, 1fr)` }, children: element.children.map((cell) => /* @__PURE__ */ u2(
+      "div",
+      {
+        class: "grid-cell",
+        onDragOver: onCellDragOver,
+        onDragLeave: onCellDragLeave,
+        onDrop: (e4) => onCellDrop(e4, cell.id),
+        children: [
+          cell.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "cell-empty", children: "Drop here" }),
+          cell.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
+        ]
+      },
+      cell.id
+    )) });
   }
 
   // editor/src/components/rows/ElementRenderer.jsx
@@ -1595,36 +1573,64 @@
     ] });
   }
   function ContextMenu() {
-    const { x: x4, y: y5, id, kind } = contextMenu.value;
+    const { x: x4, y: y5, id, kind, parentId } = contextMenu.value;
     function onRemove(e4) {
       e4.stopPropagation();
-      if (kind === "container") {
-        removeRow(id);
-      } else {
-        removeElement(id);
-      }
+      if (kind === "container") removeRow(id);
+      else if (kind === "cell") removeGridCell(parentId, id);
+      else removeElement(id);
       commitChange();
       contextMenu.value = null;
     }
-    return /* @__PURE__ */ u2("div", { class: "nav-context-menu", style: { top: y5, left: x4 }, onClick: (e4) => e4.stopPropagation(), children: /* @__PURE__ */ u2("button", { onClick: onRemove, children: [
+    function onAddCell(e4) {
+      e4.stopPropagation();
+      addGridCell(id);
+      commitChange();
+      contextMenu.value = null;
+    }
+    const isGrid = kind === "element" && rows.value.some(
+      (r4) => r4.elements.some((el) => el.id === id && el.type === "grid")
+    );
+    let canRemoveCell = true;
+    if (kind === "cell") {
+      for (const r4 of rows.value) {
+        for (const el of r4.elements) {
+          if (el.id === parentId && el.children) {
+            canRemoveCell = el.children.length > 1;
+          }
+        }
+      }
+    }
+    return /* @__PURE__ */ u2("div", { class: "nav-context-menu", style: { top: y5, left: x4 }, onClick: (e4) => e4.stopPropagation(), children: kind === "cell" ? canRemoveCell && /* @__PURE__ */ u2("button", { onClick: onRemove, children: [
       /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
         /* @__PURE__ */ u2("path", { d: "M3 6h18" }),
         /* @__PURE__ */ u2("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
         /* @__PURE__ */ u2("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
       ] }),
-      "Remove ",
-      kind
+      "Remove cell"
+    ] }) : /* @__PURE__ */ u2(k, { children: [
+      isGrid && /* @__PURE__ */ u2("button", { class: "context-action", onClick: onAddCell, children: [
+        /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u2("path", { d: "M12 5v14" }),
+          /* @__PURE__ */ u2("path", { d: "M5 12h14" })
+        ] }),
+        "Add cell"
+      ] }),
+      /* @__PURE__ */ u2("button", { onClick: onRemove, children: [
+        /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u2("path", { d: "M3 6h18" }),
+          /* @__PURE__ */ u2("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
+          /* @__PURE__ */ u2("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
+        ] }),
+        "Remove ",
+        kind
+      ] })
     ] }) });
   }
-  function openContextMenu(e4, id, kind) {
+  function openContextMenu(e4, id, kind, parentId = null) {
     e4.preventDefault();
     e4.stopPropagation();
-    contextMenu.value = {
-      x: e4.clientX,
-      y: e4.clientY,
-      id,
-      kind
-    };
+    contextMenu.value = { x: e4.clientX, y: e4.clientY, id, kind, parentId };
   }
   function NavRow({ row }) {
     const isSelected = selectedId.value === row.id;
@@ -1656,10 +1662,20 @@
           children: element.type
         }
       ),
-      element.children && /* @__PURE__ */ u2("ul", { class: "nav-children", children: element.children.map((cell) => /* @__PURE__ */ u2("li", { children: [
-        /* @__PURE__ */ u2("div", { class: "nav-item nav-cell", children: "cell" }),
-        cell.elements.length > 0 && /* @__PURE__ */ u2("ul", { class: "nav-children", children: cell.elements.map((el) => /* @__PURE__ */ u2(NavElement, { element: el }, el.id)) })
-      ] }, cell.id)) })
+      element.children && /* @__PURE__ */ u2("ul", { class: "nav-children", children: element.children.map((cell) => /* @__PURE__ */ u2(NavCell, { cell, gridId: element.id }, cell.id)) })
+    ] });
+  }
+  function NavCell({ cell, gridId }) {
+    return /* @__PURE__ */ u2("li", { children: [
+      /* @__PURE__ */ u2(
+        "div",
+        {
+          class: "nav-item nav-cell",
+          onContextMenu: (e4) => openContextMenu(e4, cell.id, "cell", gridId),
+          children: "cell"
+        }
+      ),
+      cell.elements.length > 0 && /* @__PURE__ */ u2("ul", { class: "nav-children", children: cell.elements.map((el) => /* @__PURE__ */ u2(NavElement, { element: el }, el.id)) })
     ] });
   }
 
