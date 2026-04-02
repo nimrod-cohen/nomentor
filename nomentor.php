@@ -173,75 +173,9 @@ HTML;
 }
 
 // Intercept early to render designer without WP admin chrome
+require_once NOMENTOR_DIR . 'editor/editor.php';
+
 add_action('admin_init', function () {
   if (!isset($_GET['page']) || $_GET['page'] !== 'nomentor-designer') return;
-  if (!current_user_can('edit_pages')) wp_die('Access denied');
-
-  $post_id = intval($_GET['post_id'] ?? 0);
-  $post = get_post($post_id);
-
-  if (!$post || $post->post_type !== 'nomentor_page') {
-    wp_die('Invalid page');
-  }
-
-  $back_url = admin_url('edit.php?post_type=nomentor_page');
-  $view_url = ($post->post_status === 'publish' && $post->post_name)
-    ? home_url('/static/' . $post->post_name . '/')
-    : '';
-  $title = esc_html($post->post_title);
-
-  ?><!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nomentor — <?= $title ?></title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f0f0; }
-
-    .nomentor-toolbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-      height: 48px; background: #1e1e1e; color: #fff;
-      display: flex; align-items: center; padding: 0 16px; gap: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    }
-    .nomentor-toolbar a, .nomentor-toolbar button {
-      color: #ccc; text-decoration: none; font-size: 13px; background: none; border: none;
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 4px; transition: background 0.15s;
-      cursor: pointer; font-family: inherit;
-    }
-    .nomentor-toolbar a:hover, .nomentor-toolbar button:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .nomentor-toolbar .page-title { font-size: 14px; font-weight: 600; }
-    .nomentor-toolbar .spacer { flex: 1; }
-    .nomentor-toolbar .separator { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
-    .nomentor-toolbar .disabled { opacity: 0.3; pointer-events: none; }
-
-    .nomentor-canvas {
-      margin-top: 48px; min-height: calc(100vh - 48px);
-      display: flex; align-items: center; justify-content: center;
-      color: #888; font-size: 18px;
-    }
-  </style>
-</head>
-<body>
-  <div class="nomentor-toolbar">
-    <a href="<?= esc_url($back_url) ?>">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      Back
-    </a>
-    <span class="separator"></span>
-    <span class="page-title"><?= $title ?></span>
-    <span class="spacer"></span>
-    <a href="<?= esc_url($view_url) ?>" target="_blank" class="<?= $view_url ? '' : 'disabled' ?>" title="View page">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
-    </a>
-  </div>
-  <div class="nomentor-canvas">
-    Nomentor Designer
-  </div>
-</body>
-</html><?php
-  exit;
+  nomentor_render_editor();
 });
