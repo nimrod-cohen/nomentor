@@ -200,10 +200,28 @@ html, body, #nomentor-root {
 .history-empty { color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
 .history-list { list-style: none; }
 .history-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 10px; border-radius: 4px; cursor: pointer;
-  font-size: 12px; transition: background 0.1s;
+  padding: 4px 0; border-radius: 4px; font-size: 12px;
 }
-.history-item:hover { background: #f0f4ff; }
+.history-item.active { background: #f0f4ff; }
+.history-item-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 10px; cursor: pointer; border-radius: 4px; transition: background 0.1s;
+}
+.history-item-row:hover { background: #f0f4ff; }
 .history-time { color: var(--text-dim); font-family: monospace; font-size: 11px; }
 .history-action { color: var(--text-secondary); }
+
+.history-revert-btn {
+  display: block; width: calc(100% - 20px); margin: 4px 10px 6px;
+  padding: 5px 0; border: 1px solid var(--accent); border-radius: 4px;
+  background: none; color: var(--accent); font-size: 11px; font-weight: 500;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.history-revert-btn:hover { background: var(--accent); color: #fff; }
+
+.history-exit-btn {
+  float: left; border: none; background: none; color: var(--accent);
+  font-size: 10px; cursor: pointer; font-family: inherit; text-transform: none;
+  letter-spacing: 0; font-weight: 500;
+}
+.history-exit-btn:hover { text-decoration: underline; }

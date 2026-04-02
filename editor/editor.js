@@ -1058,12 +1058,39 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(autoSave, 800);
   }
-  function undoTo(index) {
+  var previewIndex = y3(null);
+  var _liveSnapshot = null;
+  function previewVersion(index) {
     const entry = history.value[index];
     if (!entry) return;
     try {
+      if (previewIndex.value === null) {
+        _liveSnapshot = JSON.stringify(rows.value);
+      }
       rows.value = JSON.parse(entry.snapshot);
-      history.value = history.value.slice(0, index);
+      previewIndex.value = index;
+    } catch {
+    }
+  }
+  function exitPreview() {
+    if (_liveSnapshot !== null) {
+      try {
+        rows.value = JSON.parse(_liveSnapshot);
+      } catch {
+      }
+      _liveSnapshot = null;
+    }
+    previewIndex.value = null;
+  }
+  function revertToVersion(index) {
+    const entry = history.value[index];
+    if (!entry) return;
+    try {
+      const reverted = JSON.parse(entry.snapshot);
+      rows.value = reverted;
+      _liveSnapshot = null;
+      previewIndex.value = null;
+      commitChange();
     } catch {
     }
   }
@@ -1244,7 +1271,10 @@
           "button",
           {
             class: mode === "toolbox" ? "active" : "",
-            onClick: () => sidebarMode.value = "toolbox",
+            onClick: () => {
+              sidebarMode.value = "toolbox";
+              if (previewIndex.value !== null) exitPreview();
+            },
             title: "Toolbox",
             children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
               /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }),
@@ -1312,15 +1342,26 @@
   // editor/src/components/History.jsx
   function History() {
     const entries = history.value;
+    const previewing = previewIndex.value;
     return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-left", children: [
-      /* @__PURE__ */ u2("div", { class: "sidebar-header", children: "History" }),
-      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: entries.length === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: entries.map((entry, i5) => /* @__PURE__ */ u2("li", { class: "history-item", onClick: () => undoTo(i5), children: [
-        /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
-        /* @__PURE__ */ u2("span", { class: "history-action", children: [
-          "Snapshot ",
-          i5 + 1
-        ] })
-      ] }, i5)).reverse() }) })
+      /* @__PURE__ */ u2("div", { class: "sidebar-header", children: [
+        "History",
+        previewing !== null && /* @__PURE__ */ u2("button", { class: "history-exit-btn", onClick: exitPreview, children: "Back to live" })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: entries.length === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
+        const i5 = entries.length - 1 - ri;
+        const isActive = previewing === i5;
+        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, children: [
+          /* @__PURE__ */ u2("div", { class: "history-item-row", onClick: () => previewVersion(i5), children: [
+            /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
+            /* @__PURE__ */ u2("span", { class: "history-action", children: [
+              "Version ",
+              i5 + 1
+            ] })
+          ] }),
+          isActive && /* @__PURE__ */ u2("button", { class: "history-revert-btn", onClick: () => revertToVersion(i5), children: "Revert to this version" })
+        ] }, i5);
+      }) }) })
     ] });
   }
   function formatTime(ts) {

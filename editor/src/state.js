@@ -38,14 +38,41 @@ function debouncedSave() {
 
 // Changes are committed explicitly via commitChange() — no auto-effect
 
-// ── Undo to history snapshot ──
-export function undoTo(index) {
+// ── History preview / revert ──
+export const previewIndex = signal(null); // null = live, number = previewing that index
+let _liveSnapshot = null; // stash live state while previewing
+
+export function previewVersion(index) {
   const entry = history.value[index];
   if (!entry) return;
   try {
+    if (previewIndex.value === null) {
+      // Stash live state before first preview
+      _liveSnapshot = JSON.stringify(rows.value);
+    }
     rows.value = JSON.parse(entry.snapshot);
-    // Trim history to this point
-    history.value = history.value.slice(0, index);
+    previewIndex.value = index;
+  } catch {}
+}
+
+export function exitPreview() {
+  if (_liveSnapshot !== null) {
+    try { rows.value = JSON.parse(_liveSnapshot); } catch {}
+    _liveSnapshot = null;
+  }
+  previewIndex.value = null;
+}
+
+export function revertToVersion(index) {
+  const entry = history.value[index];
+  if (!entry) return;
+  try {
+    const reverted = JSON.parse(entry.snapshot);
+    rows.value = reverted;
+    _liveSnapshot = null;
+    previewIndex.value = null;
+    // Add a new history entry for the revert (don't trim)
+    commitChange();
   } catch {}
 }
 
