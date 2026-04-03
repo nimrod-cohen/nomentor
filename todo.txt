@@ -6,3 +6,4 @@ done 3. support draft/public/trash modes
 6. body - use full width
 7. add buttons to change view to mobile/tablet/desktop
 8. hide/show toolbox and navigator.
+9. font selection
