@@ -47,9 +47,9 @@ export function App() {
     <>
       <Toolbar title={title} backUrl={backUrl} viewUrl={viewUrl} />
       <div class={editorClass}>
-        {showLeft && (mode === 'toolbox' ? <Toolbox /> : <History />)}
+        {mode === 'toolbox' ? <Toolbox /> : <History />}
         <Canvas />
-        {showRight && <Navigator />}
+        <Navigator />
       </div>
     </>
   );

@@ -9,6 +9,13 @@ export function Toolbar({ title, backUrl, viewUrl }) {
 
   return (
     <div class="nomentor-toolbar">
+      <a href={backUrl}>
+        <ArrowLeft size={16} />
+        Back
+      </a>
+      <span class="separator" />
+      <span class="page-title">{title}</span>
+
       {/* Left sidebar toggle */}
       <button
         class={`toolbar-icon-btn ${leftOpen ? 'active' : ''}`}
@@ -17,15 +24,6 @@ export function Toolbar({ title, backUrl, viewUrl }) {
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
       </button>
-
-      <span class="separator" />
-
-      <a href={backUrl}>
-        <ArrowLeft size={16} />
-        Back
-      </a>
-      <span class="separator" />
-      <span class="page-title">{title}</span>
 
       <span class="separator" />
       <div class="toolbar-toggle">

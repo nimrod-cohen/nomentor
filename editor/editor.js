@@ -1300,6 +1300,12 @@
     const leftOpen = leftSidebarOpen.value;
     const rightOpen = rightSidebarOpen.value;
     return /* @__PURE__ */ u2("div", { class: "nomentor-toolbar", children: [
+      /* @__PURE__ */ u2("a", { href: backUrl, children: [
+        /* @__PURE__ */ u2(ArrowLeft, { size: 16 }),
+        "Back"
+      ] }),
+      /* @__PURE__ */ u2("span", { class: "separator" }),
+      /* @__PURE__ */ u2("span", { class: "page-title", children: title }),
       /* @__PURE__ */ u2(
         "button",
         {
@@ -1312,13 +1318,6 @@
           ] })
         }
       ),
-      /* @__PURE__ */ u2("span", { class: "separator" }),
-      /* @__PURE__ */ u2("a", { href: backUrl, children: [
-        /* @__PURE__ */ u2(ArrowLeft, { size: 16 }),
-        "Back"
-      ] }),
-      /* @__PURE__ */ u2("span", { class: "separator" }),
-      /* @__PURE__ */ u2("span", { class: "page-title", children: title }),
       /* @__PURE__ */ u2("span", { class: "separator" }),
       /* @__PURE__ */ u2("div", { class: "toolbar-toggle", children: [
         /* @__PURE__ */ u2(
@@ -1901,9 +1900,9 @@
     return /* @__PURE__ */ u2(k, { children: [
       /* @__PURE__ */ u2(Toolbar, { title, backUrl, viewUrl }),
       /* @__PURE__ */ u2("div", { class: editorClass, children: [
-        showLeft && (mode === "toolbox" ? /* @__PURE__ */ u2(Toolbox, {}) : /* @__PURE__ */ u2(History, {})),
+        mode === "toolbox" ? /* @__PURE__ */ u2(Toolbox, {}) : /* @__PURE__ */ u2(History, {}),
         /* @__PURE__ */ u2(Canvas, {}),
-        showRight && /* @__PURE__ */ u2(Navigator, {})
+        /* @__PURE__ */ u2(Navigator, {})
       ] })
     ] });
   }
