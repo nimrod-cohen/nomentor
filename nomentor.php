@@ -140,7 +140,7 @@ add_action('wp_ajax_nomentor_load', function () {
 
   $data = get_post_meta($post_id, '_nomentor_layout', true);
   $historyData = get_post_meta($post_id, '_nomentor_history', true);
-  wp_send_json_success(['layout' => $data ?: '[]', 'history' => $historyData ?: '[]']);
+  wp_send_json_success(['layout' => $data ?: '[]', 'history' => $historyData ?: '']);
 });
 
 // Register hidden admin page so WP allows the URL

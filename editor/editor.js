@@ -1777,14 +1777,15 @@
           syncIdCounter(layout);
         }
       }
-      if (data.success && data.data?.history) {
+      if (data.success && data.data?.history && data.data.history.length > 2) {
         try {
           const decoded = decodeURIComponent(escape(atob(data.data.history)));
           const h4 = JSON.parse(decoded);
-          console.log("Loaded history:", h4.length, "entries");
-          loadHistory(h4);
+          if (Array.isArray(h4) && h4.length > 0) {
+            console.log("Loaded history:", h4.length, "entries");
+            loadHistory(h4);
+          }
         } catch (he) {
-          console.warn("Failed to parse history:", he);
         }
       }
     } catch (e4) {

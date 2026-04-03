@@ -18,14 +18,16 @@ import { sidebarMode, rows, syncIdCounter, loadHistory } from './state';
         syncIdCounter(layout);
       }
     }
-    if (data.success && data.data?.history) {
+    if (data.success && data.data?.history && data.data.history.length > 2) {
       try {
         const decoded = decodeURIComponent(escape(atob(data.data.history)));
         const h = JSON.parse(decoded);
-        console.log('Loaded history:', h.length, 'entries');
-        loadHistory(h);
+        if (Array.isArray(h) && h.length > 0) {
+          console.log('Loaded history:', h.length, 'entries');
+          loadHistory(h);
+        }
       } catch (he) {
-        console.warn('Failed to parse history:', he);
+        // Not base64 or invalid — ignore stale data
       }
     }
   } catch (e) {
