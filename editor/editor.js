@@ -1030,13 +1030,23 @@
   // editor/src/state.js
   var saveStatus = y3("saved");
   var history = y3([]);
-  var MAX_HISTORY = 50;
+  var MAX_HISTORY = 100;
   function pushHistory(action = "") {
     const snapshot = JSON.stringify(rows.value);
     const list = [...history.value];
-    list.push({ timestamp: Date.now(), snapshot, action });
-    if (list.length > MAX_HISTORY) list.shift();
+    list.push({ timestamp: Date.now(), snapshot, action, pinned: false });
+    while (list.length > MAX_HISTORY) {
+      const idx = list.findIndex((e4) => !e4.pinned);
+      if (idx === -1) break;
+      list.splice(idx, 1);
+    }
     history.value = list;
+  }
+  function togglePin(index) {
+    history.value = history.value.map(
+      (entry, i5) => i5 === index ? { ...entry, pinned: !entry.pinned } : entry
+    );
+    debouncedSave();
   }
   function autoSave() {
     const { ajaxUrl, nonce, postId } = window.nomentor;
@@ -1379,16 +1389,55 @@
         const i5 = entries.length - 1 - ri;
         const isLast = i5 === entries.length - 1;
         const isActive = previewing === i5;
-        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, onClick: () => !isLast && previewVersion(i5), children: [
-          /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
-          /* @__PURE__ */ u2("span", { class: "history-action", children: isLast ? "Current" : entry.action || `Version ${i5 + 1}` }),
-          /* @__PURE__ */ u2("button", { class: `history-revert-btn ${isActive && !isLast ? "" : "hidden"}`, onClick: (e4) => {
-            e4.stopPropagation();
-            revertToVersion(i5);
-          }, title: "Revert to this version", children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-            /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
-            /* @__PURE__ */ u2("path", { d: "M3 3v5h5" })
-          ] }) })
+        const label = isLast ? "Current" : entry.action || "Version " + (i5 + 1);
+        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, children: [
+          /* @__PURE__ */ u2("div", { class: "history-item-row", onClick: () => !isLast && previewVersion(i5), children: [
+            /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
+            /* @__PURE__ */ u2("span", { class: "history-action", children: label })
+          ] }),
+          /* @__PURE__ */ u2("div", { class: "history-item-actions", children: [
+            /* @__PURE__ */ u2(
+              "button",
+              {
+                class: `history-pin-btn ${entry.pinned ? "pinned" : ""}`,
+                onClick: (e4) => {
+                  e4.stopPropagation();
+                  togglePin(i5);
+                },
+                title: entry.pinned ? "Unpin" : "Pin to keep",
+                children: /* @__PURE__ */ u2(
+                  "svg",
+                  {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    width: "12",
+                    height: "12",
+                    viewBox: "0 0 24 24",
+                    fill: entry.pinned ? "currentColor" : "none",
+                    stroke: "currentColor",
+                    "stroke-width": "2",
+                    "stroke-linecap": "round",
+                    "stroke-linejoin": "round",
+                    children: /* @__PURE__ */ u2("path", { d: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" })
+                  }
+                )
+              }
+            ),
+            /* @__PURE__ */ u2(
+              "button",
+              {
+                class: `history-revert-btn ${isActive && !isLast ? "" : "hidden"}`,
+                onClick: (e4) => {
+                  e4.stopPropagation();
+                  revertToVersion(i5);
+                },
+                title: "Revert to this version",
+                children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+                  /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+                  /* @__PURE__ */ u2("path", { d: "M3 3v5h5" })
+                ] })
+              }
+            )
+          ] })
         ] }, i5);
       }) }) })
     ] });

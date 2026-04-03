@@ -2,15 +2,27 @@ import { signal } from '@preact/signals';
 
 // ── Save state ──
 export const saveStatus = signal('saved'); // 'saved' | 'saving' | 'error'
-export const history = signal([]); // { timestamp, snapshot }
-const MAX_HISTORY = 50;
+export const history = signal([]); // { timestamp, snapshot, action, pinned }
+const MAX_HISTORY = 100;
 
 function pushHistory(action = '') {
   const snapshot = JSON.stringify(rows.value);
   const list = [...history.value];
-  list.push({ timestamp: Date.now(), snapshot, action });
-  if (list.length > MAX_HISTORY) list.shift();
+  list.push({ timestamp: Date.now(), snapshot, action, pinned: false });
+  // FIFO: remove oldest unpinned entries over the limit
+  while (list.length > MAX_HISTORY) {
+    const idx = list.findIndex(e => !e.pinned);
+    if (idx === -1) break; // all pinned, can't trim
+    list.splice(idx, 1);
+  }
   history.value = list;
+}
+
+export function togglePin(index) {
+  history.value = history.value.map((entry, i) =>
+    i === index ? { ...entry, pinned: !entry.pinned } : entry
+  );
+  debouncedSave();
 }
 
 function autoSave() {
