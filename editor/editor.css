@@ -62,11 +62,10 @@ html, body, #nomentor-root {
   left: 0; right: 0; bottom: 0;
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
-  transition: grid-template-columns 0.2s;
 }
-.nomentor-editor.no-left { grid-template-columns: 0px 1fr var(--sidebar-width); }
-.nomentor-editor.no-right { grid-template-columns: var(--sidebar-width) 1fr 0px; }
-.nomentor-editor.no-left.no-right { grid-template-columns: 0px 1fr 0px; }
+.nomentor-editor.no-left { grid-template-columns: 1fr var(--sidebar-width); }
+.nomentor-editor.no-right { grid-template-columns: var(--sidebar-width) 1fr; }
+.nomentor-editor.no-left.no-right { grid-template-columns: 1fr; }
 
 .toolbar-icon-btn {
   color: #888; background: none; border: none;
