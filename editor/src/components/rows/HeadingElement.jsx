@@ -10,7 +10,7 @@ export function HeadingElement({ element }) {
     const text = ref.current.textContent;
     if (text !== element.props.text) {
       updateElementProps(element.id, { text });
-      commitChange();
+      commitChange('Edit heading');
     }
   }
 

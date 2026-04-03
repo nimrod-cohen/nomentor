@@ -24,7 +24,7 @@ export function GridElement({ element }) {
     if (type === 'grid') return;
     addElementToCell(cellId, type);
     dragging.value = null;
-    commitChange();
+    commitChange('Add ' + type + ' to cell');
   }
 
   return (

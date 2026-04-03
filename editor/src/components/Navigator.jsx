@@ -37,17 +37,16 @@ function ContextMenu() {
 
   function onRemove(e) {
     e.stopPropagation();
-    if (kind === 'container') removeRow(id);
-    else if (kind === 'cell') removeGridCell(parentId, id);
-    else removeElement(id);
-    commitChange();
+    if (kind === 'container') { removeRow(id); commitChange('Remove container'); }
+    else if (kind === 'cell') { removeGridCell(parentId, id); commitChange('Remove grid cell'); }
+    else { removeElement(id); commitChange('Remove ' + kind); }
     contextMenu.value = null;
   }
 
   function onAddCell(e) {
     e.stopPropagation();
     addGridCell(id);
-    commitChange();
+    commitChange('Add grid cell');
     contextMenu.value = null;
   }
 

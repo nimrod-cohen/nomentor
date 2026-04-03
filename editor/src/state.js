@@ -5,10 +5,10 @@ export const saveStatus = signal('saved'); // 'saved' | 'saving' | 'error'
 export const history = signal([]); // { timestamp, snapshot }
 const MAX_HISTORY = 50;
 
-function pushHistory() {
+function pushHistory(action = '') {
   const snapshot = JSON.stringify(rows.value);
   const list = [...history.value];
-  list.push({ timestamp: Date.now(), snapshot });
+  list.push({ timestamp: Date.now(), snapshot, action });
   if (list.length > MAX_HISTORY) list.shift();
   history.value = list;
 }
@@ -81,8 +81,7 @@ export function revertToVersion(index) {
     rows.value = reverted;
     _liveSnapshot = null;
     previewIndex.value = null;
-    // Single history entry + save for the revert
-    pushHistory();
+    pushHistory('Reverted to version ' + (index + 1));
     autoSave();
   } catch {}
 }
@@ -278,18 +277,18 @@ export function updateElementProps(elementId, props) {
 export function dropOnCanvas(type, beforeRowId = null) {
   const rowId = addRow(beforeRowId);
   addElementToRow(rowId, type);
-  commitChange();
+  commitChange('Add ' + type);
 }
 
 // ── Drop on existing container: adds element to bottom of that container ──
 export function dropOnContainer(type, rowId) {
   addElementToRow(rowId, type);
-  commitChange();
+  commitChange('Add ' + type);
 }
 
 // ── Explicit change tracking (no auto-effect) ──
-export function commitChange() {
-  pushHistory();
+export function commitChange(action = '') {
+  pushHistory(action);
   debouncedSave();
 }
 

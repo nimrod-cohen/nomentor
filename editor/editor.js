@@ -1031,10 +1031,10 @@
   var saveStatus = y3("saved");
   var history = y3([]);
   var MAX_HISTORY = 50;
-  function pushHistory() {
+  function pushHistory(action = "") {
     const snapshot = JSON.stringify(rows.value);
     const list = [...history.value];
-    list.push({ timestamp: Date.now(), snapshot });
+    list.push({ timestamp: Date.now(), snapshot, action });
     if (list.length > MAX_HISTORY) list.shift();
     history.value = list;
   }
@@ -1102,7 +1102,7 @@
       rows.value = reverted;
       _liveSnapshot = null;
       previewIndex.value = null;
-      pushHistory();
+      pushHistory("Reverted to version " + (index + 1));
       autoSave();
     } catch {
     }
@@ -1268,14 +1268,14 @@
   function dropOnCanvas(type, beforeRowId = null) {
     const rowId = addRow(beforeRowId);
     addElementToRow(rowId, type);
-    commitChange();
+    commitChange("Add " + type);
   }
   function dropOnContainer(type, rowId) {
     addElementToRow(rowId, type);
-    commitChange();
+    commitChange("Add " + type);
   }
-  function commitChange() {
-    pushHistory();
+  function commitChange(action = "") {
+    pushHistory(action);
     debouncedSave();
   }
   var dragging = y3(null);
@@ -1381,7 +1381,7 @@
         const isActive = previewing === i5;
         return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, onClick: () => !isLast && previewVersion(i5), children: [
           /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
-          /* @__PURE__ */ u2("span", { class: "history-action", children: isLast ? "Current" : `Version ${i5 + 1}` }),
+          /* @__PURE__ */ u2("span", { class: "history-action", children: isLast ? "Current" : entry.action || `Version ${i5 + 1}` }),
           /* @__PURE__ */ u2("button", { class: `history-revert-btn ${isActive && !isLast ? "" : "hidden"}`, onClick: (e4) => {
             e4.stopPropagation();
             revertToVersion(i5);
@@ -1407,7 +1407,7 @@
       const text = ref.current.textContent;
       if (text !== element.props.text) {
         updateElementProps(element.id, { text });
-        commitChange();
+        commitChange("Edit heading");
       }
     }
     return /* @__PURE__ */ u2(
@@ -1430,7 +1430,7 @@
       const html = ref.current.innerHTML;
       if (html !== element.props.text) {
         updateElementProps(element.id, { text: html });
-        commitChange();
+        commitChange("Edit text");
       }
     }
     return /* @__PURE__ */ u2(
@@ -1483,7 +1483,7 @@
       if (type === "grid") return;
       addElementToCell(cellId, type);
       dragging.value = null;
-      commitChange();
+      commitChange("Add " + type + " to cell");
     }
     return /* @__PURE__ */ u2("div", { class: "grid-element", style: { gridTemplateColumns: `repeat(${cols}, 1fr)` }, children: element.children.map((cell) => /* @__PURE__ */ u2(
       "div",
@@ -1573,11 +1573,11 @@
         const row = rows.value.find((r4) => r4.id === sel);
         if (row) {
           removeRow(sel);
-          commitChange();
+          commitChange("Remove container");
           return;
         }
         removeElement(sel);
-        commitChange();
+        commitChange("Remove element");
       }
       document.addEventListener("keydown", onKeyDown);
       return () => document.removeEventListener("keydown", onKeyDown);
@@ -1658,16 +1658,22 @@
     const { x: x4, y: y5, id, kind, parentId } = contextMenu.value;
     function onRemove(e4) {
       e4.stopPropagation();
-      if (kind === "container") removeRow(id);
-      else if (kind === "cell") removeGridCell(parentId, id);
-      else removeElement(id);
-      commitChange();
+      if (kind === "container") {
+        removeRow(id);
+        commitChange("Remove container");
+      } else if (kind === "cell") {
+        removeGridCell(parentId, id);
+        commitChange("Remove grid cell");
+      } else {
+        removeElement(id);
+        commitChange("Remove " + kind);
+      }
       contextMenu.value = null;
     }
     function onAddCell(e4) {
       e4.stopPropagation();
       addGridCell(id);
-      commitChange();
+      commitChange("Add grid cell");
       contextMenu.value = null;
     }
     const isGrid = kind === "element" && rows.value.some(

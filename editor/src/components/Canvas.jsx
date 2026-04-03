@@ -52,10 +52,10 @@ export function Canvas() {
 
       // Check if it's a row or element
       const row = rows.value.find(r => r.id === sel);
-      if (row) { removeRow(sel); commitChange(); return; }
+      if (row) { removeRow(sel); commitChange('Remove container'); return; }
 
       removeElement(sel);
-      commitChange();
+      commitChange('Remove element');
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);

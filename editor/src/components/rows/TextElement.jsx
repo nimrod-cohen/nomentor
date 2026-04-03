@@ -9,7 +9,7 @@ export function TextElement({ element }) {
     const html = ref.current.innerHTML;
     if (html !== element.props.text) {
       updateElementProps(element.id, { text: html });
-      commitChange();
+      commitChange('Edit text');
     }
   }
 
