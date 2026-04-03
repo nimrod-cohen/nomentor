@@ -100,6 +100,8 @@ export function revertToVersion(index) {
 
 // ── Left sidebar mode ──
 export const sidebarMode = signal('toolbox'); // 'toolbox' | 'history'
+export const leftSidebarOpen = signal(true);
+export const rightSidebarOpen = signal(true);
 
 /**
  * Page structure:

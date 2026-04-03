@@ -1,12 +1,25 @@
 import { ArrowLeft, Eye } from '../icons';
-import { saveStatus, sidebarMode, exitPreview, previewIndex } from '../state';
+import { saveStatus, sidebarMode, exitPreview, previewIndex, leftSidebarOpen, rightSidebarOpen } from '../state';
 
 export function Toolbar({ title, backUrl, viewUrl }) {
   const status = saveStatus.value;
   const mode = sidebarMode.value;
+  const leftOpen = leftSidebarOpen.value;
+  const rightOpen = rightSidebarOpen.value;
 
   return (
     <div class="nomentor-toolbar">
+      {/* Left sidebar toggle */}
+      <button
+        class={`toolbar-icon-btn ${leftOpen ? 'active' : ''}`}
+        onClick={() => leftSidebarOpen.value = !leftOpen}
+        title={leftOpen ? 'Hide sidebar' : 'Show sidebar'}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+
+      <span class="separator" />
+
       <a href={backUrl}>
         <ArrowLeft size={16} />
         Back
@@ -18,14 +31,14 @@ export function Toolbar({ title, backUrl, viewUrl }) {
       <div class="toolbar-toggle">
         <button
           class={mode === 'toolbox' ? 'active' : ''}
-          onClick={() => { sidebarMode.value = 'toolbox'; if (previewIndex.value !== null) exitPreview(); }}
+          onClick={() => { sidebarMode.value = 'toolbox'; if (previewIndex.value !== null) exitPreview(); if (!leftOpen) leftSidebarOpen.value = true; }}
           title="Toolbox"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
         </button>
         <button
           class={mode === 'history' ? 'active' : ''}
-          onClick={() => sidebarMode.value = 'history'}
+          onClick={() => { sidebarMode.value = 'history'; if (!leftOpen) leftSidebarOpen.value = true; }}
           title="History"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
@@ -37,6 +50,17 @@ export function Toolbar({ title, backUrl, viewUrl }) {
       <span class={`save-status ${status}`}>
         {status === 'saving' ? 'Saving...' : status === 'error' ? 'Save failed' : 'Saved'}
       </span>
+
+      <span class="separator" />
+
+      {/* Navigator (right sidebar) toggle */}
+      <button
+        class={`toolbar-icon-btn ${rightOpen ? 'active' : ''}`}
+        onClick={() => rightSidebarOpen.value = !rightOpen}
+        title={rightOpen ? 'Hide navigator' : 'Show navigator'}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+      </button>
 
       <a href={viewUrl || '#'} target="_blank" class={viewUrl ? '' : 'disabled'} title="View page">
         <Eye size={16} />

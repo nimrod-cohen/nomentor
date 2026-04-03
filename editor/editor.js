@@ -1118,6 +1118,8 @@
     }
   }
   var sidebarMode = y3("toolbox");
+  var leftSidebarOpen = y3(true);
+  var rightSidebarOpen = y3(true);
   var rows = y3([]);
   var selectedId = y3(null);
   var _nextId = 1;
@@ -1295,7 +1297,22 @@
   function Toolbar({ title, backUrl, viewUrl }) {
     const status = saveStatus.value;
     const mode = sidebarMode.value;
+    const leftOpen = leftSidebarOpen.value;
+    const rightOpen = rightSidebarOpen.value;
     return /* @__PURE__ */ u2("div", { class: "nomentor-toolbar", children: [
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: `toolbar-icon-btn ${leftOpen ? "active" : ""}`,
+          onClick: () => leftSidebarOpen.value = !leftOpen,
+          title: leftOpen ? "Hide sidebar" : "Show sidebar",
+          children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+            /* @__PURE__ */ u2("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
+            /* @__PURE__ */ u2("path", { d: "M9 3v18" })
+          ] })
+        }
+      ),
+      /* @__PURE__ */ u2("span", { class: "separator" }),
       /* @__PURE__ */ u2("a", { href: backUrl, children: [
         /* @__PURE__ */ u2(ArrowLeft, { size: 16 }),
         "Back"
@@ -1311,6 +1328,7 @@
             onClick: () => {
               sidebarMode.value = "toolbox";
               if (previewIndex.value !== null) exitPreview();
+              if (!leftOpen) leftSidebarOpen.value = true;
             },
             title: "Toolbox",
             children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
@@ -1325,7 +1343,10 @@
           "button",
           {
             class: mode === "history" ? "active" : "",
-            onClick: () => sidebarMode.value = "history",
+            onClick: () => {
+              sidebarMode.value = "history";
+              if (!leftOpen) leftSidebarOpen.value = true;
+            },
             title: "History",
             children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
               /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
@@ -1337,6 +1358,21 @@
       ] }),
       /* @__PURE__ */ u2("span", { class: "spacer" }),
       /* @__PURE__ */ u2("span", { class: `save-status ${status}`, children: status === "saving" ? "Saving..." : status === "error" ? "Save failed" : "Saved" }),
+      /* @__PURE__ */ u2("span", { class: "separator" }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: `toolbar-icon-btn ${rightOpen ? "active" : ""}`,
+          onClick: () => rightSidebarOpen.value = !rightOpen,
+          title: rightOpen ? "Hide navigator" : "Show navigator",
+          children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+            /* @__PURE__ */ u2("path", { d: "M12 12h.01" }),
+            /* @__PURE__ */ u2("path", { d: "M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" }),
+            /* @__PURE__ */ u2("path", { d: "M22 13a18.15 18.15 0 0 1-20 0" }),
+            /* @__PURE__ */ u2("rect", { width: "20", height: "14", x: "2", y: "6", rx: "2" })
+          ] })
+        }
+      ),
       /* @__PURE__ */ u2("a", { href: viewUrl || "#", target: "_blank", class: viewUrl ? "" : "disabled", title: "View page", children: /* @__PURE__ */ u2(Eye, { size: 16 }) })
     ] });
   }
@@ -1860,12 +1896,15 @@
   function App() {
     const { title, backUrl, viewUrl } = window.nomentor;
     const mode = sidebarMode.value;
+    const showLeft = leftSidebarOpen.value;
+    const showRight = rightSidebarOpen.value;
+    const editorClass = `nomentor-editor ${!showLeft ? "no-left" : ""} ${!showRight ? "no-right" : ""}`;
     return /* @__PURE__ */ u2(k, { children: [
       /* @__PURE__ */ u2(Toolbar, { title, backUrl, viewUrl }),
-      /* @__PURE__ */ u2("div", { class: "nomentor-editor", children: [
-        mode === "toolbox" ? /* @__PURE__ */ u2(Toolbox, {}) : /* @__PURE__ */ u2(History, {}),
+      /* @__PURE__ */ u2("div", { class: editorClass, children: [
+        showLeft && (mode === "toolbox" ? /* @__PURE__ */ u2(Toolbox, {}) : /* @__PURE__ */ u2(History, {})),
         /* @__PURE__ */ u2(Canvas, {}),
-        /* @__PURE__ */ u2(Navigator, {})
+        showRight && /* @__PURE__ */ u2(Navigator, {})
       ] })
     ] });
   }

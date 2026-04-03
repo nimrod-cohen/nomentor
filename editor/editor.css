@@ -62,7 +62,19 @@ html, body, #nomentor-root {
   left: 0; right: 0; bottom: 0;
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
+  transition: grid-template-columns 0.2s;
 }
+.nomentor-editor.no-left { grid-template-columns: 0px 1fr var(--sidebar-width); }
+.nomentor-editor.no-right { grid-template-columns: var(--sidebar-width) 1fr 0px; }
+.nomentor-editor.no-left.no-right { grid-template-columns: 0px 1fr 0px; }
+
+.toolbar-icon-btn {
+  color: #888; background: none; border: none;
+  display: flex; align-items: center; padding: 6px;
+  border-radius: 4px; cursor: pointer; transition: all 0.15s;
+}
+.toolbar-icon-btn:hover { color: #ccc; background: rgba(255,255,255,0.08); }
+.toolbar-icon-btn.active { color: #e0e0e0; }
 
 /* ── Sidebars ── */
 .nomentor-sidebar-left,

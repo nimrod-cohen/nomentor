@@ -3,7 +3,7 @@ import { Toolbox } from './components/Toolbox';
 import { History } from './components/History';
 import { Canvas } from './components/Canvas';
 import { Navigator } from './components/Navigator';
-import { sidebarMode, rows, syncIdCounter, loadHistory } from './state';
+import { sidebarMode, rows, syncIdCounter, loadHistory, leftSidebarOpen, rightSidebarOpen } from './state';
 
 // Load saved layout on mount
 (async function loadLayout() {
@@ -38,14 +38,18 @@ import { sidebarMode, rows, syncIdCounter, loadHistory } from './state';
 export function App() {
   const { title, backUrl, viewUrl } = window.nomentor;
   const mode = sidebarMode.value;
+  const showLeft = leftSidebarOpen.value;
+  const showRight = rightSidebarOpen.value;
+
+  const editorClass = `nomentor-editor ${!showLeft ? 'no-left' : ''} ${!showRight ? 'no-right' : ''}`;
 
   return (
     <>
       <Toolbar title={title} backUrl={backUrl} viewUrl={viewUrl} />
-      <div class="nomentor-editor">
-        {mode === 'toolbox' ? <Toolbox /> : <History />}
+      <div class={editorClass}>
+        {showLeft && (mode === 'toolbox' ? <Toolbox /> : <History />)}
         <Canvas />
-        <Navigator />
+        {showRight && <Navigator />}
       </div>
     </>
   );
