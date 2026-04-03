@@ -129,6 +129,20 @@ add_action('wp_ajax_nomentor_save', function () {
   wp_send_json_success();
 });
 
+// AJAX: rename page
+add_action('wp_ajax_nomentor_rename', function () {
+  check_ajax_referer('nomentor_editor', 'nonce');
+  $post_id = intval($_POST['post_id'] ?? 0);
+  $post = get_post($post_id);
+  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {
+    wp_send_json_error('Unauthorized');
+  }
+  $title = sanitize_text_field($_POST['title'] ?? '');
+  if (empty($title)) wp_send_json_error('Empty title');
+  wp_update_post(['ID' => $post_id, 'post_title' => $title]);
+  wp_send_json_success();
+});
+
 // AJAX: load page layout
 add_action('wp_ajax_nomentor_load', function () {
   $post_id = intval($_REQUEST['post_id'] ?? 0);

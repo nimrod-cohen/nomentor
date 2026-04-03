@@ -37,7 +37,13 @@ html, body, #nomentor-root {
 }
 .nomentor-toolbar a:hover,
 .nomentor-toolbar button:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
-.nomentor-toolbar .page-title { font-size: 14px; font-weight: 600; }
+.nomentor-toolbar .page-title {
+  font-size: 14px; font-weight: 600; outline: none;
+  padding: 2px 6px; border-radius: 3px; border: 1px solid transparent;
+  cursor: text; max-width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.nomentor-toolbar .page-title:hover { border-color: rgba(255,255,255,0.2); }
+.nomentor-toolbar .page-title:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); }
 .nomentor-toolbar .spacer { flex: 1; }
 .nomentor-toolbar .separator { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
 .nomentor-toolbar .disabled { opacity: 0.3; pointer-events: none; }
@@ -128,12 +134,18 @@ html, body, #nomentor-root {
   padding: 0;
 }
 .canvas-page {
-  width: 100%;
   min-height: 100%; background: #fff;
+  width: 100%; max-width: 100%; margin: 0 auto;
+  transition: max-width 0.25s ease;
   border-radius: 4px; box-shadow: 0 1px 6px rgba(0,0,0,0.08);
   display: flex; flex-direction: column;
 }
 .canvas-page.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.canvas-page.viewport-desktop { max-width: 100%; }
+.canvas-page.viewport-tablet { max-width: 768px; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
+.canvas-page.viewport-mobile { max-width: 375px; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
+
+.viewport-toggle { margin: 0; }
 .canvas-empty {
   flex: 1; display: flex; align-items: center; justify-content: center;
   color: #bbb; font-size: 14px; padding: 60px 20px; text-align: center;

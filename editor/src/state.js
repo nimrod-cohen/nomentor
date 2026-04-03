@@ -103,6 +103,25 @@ export const sidebarMode = signal('toolbox'); // 'toolbox' | 'history'
 export const leftSidebarOpen = signal(true);
 export const rightSidebarOpen = signal(true);
 
+// ── Viewport preview ──
+export const viewportMode = signal('desktop'); // 'desktop' | 'tablet' | 'mobile'
+
+// ── Page title ──
+export const pageTitle = signal(window.nomentor?.title || '');
+
+export function renamePost(newTitle) {
+  const clean = newTitle.replace(/<[^>]*>/g, '').trim();
+  if (!clean) return;
+  pageTitle.value = clean;
+  window.nomentor.title = clean;
+
+  const { ajaxUrl, nonce, postId } = window.nomentor;
+  fetch(ajaxUrl, {
+    method: 'POST',
+    body: new URLSearchParams({ action: 'nomentor_rename', nonce, post_id: postId, title: clean })
+  });
+}
+
 /**
  * Page structure:
  *

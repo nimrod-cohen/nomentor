@@ -253,72 +253,13 @@
     return n3.__v.__b - l5.__v.__b;
   }, I.__r = 0, f = /(PointerCapture)$|Capture$/i, c = 0, s = O(false), a = O(true), h = 0;
 
-  // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
-  var f2 = 0;
-  var i2 = Array.isArray;
-  function u2(e4, t4, n3, o4, i5, u5) {
-    t4 || (t4 = {});
-    var a4, c4, p5 = t4;
-    if ("ref" in p5) for (c4 in p5 = {}, t4) "ref" == c4 ? a4 = t4[c4] : p5[c4] = t4[c4];
-    var l5 = { type: e4, props: p5, key: n3, ref: a4, __k: null, __: null, __b: 0, __e: null, __c: null, constructor: void 0, __v: --f2, __i: -1, __u: 0, __source: i5, __self: u5 };
-    if ("function" == typeof e4 && (a4 = e4.defaultProps)) for (c4 in a4) void 0 === p5[c4] && (p5[c4] = a4[c4]);
-    return l.vnode && l.vnode(l5), l5;
-  }
-
-  // editor/src/icons.jsx
-  var I2 = (props, paths) => /* @__PURE__ */ u2(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      width: props.size || 20,
-      height: props.size || 20,
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      ...props,
-      children: paths
-    }
-  );
-  var ArrowLeft = (p5) => I2(p5, /* @__PURE__ */ u2(k, { children: [
-    /* @__PURE__ */ u2("path", { d: "m12 19-7-7 7-7" }),
-    /* @__PURE__ */ u2("path", { d: "M19 12H5" })
-  ] }));
-  var Eye = (p5) => I2(p5, /* @__PURE__ */ u2(k, { children: [
-    /* @__PURE__ */ u2("path", { d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" }),
-    /* @__PURE__ */ u2("circle", { cx: "12", cy: "12", r: "3" })
-  ] }));
-  var Grid = (p5) => I2(p5, /* @__PURE__ */ u2(k, { children: [
-    /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }),
-    /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "14", y: "3", rx: "1" }),
-    /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "14", rx: "1" }),
-    /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "14", y: "14", rx: "1" })
-  ] }));
-  var Heading = (p5) => I2(p5, /* @__PURE__ */ u2(k, { children: [
-    /* @__PURE__ */ u2("path", { d: "M6 12h12" }),
-    /* @__PURE__ */ u2("path", { d: "M6 20V4" }),
-    /* @__PURE__ */ u2("path", { d: "M18 20V4" })
-  ] }));
-  var AlignLeft = (p5) => I2(p5, /* @__PURE__ */ u2(k, { children: [
-    /* @__PURE__ */ u2("path", { d: "M17 6.1H3" }),
-    /* @__PURE__ */ u2("path", { d: "M21 12.1H3" }),
-    /* @__PURE__ */ u2("path", { d: "M15.1 18H3" })
-  ] }));
-  var Image = (p5) => I2(p5, /* @__PURE__ */ u2(k, { children: [
-    /* @__PURE__ */ u2("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2" }),
-    /* @__PURE__ */ u2("circle", { cx: "9", cy: "9", r: "2" }),
-    /* @__PURE__ */ u2("path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" })
-  ] }));
-
   // node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
-  var u3;
-  var i3;
+  var u2;
+  var i2;
   var o2 = 0;
-  var f3 = [];
+  var f2 = [];
   var c2 = l;
   var e2 = c2.__b;
   var a2 = c2.__r;
@@ -350,7 +291,7 @@
     }, t4);
   }
   function j2() {
-    for (var n3; n3 = f3.shift(); ) {
+    for (var n3; n3 = f2.shift(); ) {
       var t4 = n3.__H;
       if (n3.__P && t4) try {
         t4.__h.some(z2), t4.__h.some(B2), t4.__h = [];
@@ -366,15 +307,15 @@
   }, c2.__r = function(n3) {
     a2 && a2(n3), t2 = 0;
     var i5 = (r2 = n3.__c).__H;
-    i5 && (u3 === r2 ? (i5.__h = [], r2.__h = [], i5.__.some(function(n4) {
+    i5 && (u2 === r2 ? (i5.__h = [], r2.__h = [], i5.__.some(function(n4) {
       n4.__N && (n4.__ = n4.__N), n4.u = n4.__N = void 0;
-    })) : (i5.__h.some(z2), i5.__h.some(B2), i5.__h = [], t2 = 0)), u3 = r2;
+    })) : (i5.__h.some(z2), i5.__h.some(B2), i5.__h = [], t2 = 0)), u2 = r2;
   }, c2.diffed = function(n3) {
     v2 && v2(n3);
     var t4 = n3.__c;
-    t4 && t4.__H && (t4.__H.__h.length && (1 !== f3.push(t4) && i3 === c2.requestAnimationFrame || ((i3 = c2.requestAnimationFrame) || w2)(j2)), t4.__H.__.some(function(n4) {
+    t4 && t4.__H && (t4.__H.__h.length && (1 !== f2.push(t4) && i2 === c2.requestAnimationFrame || ((i2 = c2.requestAnimationFrame) || w2)(j2)), t4.__H.__.some(function(n4) {
       n4.u && (n4.__H = n4.u), n4.u = void 0;
-    })), u3 = r2 = null;
+    })), u2 = r2 = null;
   }, c2.__c = function(n3, t4) {
     t4.some(function(n4) {
       try {
@@ -418,6 +359,65 @@
       return t5 !== n3[r4];
     });
   }
+
+  // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
+  var f3 = 0;
+  var i3 = Array.isArray;
+  function u3(e4, t4, n3, o4, i5, u5) {
+    t4 || (t4 = {});
+    var a4, c4, p5 = t4;
+    if ("ref" in p5) for (c4 in p5 = {}, t4) "ref" == c4 ? a4 = t4[c4] : p5[c4] = t4[c4];
+    var l5 = { type: e4, props: p5, key: n3, ref: a4, __k: null, __: null, __b: 0, __e: null, __c: null, constructor: void 0, __v: --f3, __i: -1, __u: 0, __source: i5, __self: u5 };
+    if ("function" == typeof e4 && (a4 = e4.defaultProps)) for (c4 in a4) void 0 === p5[c4] && (p5[c4] = a4[c4]);
+    return l.vnode && l.vnode(l5), l5;
+  }
+
+  // editor/src/icons.jsx
+  var I2 = (props, paths) => /* @__PURE__ */ u3(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: props.size || 20,
+      height: props.size || 20,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "2",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      ...props,
+      children: paths
+    }
+  );
+  var ArrowLeft = (p5) => I2(p5, /* @__PURE__ */ u3(k, { children: [
+    /* @__PURE__ */ u3("path", { d: "m12 19-7-7 7-7" }),
+    /* @__PURE__ */ u3("path", { d: "M19 12H5" })
+  ] }));
+  var Eye = (p5) => I2(p5, /* @__PURE__ */ u3(k, { children: [
+    /* @__PURE__ */ u3("path", { d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" }),
+    /* @__PURE__ */ u3("circle", { cx: "12", cy: "12", r: "3" })
+  ] }));
+  var Grid = (p5) => I2(p5, /* @__PURE__ */ u3(k, { children: [
+    /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }),
+    /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "14", y: "3", rx: "1" }),
+    /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "3", y: "14", rx: "1" }),
+    /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "14", y: "14", rx: "1" })
+  ] }));
+  var Heading = (p5) => I2(p5, /* @__PURE__ */ u3(k, { children: [
+    /* @__PURE__ */ u3("path", { d: "M6 12h12" }),
+    /* @__PURE__ */ u3("path", { d: "M6 20V4" }),
+    /* @__PURE__ */ u3("path", { d: "M18 20V4" })
+  ] }));
+  var AlignLeft = (p5) => I2(p5, /* @__PURE__ */ u3(k, { children: [
+    /* @__PURE__ */ u3("path", { d: "M17 6.1H3" }),
+    /* @__PURE__ */ u3("path", { d: "M21 12.1H3" }),
+    /* @__PURE__ */ u3("path", { d: "M15.1 18H3" })
+  ] }));
+  var Image = (p5) => I2(p5, /* @__PURE__ */ u3(k, { children: [
+    /* @__PURE__ */ u3("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2" }),
+    /* @__PURE__ */ u3("circle", { cx: "9", cy: "9", r: "2" }),
+    /* @__PURE__ */ u3("path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" })
+  ] }));
 
   // node_modules/@preact/signals-core/dist/signals-core.module.js
   var i4 = Symbol.for("preact-signals");
@@ -1120,6 +1120,19 @@
   var sidebarMode = y3("toolbox");
   var leftSidebarOpen = y3(true);
   var rightSidebarOpen = y3(true);
+  var viewportMode = y3("desktop");
+  var pageTitle = y3(window.nomentor?.title || "");
+  function renamePost(newTitle) {
+    const clean = newTitle.replace(/<[^>]*>/g, "").trim();
+    if (!clean) return;
+    pageTitle.value = clean;
+    window.nomentor.title = clean;
+    const { ajaxUrl, nonce, postId } = window.nomentor;
+    fetch(ajaxUrl, {
+      method: "POST",
+      body: new URLSearchParams({ action: "nomentor_rename", nonce, post_id: postId, title: clean })
+    });
+  }
   var rows = y3([]);
   var selectedId = y3(null);
   var _nextId = 1;
@@ -1294,33 +1307,58 @@
   var dropTargetId = y3(null);
 
   // editor/src/components/Toolbar.jsx
-  function Toolbar({ title, backUrl, viewUrl }) {
+  function Toolbar({ backUrl, viewUrl }) {
+    const titleRef = A2(null);
     const status = saveStatus.value;
     const mode = sidebarMode.value;
     const leftOpen = leftSidebarOpen.value;
     const rightOpen = rightSidebarOpen.value;
-    return /* @__PURE__ */ u2("div", { class: "nomentor-toolbar", children: [
-      /* @__PURE__ */ u2("a", { href: backUrl, children: [
-        /* @__PURE__ */ u2(ArrowLeft, { size: 16 }),
+    const viewport = viewportMode.value;
+    const title = pageTitle.value;
+    function onTitleBlur() {
+      if (!titleRef.current) return;
+      const text = titleRef.current.textContent.trim();
+      if (text && text !== title) renamePost(text);
+    }
+    function onTitleKeyDown(e4) {
+      if (e4.key === "Enter") {
+        e4.preventDefault();
+        titleRef.current?.blur();
+      }
+    }
+    return /* @__PURE__ */ u3("div", { class: "nomentor-toolbar", children: [
+      /* @__PURE__ */ u3("a", { href: backUrl, children: [
+        /* @__PURE__ */ u3(ArrowLeft, { size: 16 }),
         "Back"
       ] }),
-      /* @__PURE__ */ u2("span", { class: "separator" }),
-      /* @__PURE__ */ u2("span", { class: "page-title", children: title }),
-      /* @__PURE__ */ u2(
+      /* @__PURE__ */ u3("span", { class: "separator" }),
+      /* @__PURE__ */ u3(
+        "span",
+        {
+          ref: titleRef,
+          class: "page-title",
+          contentEditable: true,
+          spellcheck: false,
+          onBlur: onTitleBlur,
+          onKeyDown: onTitleKeyDown,
+          dangerouslySetInnerHTML: { __html: title }
+        }
+      ),
+      /* @__PURE__ */ u3(
         "button",
         {
           class: `toolbar-icon-btn ${leftOpen ? "active" : ""}`,
           onClick: () => leftSidebarOpen.value = !leftOpen,
           title: leftOpen ? "Hide sidebar" : "Show sidebar",
-          children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-            /* @__PURE__ */ u2("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
-            /* @__PURE__ */ u2("path", { d: "M9 3v18" })
+          children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+            /* @__PURE__ */ u3("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
+            /* @__PURE__ */ u3("path", { d: "M9 3v18" })
           ] })
         }
       ),
-      /* @__PURE__ */ u2("span", { class: "separator" }),
-      /* @__PURE__ */ u2("div", { class: "toolbar-toggle", children: [
-        /* @__PURE__ */ u2(
+      /* @__PURE__ */ u3("span", { class: "separator" }),
+      /* @__PURE__ */ u3("div", { class: "toolbar-toggle", children: [
+        /* @__PURE__ */ u3(
           "button",
           {
             class: mode === "toolbox" ? "active" : "",
@@ -1330,15 +1368,15 @@
               if (!leftOpen) leftSidebarOpen.value = true;
             },
             title: "Toolbox",
-            children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }),
-              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "14", y: "3", rx: "1" }),
-              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "3", y: "14", rx: "1" }),
-              /* @__PURE__ */ u2("rect", { width: "7", height: "7", x: "14", y: "14", rx: "1" })
+            children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+              /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }),
+              /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "14", y: "3", rx: "1" }),
+              /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "3", y: "14", rx: "1" }),
+              /* @__PURE__ */ u3("rect", { width: "7", height: "7", x: "14", y: "14", rx: "1" })
             ] })
           }
         ),
-        /* @__PURE__ */ u2(
+        /* @__PURE__ */ u3(
           "button",
           {
             class: mode === "history" ? "active" : "",
@@ -1347,31 +1385,47 @@
               if (!leftOpen) leftSidebarOpen.value = true;
             },
             title: "History",
-            children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-              /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
-              /* @__PURE__ */ u2("path", { d: "M3 3v5h5" }),
-              /* @__PURE__ */ u2("path", { d: "M12 7v5l4 2" })
+            children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+              /* @__PURE__ */ u3("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+              /* @__PURE__ */ u3("path", { d: "M3 3v5h5" }),
+              /* @__PURE__ */ u3("path", { d: "M12 7v5l4 2" })
             ] })
           }
         )
       ] }),
-      /* @__PURE__ */ u2("span", { class: "spacer" }),
-      /* @__PURE__ */ u2("span", { class: `save-status ${status}`, children: status === "saving" ? "Saving..." : status === "error" ? "Save failed" : "Saved" }),
-      /* @__PURE__ */ u2("span", { class: "separator" }),
-      /* @__PURE__ */ u2(
+      /* @__PURE__ */ u3("span", { class: "spacer" }),
+      /* @__PURE__ */ u3("div", { class: "toolbar-toggle viewport-toggle", children: [
+        /* @__PURE__ */ u3("button", { class: viewport === "desktop" ? "active" : "", onClick: () => viewportMode.value = "desktop", title: "Desktop", children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u3("rect", { width: "20", height: "14", x: "2", y: "3", rx: "2" }),
+          /* @__PURE__ */ u3("path", { d: "M8 21h8" }),
+          /* @__PURE__ */ u3("path", { d: "M12 17v4" })
+        ] }) }),
+        /* @__PURE__ */ u3("button", { class: viewport === "tablet" ? "active" : "", onClick: () => viewportMode.value = "tablet", title: "Tablet", children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u3("rect", { width: "16", height: "20", x: "4", y: "2", rx: "2" }),
+          /* @__PURE__ */ u3("path", { d: "M12 18h.01" })
+        ] }) }),
+        /* @__PURE__ */ u3("button", { class: viewport === "mobile" ? "active" : "", onClick: () => viewportMode.value = "mobile", title: "Mobile", children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u3("rect", { width: "14", height: "20", x: "5", y: "2", rx: "2" }),
+          /* @__PURE__ */ u3("path", { d: "M12 18h.01" })
+        ] }) })
+      ] }),
+      /* @__PURE__ */ u3("span", { class: "spacer" }),
+      /* @__PURE__ */ u3("span", { class: `save-status ${status}`, children: status === "saving" ? "Saving..." : status === "error" ? "Save failed" : "Saved" }),
+      /* @__PURE__ */ u3("span", { class: "separator" }),
+      /* @__PURE__ */ u3(
         "button",
         {
           class: `toolbar-icon-btn ${rightOpen ? "active" : ""}`,
           onClick: () => rightSidebarOpen.value = !rightOpen,
           title: rightOpen ? "Hide navigator" : "Show navigator",
-          children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-            /* @__PURE__ */ u2("path", { d: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" }),
-            /* @__PURE__ */ u2("path", { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" }),
-            /* @__PURE__ */ u2("path", { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" })
+          children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+            /* @__PURE__ */ u3("path", { d: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" }),
+            /* @__PURE__ */ u3("path", { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" }),
+            /* @__PURE__ */ u3("path", { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" })
           ] })
         }
       ),
-      /* @__PURE__ */ u2("a", { href: viewUrl || "#", target: "_blank", class: viewUrl ? "" : "disabled", title: "View page", children: /* @__PURE__ */ u2(Eye, { size: 16 }) })
+      /* @__PURE__ */ u3("a", { href: viewUrl || "#", target: "_blank", class: viewUrl ? "" : "disabled", title: "View page", children: /* @__PURE__ */ u3(Eye, { size: 16 }) })
     ] });
   }
 
@@ -1391,9 +1445,9 @@
     function onDragEnd() {
       dragging.value = null;
     }
-    return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-left", children: [
-      /* @__PURE__ */ u2("div", { class: "sidebar-header", children: "Toolbox" }),
-      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: /* @__PURE__ */ u2("div", { class: "toolbox-grid", children: COMPONENTS.map((c4) => /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3("aside", { class: "nomentor-sidebar-left", children: [
+      /* @__PURE__ */ u3("div", { class: "sidebar-header", children: "Toolbox" }),
+      /* @__PURE__ */ u3("div", { class: "sidebar-content", children: /* @__PURE__ */ u3("div", { class: "toolbox-grid", children: COMPONENTS.map((c4) => /* @__PURE__ */ u3(
         "div",
         {
           class: "toolbox-item",
@@ -1401,8 +1455,8 @@
           onDragStart: (e4) => onDragStart(e4, c4.type),
           onDragEnd,
           children: [
-            /* @__PURE__ */ u2(c4.icon, {}),
-            /* @__PURE__ */ u2("span", { children: c4.label })
+            /* @__PURE__ */ u3(c4.icon, {}),
+            /* @__PURE__ */ u3("span", { children: c4.label })
           ]
         },
         c4.type
@@ -1415,35 +1469,35 @@
     const entries = history.value;
     const previewing = previewIndex.value;
     const count = entries.length;
-    return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-left", children: [
-      /* @__PURE__ */ u2("div", { class: "sidebar-header", children: [
-        /* @__PURE__ */ u2("span", { children: [
+    return /* @__PURE__ */ u3("aside", { class: "nomentor-sidebar-left", children: [
+      /* @__PURE__ */ u3("div", { class: "sidebar-header", children: [
+        /* @__PURE__ */ u3("span", { children: [
           "History ",
-          /* @__PURE__ */ u2("span", { class: "history-count", children: [
+          /* @__PURE__ */ u3("span", { class: "history-count", children: [
             count,
             "/100"
           ] })
         ] }),
-        previewing !== null && /* @__PURE__ */ u2("button", { class: "history-exit-btn", onClick: exitPreview, children: "Back to live" })
+        previewing !== null && /* @__PURE__ */ u3("button", { class: "history-exit-btn", onClick: exitPreview, children: "Back to live" })
       ] }),
-      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: count === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
+      /* @__PURE__ */ u3("div", { class: "sidebar-content", children: count === 0 ? /* @__PURE__ */ u3("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u3("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
         const i5 = count - 1 - ri;
         const isLast = i5 === count - 1;
         const isActive = previewing === i5;
         const label = isLast ? "Current" : entry.action || "Version " + (i5 + 1);
-        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""} ${isLast ? "is-current" : ""}`, children: [
-          /* @__PURE__ */ u2("div", { class: "history-item-row", onClick: () => isLast ? exitPreview() : previewVersion(i5), children: [
-            /* @__PURE__ */ u2("span", { class: "history-time", title: formatTime(entry.timestamp), children: [
-              /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-                /* @__PURE__ */ u2("circle", { cx: "12", cy: "12", r: "10" }),
-                /* @__PURE__ */ u2("polyline", { points: "12 6 12 12 16 14" })
+        return /* @__PURE__ */ u3("li", { class: `history-item ${isActive ? "active" : ""} ${isLast ? "is-current" : ""}`, children: [
+          /* @__PURE__ */ u3("div", { class: "history-item-row", onClick: () => isLast ? exitPreview() : previewVersion(i5), children: [
+            /* @__PURE__ */ u3("span", { class: "history-time", title: formatTime(entry.timestamp), children: [
+              /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+                /* @__PURE__ */ u3("circle", { cx: "12", cy: "12", r: "10" }),
+                /* @__PURE__ */ u3("polyline", { points: "12 6 12 12 16 14" })
               ] }),
-              /* @__PURE__ */ u2("span", { class: "history-time-text", children: formatTime(entry.timestamp) })
+              /* @__PURE__ */ u3("span", { class: "history-time-text", children: formatTime(entry.timestamp) })
             ] }),
-            /* @__PURE__ */ u2("span", { class: "history-action", children: label })
+            /* @__PURE__ */ u3("span", { class: "history-action", children: label })
           ] }),
-          /* @__PURE__ */ u2("div", { class: "history-item-actions", children: [
-            !isLast && /* @__PURE__ */ u2(
+          /* @__PURE__ */ u3("div", { class: "history-item-actions", children: [
+            !isLast && /* @__PURE__ */ u3(
               "button",
               {
                 class: `history-pin-btn ${entry.pinned ? "pinned" : ""}`,
@@ -1452,7 +1506,7 @@
                   togglePin(i5);
                 },
                 title: entry.pinned ? "Unpin" : "Pin to keep",
-                children: /* @__PURE__ */ u2(
+                children: /* @__PURE__ */ u3(
                   "svg",
                   {
                     xmlns: "http://www.w3.org/2000/svg",
@@ -1464,12 +1518,12 @@
                     "stroke-width": "2",
                     "stroke-linecap": "round",
                     "stroke-linejoin": "round",
-                    children: /* @__PURE__ */ u2("path", { d: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" })
+                    children: /* @__PURE__ */ u3("path", { d: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" })
                   }
                 )
               }
             ),
-            /* @__PURE__ */ u2(
+            /* @__PURE__ */ u3(
               "button",
               {
                 class: `history-revert-btn ${isActive && !isLast ? "" : "hidden"}`,
@@ -1478,9 +1532,9 @@
                   revertToVersion(i5);
                 },
                 title: "Revert to this version",
-                children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-                  /* @__PURE__ */ u2("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
-                  /* @__PURE__ */ u2("path", { d: "M3 3v5h5" })
+                children: /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+                  /* @__PURE__ */ u3("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+                  /* @__PURE__ */ u3("path", { d: "M3 3v5h5" })
                 ] })
               }
             )
@@ -1506,7 +1560,7 @@
         commitChange("Edit heading");
       }
     }
-    return /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3(
       Tag,
       {
         ref,
@@ -1529,7 +1583,7 @@
         commitChange("Edit text");
       }
     }
-    return /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3(
       "div",
       {
         ref,
@@ -1544,9 +1598,9 @@
   // editor/src/components/rows/ImageElement.jsx
   function ImageElement({ element }) {
     if (element.props.src) {
-      return /* @__PURE__ */ u2("img", { src: element.props.src, alt: element.props.alt, style: { maxWidth: "100%" } });
+      return /* @__PURE__ */ u3("img", { src: element.props.src, alt: element.props.alt, style: { maxWidth: "100%" } });
     }
-    return /* @__PURE__ */ u2("div", { style: {
+    return /* @__PURE__ */ u3("div", { style: {
       background: "#f0f0f0",
       display: "flex",
       alignItems: "center",
@@ -1581,7 +1635,7 @@
       dragging.value = null;
       commitChange("Add " + type + " to cell");
     }
-    return /* @__PURE__ */ u2("div", { class: "grid-element", style: { gridTemplateColumns: `repeat(${cols}, 1fr)` }, children: element.children.map((cell) => /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3("div", { class: "grid-element", style: { gridTemplateColumns: `repeat(${cols}, 1fr)` }, children: element.children.map((cell) => /* @__PURE__ */ u3(
       "div",
       {
         class: "grid-cell",
@@ -1589,8 +1643,8 @@
         onDragLeave: onCellDragLeave,
         onDrop: (e4) => onCellDrop(e4, cell.id),
         children: [
-          cell.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "cell-empty", children: "Drop here" }),
-          cell.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
+          cell.elements.length === 0 && /* @__PURE__ */ u3("div", { class: "cell-empty", children: "Drop here" }),
+          cell.elements.map((el) => /* @__PURE__ */ u3(ElementRenderer, { element: el }, el.id))
         ]
       },
       cell.id
@@ -1606,12 +1660,12 @@
   };
   function ElementRenderer({ element }) {
     const Comp = RENDERERS[element.type];
-    if (!Comp) return /* @__PURE__ */ u2("div", { children: [
+    if (!Comp) return /* @__PURE__ */ u3("div", { children: [
       "Unknown: ",
       element.type
     ] });
     const isSelected = selectedId.value === element.id;
-    return /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3(
       "div",
       {
         class: `element-wrapper ${isSelected ? "selected" : ""}`,
@@ -1620,8 +1674,8 @@
           selectedId.value = element.id;
         },
         children: [
-          /* @__PURE__ */ u2("div", { class: "element-label", children: element.type }),
-          /* @__PURE__ */ u2(Comp, { element })
+          /* @__PURE__ */ u3("div", { class: "element-label", children: element.type }),
+          /* @__PURE__ */ u3(Comp, { element })
         ]
       }
     );
@@ -1680,17 +1734,18 @@
     }, []);
     const rowList = rows.value;
     const isDragging = !!dragging.value;
-    return /* @__PURE__ */ u2("main", { class: "nomentor-canvas", children: /* @__PURE__ */ u2(
+    const viewport = viewportMode.value;
+    return /* @__PURE__ */ u3("main", { class: "nomentor-canvas", children: /* @__PURE__ */ u3(
       "div",
       {
         ref: pageRef,
-        class: `canvas-page ${isDragging ? "drag-over" : ""}`,
+        class: `canvas-page ${isDragging ? "drag-over" : ""} viewport-${viewport}`,
         onDragOver,
         onDragLeave,
         onDrop,
         children: [
-          rowList.length === 0 && /* @__PURE__ */ u2("div", { class: "canvas-empty", children: "Drag components here to start building" }),
-          rowList.map((row) => /* @__PURE__ */ u2(CanvasRow, { row }, row.id))
+          rowList.length === 0 && /* @__PURE__ */ u3("div", { class: "canvas-empty", children: "Drag components here to start building" }),
+          rowList.map((row) => /* @__PURE__ */ u3(CanvasRow, { row }, row.id))
         ]
       }
     ) });
@@ -1712,9 +1767,9 @@
       dragging.value = null;
       dropTargetId.value = null;
     }
-    return /* @__PURE__ */ u2(k, { children: [
-      isDropTarget && /* @__PURE__ */ u2("div", { class: "drop-indicator" }),
-      /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3(k, { children: [
+      isDropTarget && /* @__PURE__ */ u3("div", { class: "drop-indicator" }),
+      /* @__PURE__ */ u3(
         "div",
         {
           class: `canvas-row ${isSelected ? "selected" : ""}`,
@@ -1726,9 +1781,9 @@
           onDragOver: onRowDragOver,
           onDrop: onRowDrop,
           children: [
-            /* @__PURE__ */ u2("div", { class: "row-label", children: "container" }),
-            row.elements.length === 0 && /* @__PURE__ */ u2("div", { class: "row-empty", children: "Empty container \u2014 drag a component here" }),
-            row.elements.map((el) => /* @__PURE__ */ u2(ElementRenderer, { element: el }, el.id))
+            /* @__PURE__ */ u3("div", { class: "row-label", children: "container" }),
+            row.elements.length === 0 && /* @__PURE__ */ u3("div", { class: "row-empty", children: "Empty container \u2014 drag a component here" }),
+            row.elements.map((el) => /* @__PURE__ */ u3(ElementRenderer, { element: el }, el.id))
           ]
         }
       )
@@ -1744,10 +1799,10 @@
   }
   function Navigator() {
     const rowList = rows.value;
-    return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-right", children: [
-      /* @__PURE__ */ u2("div", { class: "sidebar-header", children: "Navigator" }),
-      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: !rowList.length ? /* @__PURE__ */ u2("div", { class: "nav-empty", children: "No elements yet" }) : /* @__PURE__ */ u2("ul", { class: "nav-tree", children: rowList.map((row) => /* @__PURE__ */ u2(NavRow, { row }, row.id)) }) }),
-      contextMenu.value && /* @__PURE__ */ u2(ContextMenu, {})
+    return /* @__PURE__ */ u3("aside", { class: "nomentor-sidebar-right", children: [
+      /* @__PURE__ */ u3("div", { class: "sidebar-header", children: "Navigator" }),
+      /* @__PURE__ */ u3("div", { class: "sidebar-content", children: !rowList.length ? /* @__PURE__ */ u3("div", { class: "nav-empty", children: "No elements yet" }) : /* @__PURE__ */ u3("ul", { class: "nav-tree", children: rowList.map((row) => /* @__PURE__ */ u3(NavRow, { row }, row.id)) }) }),
+      contextMenu.value && /* @__PURE__ */ u3(ContextMenu, {})
     ] });
   }
   function ContextMenu() {
@@ -1785,26 +1840,26 @@
         }
       }
     }
-    return /* @__PURE__ */ u2("div", { class: "nav-context-menu", style: { top: y5, left: x4 }, onClick: (e4) => e4.stopPropagation(), children: kind === "cell" ? canRemoveCell && /* @__PURE__ */ u2("button", { onClick: onRemove, children: [
-      /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-        /* @__PURE__ */ u2("path", { d: "M3 6h18" }),
-        /* @__PURE__ */ u2("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
-        /* @__PURE__ */ u2("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
+    return /* @__PURE__ */ u3("div", { class: "nav-context-menu", style: { top: y5, left: x4 }, onClick: (e4) => e4.stopPropagation(), children: kind === "cell" ? canRemoveCell && /* @__PURE__ */ u3("button", { onClick: onRemove, children: [
+      /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+        /* @__PURE__ */ u3("path", { d: "M3 6h18" }),
+        /* @__PURE__ */ u3("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
+        /* @__PURE__ */ u3("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
       ] }),
       "Remove cell"
-    ] }) : /* @__PURE__ */ u2(k, { children: [
-      isGrid && /* @__PURE__ */ u2("button", { class: "context-action", onClick: onAddCell, children: [
-        /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-          /* @__PURE__ */ u2("path", { d: "M12 5v14" }),
-          /* @__PURE__ */ u2("path", { d: "M5 12h14" })
+    ] }) : /* @__PURE__ */ u3(k, { children: [
+      isGrid && /* @__PURE__ */ u3("button", { class: "context-action", onClick: onAddCell, children: [
+        /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u3("path", { d: "M12 5v14" }),
+          /* @__PURE__ */ u3("path", { d: "M5 12h14" })
         ] }),
         "Add cell"
       ] }),
-      /* @__PURE__ */ u2("button", { onClick: onRemove, children: [
-        /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
-          /* @__PURE__ */ u2("path", { d: "M3 6h18" }),
-          /* @__PURE__ */ u2("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
-          /* @__PURE__ */ u2("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
+      /* @__PURE__ */ u3("button", { onClick: onRemove, children: [
+        /* @__PURE__ */ u3("svg", { xmlns: "http://www.w3.org/2000/svg", width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+          /* @__PURE__ */ u3("path", { d: "M3 6h18" }),
+          /* @__PURE__ */ u3("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
+          /* @__PURE__ */ u3("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" })
         ] }),
         "Remove ",
         kind
@@ -1818,8 +1873,8 @@
   }
   function NavRow({ row }) {
     const isSelected = selectedId.value === row.id;
-    return /* @__PURE__ */ u2("li", { children: [
-      /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3("li", { children: [
+      /* @__PURE__ */ u3(
         "div",
         {
           class: `nav-item ${isSelected ? "selected" : ""}`,
@@ -1828,13 +1883,13 @@
           children: "container"
         }
       ),
-      row.elements.length > 0 && /* @__PURE__ */ u2("ul", { class: "nav-children", children: row.elements.map((el) => /* @__PURE__ */ u2(NavElement, { element: el }, el.id)) })
+      row.elements.length > 0 && /* @__PURE__ */ u3("ul", { class: "nav-children", children: row.elements.map((el) => /* @__PURE__ */ u3(NavElement, { element: el }, el.id)) })
     ] });
   }
   function NavElement({ element }) {
     const isSelected = selectedId.value === element.id;
-    return /* @__PURE__ */ u2("li", { children: [
-      /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3("li", { children: [
+      /* @__PURE__ */ u3(
         "div",
         {
           class: `nav-item ${isSelected ? "selected" : ""}`,
@@ -1846,12 +1901,12 @@
           children: element.type
         }
       ),
-      element.children && /* @__PURE__ */ u2("ul", { class: "nav-children", children: element.children.map((cell) => /* @__PURE__ */ u2(NavCell, { cell, gridId: element.id }, cell.id)) })
+      element.children && /* @__PURE__ */ u3("ul", { class: "nav-children", children: element.children.map((cell) => /* @__PURE__ */ u3(NavCell, { cell, gridId: element.id }, cell.id)) })
     ] });
   }
   function NavCell({ cell, gridId }) {
-    return /* @__PURE__ */ u2("li", { children: [
-      /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u3("li", { children: [
+      /* @__PURE__ */ u3(
         "div",
         {
           class: "nav-item nav-cell",
@@ -1859,7 +1914,7 @@
           children: "cell"
         }
       ),
-      cell.elements.length > 0 && /* @__PURE__ */ u2("ul", { class: "nav-children", children: cell.elements.map((el) => /* @__PURE__ */ u2(NavElement, { element: el }, el.id)) })
+      cell.elements.length > 0 && /* @__PURE__ */ u3("ul", { class: "nav-children", children: cell.elements.map((el) => /* @__PURE__ */ u3(NavElement, { element: el }, el.id)) })
     ] });
   }
 
@@ -1897,12 +1952,12 @@
     const showLeft = leftSidebarOpen.value;
     const showRight = rightSidebarOpen.value;
     const editorClass = `nomentor-editor ${!showLeft ? "no-left" : ""} ${!showRight ? "no-right" : ""}`;
-    return /* @__PURE__ */ u2(k, { children: [
-      /* @__PURE__ */ u2(Toolbar, { title, backUrl, viewUrl }),
-      /* @__PURE__ */ u2("div", { class: editorClass, children: [
-        mode === "toolbox" ? /* @__PURE__ */ u2(Toolbox, {}) : /* @__PURE__ */ u2(History, {}),
-        /* @__PURE__ */ u2(Canvas, {}),
-        /* @__PURE__ */ u2(Navigator, {})
+    return /* @__PURE__ */ u3(k, { children: [
+      /* @__PURE__ */ u3(Toolbar, { backUrl, viewUrl }),
+      /* @__PURE__ */ u3("div", { class: editorClass, children: [
+        mode === "toolbox" ? /* @__PURE__ */ u3(Toolbox, {}) : /* @__PURE__ */ u3(History, {}),
+        /* @__PURE__ */ u3(Canvas, {}),
+        /* @__PURE__ */ u3(Navigator, {})
       ] })
     ] });
   }
@@ -1913,7 +1968,7 @@
     if (!root) {
       document.body.innerHTML = '<pre style="color:red;padding:20px">Error: #nomentor-root not found</pre>';
     } else {
-      J(/* @__PURE__ */ u2(App, {}), root);
+      J(/* @__PURE__ */ u3(App, {}), root);
     }
   } catch (e4) {
     document.body.innerHTML = '<pre style="color:red;padding:20px">Render error: ' + e4.message + "\n" + e4.stack + "</pre>";

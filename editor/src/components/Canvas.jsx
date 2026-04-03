@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'preact/hooks';
-import { rows, dragging, dropTargetId, dropOnCanvas, dropOnContainer, selectedId, removeRow, removeElement, commitChange } from '../state';
+import { rows, dragging, dropTargetId, dropOnCanvas, dropOnContainer, selectedId, removeRow, removeElement, commitChange, viewportMode } from '../state';
 import { ElementRenderer } from './rows/ElementRenderer';
 import { useEffect } from 'preact/hooks';
 
@@ -63,12 +63,13 @@ export function Canvas() {
 
   const rowList = rows.value;
   const isDragging = !!dragging.value;
+  const viewport = viewportMode.value;
 
   return (
     <main class="nomentor-canvas">
       <div
         ref={pageRef}
-        class={`canvas-page ${isDragging ? 'drag-over' : ''}`}
+        class={`canvas-page ${isDragging ? 'drag-over' : ''} viewport-${viewport}`}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
