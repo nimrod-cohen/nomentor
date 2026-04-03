@@ -26,7 +26,10 @@ export function History() {
               return (
                 <li key={i} class={`history-item ${isActive ? 'active' : ''} ${isLast ? 'is-current' : ''}`}>
                   <div class="history-item-row" onClick={() => isLast ? exitPreview() : previewVersion(i)}>
-                    <span class="history-time">{formatTime(entry.timestamp)}</span>
+                    <span class="history-time" title={formatTime(entry.timestamp)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span class="history-time-text">{formatTime(entry.timestamp)}</span>
+                    </span>
                     <span class="history-action">{label}</span>
                   </div>
                   <div class="history-item-actions">
