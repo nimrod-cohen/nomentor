@@ -1780,8 +1780,10 @@
       if (data.success && data.data?.history) {
         try {
           const h4 = JSON.parse(data.data.history);
+          console.log("Loaded history:", h4.length, "entries");
           loadHistory(h4);
-        } catch {
+        } catch (he) {
+          console.warn("Failed to parse history:", he);
         }
       }
     } catch (e4) {

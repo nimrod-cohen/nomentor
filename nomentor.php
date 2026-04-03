@@ -104,7 +104,14 @@ add_action('edit_form_after_title', function ($post) {
 
 // AJAX: save page layout
 add_action('wp_ajax_nomentor_save', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
+  file_put_contents('/tmp/nomentor-debug.log', date('H:i:s') . ' POST keys: ' . implode(', ', array_keys($_POST)) . "\n", FILE_APPEND);
+
+  if (!wp_verify_nonce($_POST['nonce'] ?? '', 'nomentor_editor')) {
+    file_put_contents('/tmp/nomentor-debug.log', date('H:i:s') . ' Nonce failed. Got: ' . ($_POST['nonce'] ?? 'empty') . "\n", FILE_APPEND);
+    wp_send_json_error('Nonce failed');
+    return;
+  }
+  file_put_contents('/tmp/nomentor-debug.log', date('H:i:s') . " Nonce OK. post_id=$post_id history_len=" . strlen($_POST['page_history'] ?? '') . " data_len=" . strlen($_POST['data'] ?? '') . "\n", FILE_APPEND);
 
   $post_id = intval($_POST['post_id'] ?? 0);
   $post = get_post($post_id);
@@ -115,8 +122,9 @@ add_action('wp_ajax_nomentor_save', function () {
 
   $data = wp_unslash($_POST['data'] ?? '[]');
   $historyData = wp_unslash($_POST['page_history'] ?? '[]');
-  update_post_meta($post_id, '_nomentor_layout', $data);
-  update_post_meta($post_id, '_nomentor_history', $historyData);
+  $r1 = update_post_meta($post_id, '_nomentor_layout', $data);
+  $r2 = update_post_meta($post_id, '_nomentor_history', $historyData);
+  file_put_contents('/tmp/nomentor-debug.log', date('H:i:s') . " Meta saved. layout=$r1 history=$r2\n", FILE_APPEND);
 
   // Regenerate static HTML if published
   if ($post->post_status === 'publish' && $post->post_name) {
@@ -130,7 +138,7 @@ add_action('wp_ajax_nomentor_save', function () {
 
 // AJAX: load page layout
 add_action('wp_ajax_nomentor_load', function () {
-  $post_id = intval($_GET['post_id'] ?? 0);
+  $post_id = intval($_REQUEST['post_id'] ?? 0);
   $post = get_post($post_id);
 
   if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {

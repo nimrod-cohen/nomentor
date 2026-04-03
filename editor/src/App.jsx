@@ -21,8 +21,11 @@ import { sidebarMode, rows, syncIdCounter, loadHistory } from './state';
     if (data.success && data.data?.history) {
       try {
         const h = JSON.parse(data.data.history);
+        console.log('Loaded history:', h.length, 'entries');
         loadHistory(h);
-      } catch {}
+      } catch (he) {
+        console.warn('Failed to parse history:', he);
+      }
     }
   } catch (e) {
     console.warn('Failed to load layout:', e);
