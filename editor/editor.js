@@ -1077,7 +1077,6 @@
         _liveSnapshot = JSON.stringify(rows.value);
       }
       const parsed = JSON.parse(entry.snapshot);
-      console.log("Preview version", index, "- rows:", parsed.length);
       rows.value = parsed;
       previewIndex.value = index;
     } catch (e4) {
@@ -1373,19 +1372,17 @@
     const previewing = previewIndex.value;
     return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-left", children: [
       /* @__PURE__ */ u2("div", { class: "sidebar-header", children: [
-        "History",
+        /* @__PURE__ */ u2("span", { children: "History" }),
         previewing !== null && /* @__PURE__ */ u2("button", { class: "history-exit-btn", onClick: exitPreview, children: "Back to live" })
       ] }),
       /* @__PURE__ */ u2("div", { class: "sidebar-content", children: entries.length === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
         const i5 = entries.length - 1 - ri;
+        const isLast = i5 === entries.length - 1;
         const isActive = previewing === i5;
-        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, onClick: () => previewVersion(i5), children: [
+        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, onClick: () => !isLast && previewVersion(i5), children: [
           /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
-          /* @__PURE__ */ u2("span", { class: "history-action", children: [
-            "Version ",
-            i5 + 1
-          ] }),
-          /* @__PURE__ */ u2("button", { class: `history-revert-btn ${isActive ? "" : "hidden"}`, onClick: (e4) => {
+          /* @__PURE__ */ u2("span", { class: "history-action", children: isLast ? "Current" : `Version ${i5 + 1}` }),
+          /* @__PURE__ */ u2("button", { class: `history-revert-btn ${isActive && !isLast ? "" : "hidden"}`, onClick: (e4) => {
             e4.stopPropagation();
             revertToVersion(i5);
           }, title: "Revert to this version", children: /* @__PURE__ */ u2("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", children: [

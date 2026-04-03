@@ -58,7 +58,6 @@ export function previewVersion(index) {
       _liveSnapshot = JSON.stringify(rows.value);
     }
     const parsed = JSON.parse(entry.snapshot);
-    console.log('Preview version', index, '- rows:', parsed.length);
     rows.value = parsed;
     previewIndex.value = index;
   } catch (e) { console.error('Preview error:', e); }

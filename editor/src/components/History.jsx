@@ -7,7 +7,7 @@ export function History() {
   return (
     <aside class="nomentor-sidebar-left">
       <div class="sidebar-header">
-        History
+        <span>History</span>
         {previewing !== null && (
           <button class="history-exit-btn" onClick={exitPreview}>Back to live</button>
         )}
@@ -19,12 +19,13 @@ export function History() {
           <ul class="history-list">
             {[...entries].reverse().map((entry, ri) => {
               const i = entries.length - 1 - ri;
+              const isLast = i === entries.length - 1;
               const isActive = previewing === i;
               return (
-                <li key={i} class={`history-item ${isActive ? 'active' : ''}`} onClick={() => previewVersion(i)}>
+                <li key={i} class={`history-item ${isActive ? 'active' : ''}`} onClick={() => !isLast && previewVersion(i)}>
                   <span class="history-time">{formatTime(entry.timestamp)}</span>
-                  <span class="history-action">Version {i + 1}</span>
-                  <button class={`history-revert-btn ${isActive ? '' : 'hidden'}`} onClick={e => { e.stopPropagation(); revertToVersion(i); }} title="Revert to this version">
+                  <span class="history-action">{isLast ? 'Current' : `Version ${i + 1}`}</span>
+                  <button class={`history-revert-btn ${isActive && !isLast ? '' : 'hidden'}`} onClick={e => { e.stopPropagation(); revertToVersion(i); }} title="Revert to this version">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                   </button>
                 </li>
