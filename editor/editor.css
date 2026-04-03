@@ -198,7 +198,10 @@ html, body, #nomentor-root {
 .nav-context-menu button.context-action:hover { background: #f0f4ff; }
 
 /* ── History ── */
+.history-count { font-weight: 400; color: #bbb; font-size: 10px; margin-left: 4px; }
 .history-empty { color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
+.history-item.is-current { cursor: pointer; }
+.history-item.is-current .history-item-row:hover { background: #f0f4ff; }
 .history-list { list-style: none; }
 .history-item {
   display: flex; align-items: center;

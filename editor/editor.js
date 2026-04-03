@@ -1380,23 +1380,30 @@
   function History() {
     const entries = history.value;
     const previewing = previewIndex.value;
+    const count = entries.length;
     return /* @__PURE__ */ u2("aside", { class: "nomentor-sidebar-left", children: [
       /* @__PURE__ */ u2("div", { class: "sidebar-header", children: [
-        /* @__PURE__ */ u2("span", { children: "History" }),
+        /* @__PURE__ */ u2("span", { children: [
+          "History ",
+          /* @__PURE__ */ u2("span", { class: "history-count", children: [
+            count,
+            "/100"
+          ] })
+        ] }),
         previewing !== null && /* @__PURE__ */ u2("button", { class: "history-exit-btn", onClick: exitPreview, children: "Back to live" })
       ] }),
-      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: entries.length === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
-        const i5 = entries.length - 1 - ri;
-        const isLast = i5 === entries.length - 1;
+      /* @__PURE__ */ u2("div", { class: "sidebar-content", children: count === 0 ? /* @__PURE__ */ u2("div", { class: "history-empty", children: "No changes yet" }) : /* @__PURE__ */ u2("ul", { class: "history-list", children: [...entries].reverse().map((entry, ri) => {
+        const i5 = count - 1 - ri;
+        const isLast = i5 === count - 1;
         const isActive = previewing === i5;
         const label = isLast ? "Current" : entry.action || "Version " + (i5 + 1);
-        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""}`, children: [
-          /* @__PURE__ */ u2("div", { class: "history-item-row", onClick: () => !isLast && previewVersion(i5), children: [
+        return /* @__PURE__ */ u2("li", { class: `history-item ${isActive ? "active" : ""} ${isLast ? "is-current" : ""}`, children: [
+          /* @__PURE__ */ u2("div", { class: "history-item-row", onClick: () => isLast ? exitPreview() : previewVersion(i5), children: [
             /* @__PURE__ */ u2("span", { class: "history-time", children: formatTime(entry.timestamp) }),
             /* @__PURE__ */ u2("span", { class: "history-action", children: label })
           ] }),
           /* @__PURE__ */ u2("div", { class: "history-item-actions", children: [
-            /* @__PURE__ */ u2(
+            !isLast && /* @__PURE__ */ u2(
               "button",
               {
                 class: `history-pin-btn ${entry.pinned ? "pinned" : ""}`,
