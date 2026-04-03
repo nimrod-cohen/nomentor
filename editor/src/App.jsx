@@ -20,7 +20,8 @@ import { sidebarMode, rows, syncIdCounter, loadHistory } from './state';
     }
     if (data.success && data.data?.history) {
       try {
-        const h = JSON.parse(data.data.history);
+        const decoded = decodeURIComponent(escape(atob(data.data.history)));
+        const h = JSON.parse(decoded);
         console.log('Loaded history:', h.length, 'entries');
         loadHistory(h);
       } catch (he) {

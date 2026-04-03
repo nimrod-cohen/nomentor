@@ -114,12 +114,10 @@ add_action('wp_ajax_nomentor_save', function () {
   }
 
   $data = wp_unslash($_POST['data'] ?? '[]');
-  // History contains nested JSON (snapshot strings with escaped quotes).
-  // wp_unslash would strip the escaping and corrupt it.
-  // Use raw value and let update_post_meta handle it.
-  $historyData = $_POST['page_history'] ?? '[]';
+  // History is base64-encoded from JS to avoid WP slash corruption
+  $historyB64 = $_POST['page_history'] ?? '';
   update_post_meta($post_id, '_nomentor_layout', $data);
-  update_post_meta($post_id, '_nomentor_history', wp_slash($historyData));
+  update_post_meta($post_id, '_nomentor_history', $historyB64);
 
   // Regenerate static HTML if published
   if ($post->post_status === 'publish' && $post->post_name) {

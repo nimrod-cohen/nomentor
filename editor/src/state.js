@@ -25,7 +25,7 @@ function autoSave() {
     nonce,
     post_id: postId,
     data,
-    page_history: historyData
+    page_history: btoa(unescape(encodeURIComponent(historyData)))
   });
 
   fetch(ajaxUrl, { method: 'POST', body })

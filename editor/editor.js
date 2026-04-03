@@ -1048,7 +1048,7 @@
       nonce,
       post_id: postId,
       data,
-      page_history: historyData
+      page_history: btoa(unescape(encodeURIComponent(historyData)))
     });
     fetch(ajaxUrl, { method: "POST", body }).then((r4) => r4.json()).then((r4) => {
       saveStatus.value = r4.success ? "saved" : "error";
@@ -1779,7 +1779,8 @@
       }
       if (data.success && data.data?.history) {
         try {
-          const h4 = JSON.parse(data.data.history);
+          const decoded = decodeURIComponent(escape(atob(data.data.history)));
+          const h4 = JSON.parse(decoded);
           console.log("Loaded history:", h4.length, "entries");
           loadHistory(h4);
         } catch (he) {
