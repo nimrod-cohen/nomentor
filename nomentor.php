@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.3.6
+ * Version:           0.4.0
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.3.6');
+define('NOMENTOR_VERSION', '0.4.0');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
 
@@ -55,41 +55,60 @@ add_action('init', function () {
   ]);
 });
 
-// Add "Import Page" button next to "Add New Page" on the list screen
+// List screen: Import/Export buttons + JS
 add_action('admin_head-edit.php', function () {
   $screen = get_current_screen();
   if (!$screen || $screen->post_type !== 'nomentor_page') return;
   $nonce = wp_create_nonce('nomentor_import');
+  $export_nonce = wp_create_nonce('nomentor_export');
   ?>
   <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var wrap = document.querySelector('.wrap .page-title-action');
-    if (!wrap) return;
-    var btn = document.createElement('button');
-    btn.className = 'page-title-action';
-    btn.textContent = 'Import Page';
-    btn.type = 'button';
-    wrap.parentNode.insertBefore(btn, wrap.nextSibling);
+    var ver = '<?= NOMENTOR_VERSION ?>';
+    var nonce = '<?= $nonce ?>';
+    var exportNonce = '<?= $export_nonce ?>';
 
+    // Add "Import Page" and "Export All" buttons next to "Add New Page"
+    var addBtn = document.querySelector('.wrap .page-title-action');
+    if (addBtn) {
+      var importBtn = document.createElement('button');
+      importBtn.className = 'page-title-action';
+      importBtn.textContent = 'Import Page';
+      importBtn.type = 'button';
+      addBtn.parentNode.insertBefore(importBtn, addBtn.nextSibling);
+
+      var exportAllBtn = document.createElement('button');
+      exportAllBtn.className = 'page-title-action';
+      exportAllBtn.textContent = 'Export All Pages';
+      exportAllBtn.type = 'button';
+      importBtn.parentNode.insertBefore(exportAllBtn, importBtn.nextSibling);
+
+      importBtn.addEventListener('click', function() { doImport(); });
+      exportAllBtn.addEventListener('click', function() { doExport('all'); });
+    }
+
+    // File input for import
     var inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = '.json';
-    inp.style.display = 'none';
+    inp.type = 'file'; inp.accept = '.json'; inp.style.display = 'none';
     document.body.appendChild(inp);
 
-    btn.addEventListener('click', function() { inp.click(); });
+    // Import flow (target_id = null for new page, or existing post ID)
+    function doImport(targetId) {
+      inp._targetId = targetId || null;
+      inp.click();
+    }
+
     inp.addEventListener('change', function() {
       var file = inp.files[0];
       if (!file) return;
+      var targetId = inp._targetId;
       var reader = new FileReader();
       reader.onload = function() {
         try {
           var data = JSON.parse(reader.result);
-          if (!data.nomentor || !Array.isArray(data.layout)) {
-            alert('Not a valid Nomentor export file');
-            return;
+          if (!data.nomentor || (!Array.isArray(data.layout) && !Array.isArray(data.pages))) {
+            alert('Not a valid Nomentor export file'); return;
           }
-          var ver = '<?= NOMENTOR_VERSION ?>';
           if (data.version && data.version !== ver) {
             if (!confirm('This export was created with v' + data.version + ', but you are running v' + ver + '. Continue anyway?')) return;
           }
@@ -99,48 +118,156 @@ add_action('admin_head-edit.php', function () {
           }
           var fd = new FormData();
           fd.append('action', 'nomentor_import');
-          fd.append('nonce', '<?= $nonce ?>');
+          fd.append('nonce', nonce);
           fd.append('data', JSON.stringify(data));
           fd.append('apply_global', applyGlobal ? '1' : '0');
+          if (targetId) fd.append('post_id', targetId);
           fetch(ajaxurl, { method: 'POST', body: fd })
             .then(function(r) { return r.json(); })
             .then(function(r) {
-              if (r.success) {
-                window.location.href = r.data.design_url;
-              } else {
-                alert('Import failed: ' + (r.data || 'Unknown error'));
-              }
+              if (r.success) window.location.href = r.data.design_url || r.data.redirect;
+              else alert('Import failed: ' + (r.data || 'Unknown error'));
             });
-        } catch(e) {
-          alert('Import failed: ' + e.message);
-        }
+        } catch(e) { alert('Import failed: ' + e.message); }
       };
       reader.readAsText(file);
       inp.value = '';
+    });
+
+    // Export flow
+    function doExport(idOrAll) {
+      var includeGlobal = confirm('Include global settings (typography, colors, direction) in the export?');
+      var fd = new FormData();
+      fd.append('action', 'nomentor_export');
+      fd.append('nonce', exportNonce);
+      fd.append('target', idOrAll);
+      fd.append('include_global', includeGlobal ? '1' : '0');
+      fetch(ajaxurl, { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(r) {
+          if (!r.success) { alert('Export failed: ' + (r.data || 'Unknown error')); return; }
+          var blob = new Blob([JSON.stringify(r.data.export, null, 2)], { type: 'application/json' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = r.data.filename; a.click();
+          URL.revokeObjectURL(url);
+        });
+    }
+
+    // Wire up row action clicks (delegated)
+    document.addEventListener('click', function(e) {
+      var link = e.target.closest('.nomentor-export-link');
+      if (link) { e.preventDefault(); doExport(link.dataset.postId); }
+      var imp = e.target.closest('.nomentor-import-link');
+      if (imp) { e.preventDefault(); doImport(imp.dataset.postId); }
     });
   });
   </script>
   <?php
 });
 
-// AJAX: import page
+// AJAX: export page(s)
+add_action('wp_ajax_nomentor_export', function () {
+  check_ajax_referer('nomentor_export', 'nonce');
+  if (!current_user_can('edit_pages')) wp_send_json_error('Unauthorized');
+
+  $target = $_POST['target'] ?? '';
+  $include_global = ($_POST['include_global'] ?? '0') === '1';
+
+  $global_raw = get_option('nomentor_global_settings', '{}');
+  $global = json_decode($global_raw, true) ?: [];
+
+  function nomentor_export_page($post) {
+    $layout = get_post_meta($post->ID, '_nomentor_layout', true) ?: '[]';
+    $ps = get_post_meta($post->ID, '_nomentor_page_settings', true);
+    return [
+      'title' => $post->post_title,
+      'layout' => json_decode($layout, true) ?: [],
+      'pageSettings' => $ps ? json_decode($ps, true) : null,
+    ];
+  }
+
+  if ($target === 'all') {
+    $posts = get_posts(['post_type' => 'nomentor_page', 'numberposts' => -1, 'post_status' => 'any']);
+    $pages = [];
+    foreach ($posts as $p) $pages[] = nomentor_export_page($p);
+    $export = [
+      'nomentor' => true,
+      'version' => NOMENTOR_VERSION,
+      'exportedAt' => gmdate('c'),
+      'pages' => $pages,
+    ];
+    if ($include_global) $export['globalSettings'] = $global;
+    wp_send_json_success(['export' => $export, 'filename' => 'nomentor-all-pages.json']);
+  } else {
+    $post_id = intval($target);
+    $post = get_post($post_id);
+    if (!$post || $post->post_type !== 'nomentor_page') wp_send_json_error('Page not found');
+    $page_data = nomentor_export_page($post);
+    $export = [
+      'nomentor' => true,
+      'version' => NOMENTOR_VERSION,
+      'exportedAt' => gmdate('c'),
+      'layout' => $page_data['layout'],
+      'pageSettings' => $page_data['pageSettings'],
+    ];
+    if ($include_global) $export['globalSettings'] = $global;
+    $slug = sanitize_title($post->post_title) ?: 'page';
+    wp_send_json_success(['export' => $export, 'filename' => "nomentor-{$slug}.json"]);
+  }
+});
+
+// AJAX: import page (new or existing)
 add_action('wp_ajax_nomentor_import', function () {
   check_ajax_referer('nomentor_import', 'nonce');
   if (!current_user_can('edit_pages')) wp_send_json_error('Unauthorized');
 
   $raw = wp_unslash($_POST['data'] ?? '');
   $data = json_decode($raw, true);
-  if (!$data || empty($data['layout'])) wp_send_json_error('Invalid import data');
+  if (!$data) wp_send_json_error('Invalid import data');
 
-  $post_id = wp_insert_post([
-    'post_type' => 'nomentor_page',
-    'post_title' => 'Imported Page',
-    'post_status' => 'draft',
-  ]);
-  if (is_wp_error($post_id)) wp_send_json_error('Could not create page');
+  // Handle multi-page import
+  if (!empty($data['pages']) && is_array($data['pages'])) {
+    $apply_global = ($_POST['apply_global'] ?? '0') === '1';
+    if ($apply_global && !empty($data['globalSettings'])) {
+      update_option('nomentor_global_settings', json_encode($data['globalSettings'], JSON_UNESCAPED_UNICODE));
+    }
+    $count = 0;
+    foreach ($data['pages'] as $page) {
+      if (empty($page['layout'])) continue;
+      $pid = wp_insert_post([
+        'post_type' => 'nomentor_page',
+        'post_title' => $page['title'] ?? 'Imported Page',
+        'post_status' => 'draft',
+      ]);
+      if (is_wp_error($pid)) continue;
+      update_post_meta($pid, '_nomentor_layout', wp_slash(json_encode($page['layout'], JSON_UNESCAPED_UNICODE)));
+      if (!empty($page['pageSettings'])) {
+        update_post_meta($pid, '_nomentor_page_settings', wp_slash(json_encode($page['pageSettings'], JSON_UNESCAPED_UNICODE)));
+      }
+      $count++;
+    }
+    wp_send_json_success(['redirect' => admin_url('edit.php?post_type=nomentor_page'), 'count' => $count]);
+  }
 
-  $layout_json = json_encode($data['layout'], JSON_UNESCAPED_UNICODE);
-  update_post_meta($post_id, '_nomentor_layout', wp_slash($layout_json));
+  // Single page import
+  if (empty($data['layout'])) wp_send_json_error('Invalid import data');
+
+  $target_id = intval($_POST['post_id'] ?? 0);
+  if ($target_id) {
+    $post = get_post($target_id);
+    if (!$post || $post->post_type !== 'nomentor_page') wp_send_json_error('Page not found');
+    $post_id = $target_id;
+  } else {
+    $post_id = wp_insert_post([
+      'post_type' => 'nomentor_page',
+      'post_title' => 'Imported Page',
+      'post_status' => 'draft',
+    ]);
+    if (is_wp_error($post_id)) wp_send_json_error('Could not create page');
+  }
+
+  update_post_meta($post_id, '_nomentor_layout', wp_slash(json_encode($data['layout'], JSON_UNESCAPED_UNICODE)));
   if (!empty($data['pageSettings'])) {
     update_post_meta($post_id, '_nomentor_page_settings', wp_slash(json_encode($data['pageSettings'], JSON_UNESCAPED_UNICODE)));
   }
@@ -190,6 +317,9 @@ function nomentor_add_row_actions($actions, $post) {
     $view_url = home_url('/static/' . $post->post_name . '/');
     $actions['view'] = '<a href="' . esc_url($view_url) . '" target="_blank">View</a>';
   }
+
+  $actions['nm_export'] = '<a href="#" class="nomentor-export-link" data-post-id="' . $post->ID . '">Export</a>';
+  $actions['nm_import'] = '<a href="#" class="nomentor-import-link" data-post-id="' . $post->ID . '">Import</a>';
 
   return $actions;
 }
