@@ -564,6 +564,7 @@ function nomentor_render_button($props, $id = '') {
   ];
 
   if (!empty($props['fullWidth'])) $parts[] = 'width: 100%';
+  else $parts[] = 'width: fit-content';
 
   if (!empty($props['fontSize']) && isset($default_sizes[$props['fontSize']])) {
     global $_nomentor_effective_sizes;
