@@ -580,49 +580,17 @@ function nomentor_render_button($props, $id = '') {
     $success_msg = esc_attr($props['successMessage'] ?? 'Thank you!');
     $redirect_url = esc_url($props['redirectUrl'] ?? '');
 
-    // Validation messages from global/page settings
-    $global_raw = get_option('nomentor_global_settings', '{}');
-    $gs = json_decode($global_raw, true) ?: [];
-    $page_settings_raw = get_post_meta(get_the_ID() ?: 0, '_nomentor_page_settings', true);
-    $ps = $page_settings_raw ? json_decode($page_settings_raw, true) : [];
-    $msg_required = esc_attr($ps['validationMsg_required'] ?? $gs['validationMsg_required'] ?? 'This field is required');
-    $msg_email = esc_attr($ps['validationMsg_email'] ?? $gs['validationMsg_email'] ?? 'Invalid email address');
-    $msg_phone = esc_attr($ps['validationMsg_phone'] ?? $gs['validationMsg_phone'] ?? 'Invalid phone number');
-    $msg_number = esc_attr($ps['validationMsg_number'] ?? $gs['validationMsg_number'] ?? 'Must be a number');
-
     return "<button id=\"{$btn_id}\" type=\"button\" style=\"{$style}\">{$inner}</button>\n"
       . "<script>\n(function(){\n"
       . "var btn=document.getElementById('{$btn_id}');if(!btn)return;\n"
-      . "var formId='nm-form-{$form_target}';\n"
       . "var cb={$callback_js}||null;\n"
       . "var after='{$after}',successMsg='{$success_msg}',redirectUrl='{$redirect_url}';\n"
-      . "var msgs={required:'{$msg_required}',email:'{$msg_email}',phone:'{$msg_phone}',number:'{$msg_number}'};\n"
-      . "var errStyle='border:2px solid #e74c3c;background:rgba(231,76,60,0.05)';\n"
-      . "var errTxtStyle='color:#e74c3c;font-size:0.8em;margin-top:4px;padding:4px 8px;background:rgba(231,76,60,0.08);border-radius:4px';\n"
       . "\nbtn.addEventListener('click',async function(){\n"
-      . "  var form=document.getElementById(formId);if(!form)return;\n"
-      . "  form.querySelectorAll('.nm-field-error').forEach(function(e){e.remove()});\n"
-      . "  form.querySelectorAll('[data-nm-err]').forEach(function(e){e.removeAttribute('style');e.removeAttribute('data-nm-err')});\n"
-      . "  var msgEl=form.querySelector('.nm-form-message');if(msgEl)msgEl.style.display='none';\n"
-      . "  var rules=JSON.parse(form.dataset.nmRules||'[]');\n"
-      . "  var valid=true,data={};\n"
-      . "  for(var i=0;i<rules.length;i++){\n"
-      . "    var r=rules[i];\n"
-      . "    var el=form.querySelector('[name=\"'+r.name+'\"]');var val='';\n"
-      . "    if(r.type==='radio'){var c=form.querySelector('[name=\"'+r.name+'\"]:checked');val=c?c.value:'';}\n"
-      . "    else if(r.type==='checkbox'){val=el&&el.checked?'yes':'';}\n"
-      . "    else{val=el?el.value.trim():'';}\n"
-      . "    data[r.name]=val;\n"
-      . "    if(r.required&&!val){valid=false;sErr(el,msgs.required);continue;}\n"
-      . "    if(val&&r.validation==='email'&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(val)){valid=false;sErr(el,msgs.email);continue;}\n"
-      . "    if(val&&r.validation==='phone'&&!/^[\\d\\s\\-+().]{7,}$/.test(val)){valid=false;sErr(el,msgs.phone);continue;}\n"
-      . "    if(val&&r.validation==='number'&&isNaN(val)){valid=false;sErr(el,msgs.number);continue;}\n"
-      . "    if(r.customValidator){\n"
-      . "      try{var cv=eval(r.customValidator);if(typeof cv==='function'){var err=await cv(val,r.name);if(err){valid=false;sErr(el,err);continue;}}}\n"
-      . "      catch(e){valid=false;sErr(el,e.message||'Validation error');continue;}\n"
-      . "    }\n"
-      . "  }\n"
-      . "  if(!valid)return;\n"
+      . "  var form='{$form_target}'?document.getElementById('nm-form-{$form_target}'):btn.closest('form');\n"
+      . "  if(!form||!form._nmValidate)return;\n"
+      . "  var data=await form._nmValidate();\n"
+      . "  if(!data)return;\n"
+      . "  var msgEl=form.querySelector('.nm-form-message');\n"
       . "  var txt=btn.querySelector('.nm-btn-text'),spin=btn.querySelector('.nm-btn-spinner');\n"
       . "  btn.disabled=true;if(txt)txt.style.opacity='0.3';if(spin)spin.style.display='inline';\n"
       . "  var done=function(msg){\n"
@@ -637,11 +605,6 @@ function nomentor_render_button($props, $id = '') {
       . "  if(cb&&typeof cb==='function'){try{var r=await cb(data,form);done(r);}catch(e){fail(e.message||'Error');}}\n"
       . "  else{done();}\n"
       . "});\n"
-      . "function sErr(el,msg){\n"
-      . "  if(el){el.style.cssText+=';'+errStyle;el.setAttribute('data-nm-err','1');}\n"
-      . "  var d=document.createElement('div');d.className='nm-field-error';d.style.cssText=errTxtStyle;\n"
-      . "  d.textContent=msg;\n"
-      . "  if(el&&el.parentNode)el.parentNode.appendChild(d);}\n"
       . "})();\n</script>\n";
   }
 
@@ -761,6 +724,16 @@ function nomentor_render_form($element) {
   }
   $validations_attr = esc_attr(json_encode($validations, JSON_UNESCAPED_UNICODE));
 
+  // Validation messages from global/page settings
+  $global_raw = get_option('nomentor_global_settings', '{}');
+  $gs = json_decode($global_raw, true) ?: [];
+  $page_settings_raw = get_post_meta(get_the_ID() ?: 0, '_nomentor_page_settings', true);
+  $ps = $page_settings_raw ? json_decode($page_settings_raw, true) : [];
+  $msg_required = esc_attr($ps['validationMsg_required'] ?? $gs['validationMsg_required'] ?? 'This field is required');
+  $msg_email = esc_attr($ps['validationMsg_email'] ?? $gs['validationMsg_email'] ?? 'Invalid email address');
+  $msg_phone = esc_attr($ps['validationMsg_phone'] ?? $gs['validationMsg_phone'] ?? 'Invalid phone number');
+  $msg_number = esc_attr($ps['validationMsg_number'] ?? $gs['validationMsg_number'] ?? 'Must be a number');
+
   return <<<HTML
 <form id="nm-form-{$safe_id}" style="{$form_style}" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
 {$before_html}
@@ -768,6 +741,45 @@ function nomentor_render_form($element) {
 {$after_html}
   <div class="nm-form-message" style="display:none;text-align:center;padding:12px;font-weight:600"></div>
 </form>
+<script>
+(function(){
+var form=document.getElementById('nm-form-{$safe_id}');if(!form)return;
+var msgs={required:'{$msg_required}',email:'{$msg_email}',phone:'{$msg_phone}',number:'{$msg_number}'};
+var errStyle='border:2px solid #e74c3c;background:rgba(231,76,60,0.05)';
+var errTxtStyle='color:#e74c3c;font-size:0.8em;margin-top:4px;padding:4px 8px;background:rgba(231,76,60,0.08);border-radius:4px';
+function sErr(el,msg){
+  if(el){el.style.cssText+=';'+errStyle;el.setAttribute('data-nm-err','1');}
+  var d=document.createElement('div');d.className='nm-field-error';d.style.cssText=errTxtStyle;
+  d.textContent=msg;
+  if(el&&el.parentNode)el.parentNode.appendChild(d);
+}
+form._nmValidate=async function(){
+  form.querySelectorAll('.nm-field-error').forEach(function(e){e.remove()});
+  form.querySelectorAll('[data-nm-err]').forEach(function(e){e.removeAttribute('style');e.removeAttribute('data-nm-err')});
+  var msgEl=form.querySelector('.nm-form-message');if(msgEl)msgEl.style.display='none';
+  var rules=JSON.parse(form.dataset.nmRules||'[]');
+  var valid=true,data={};
+  for(var i=0;i<rules.length;i++){
+    var r=rules[i];
+    var el=form.querySelector('[name="'+r.name+'"]');var val='';
+    if(r.type==='radio'){var c=form.querySelector('[name="'+r.name+'"]:checked');val=c?c.value:'';}
+    else if(r.type==='checkbox'){val=el&&el.checked?'yes':'';}
+    else{val=el?el.value.trim():'';}
+    data[r.name]=val;
+    if(r.required&&!val){valid=false;sErr(el,msgs.required);continue;}
+    if(val&&r.validation==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){valid=false;sErr(el,msgs.email);continue;}
+    if(val&&r.validation==='phone'&&!/^[\d\s\-+().]{7,}$/.test(val)){valid=false;sErr(el,msgs.phone);continue;}
+    if(val&&r.validation==='number'&&isNaN(val)){valid=false;sErr(el,msgs.number);continue;}
+    if(r.customValidator){
+      try{var cv=eval(r.customValidator);if(typeof cv==='function'){var err=await cv(val,r.name);if(err){valid=false;sErr(el,err);continue;}}}
+      catch(e){valid=false;sErr(el,e.message||'Validation error');continue;}
+    }
+  }
+  return valid?data:null;
+};
+form.addEventListener('submit',async function(e){e.preventDefault();await form._nmValidate();});
+})();
+</script>
 
 HTML;
 }

@@ -85,6 +85,7 @@ html, body, #nomentor-root {
 .save-status.saved { color: #6b6; }
 .save-status.saving { color: #cc6; }
 .save-status.error { color: #c66; }
+.toolbar-version { font-size: 10px; color: #666; padding: 0 4px; }
 
 /* ── Editor layout ── */
 .nomentor-editor {

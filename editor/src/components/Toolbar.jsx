@@ -126,6 +126,7 @@ export function Toolbar({ backUrl, viewUrl }) {
       <span class={`save-status ${status}`}>
         {status === 'saving' ? 'Saving...' : status === 'error' ? 'Save failed' : 'Saved'}
       </span>
+      <span class="toolbar-version">v{window.nomentor?.version}</span>
 
       <span class="separator" />
 

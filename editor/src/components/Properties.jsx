@@ -433,7 +433,7 @@ function ButtonProps({ element }) {
           <PropField label="Form Target">
             <select class="prop-input" value={element.props.formTarget || ''}
               onChange={e => update({ formTarget: e.target.value })}>
-              <option value="">Select form...</option>
+              <option value="">Auto (closest form)</option>
               {rows.value.flatMap(r => r.elements).filter(e => e.type === 'form').map(f => (
                 <option key={f.id} value={f.id}>{f.id}</option>
               ))}
