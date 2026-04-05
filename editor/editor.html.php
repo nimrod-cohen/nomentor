@@ -18,7 +18,7 @@
       ajaxUrl: <?= json_encode(admin_url('admin-ajax.php')) ?>,
       nonce: <?= json_encode($nonce) ?>,
       globalSettings: <?= $global_settings ?>,
-      version: <?= json_encode(NOMENTOR_VERSION) ?>
+      version: <?= json_encode(nomentor_version()) ?>
     };
   </script>
   <script src="<?= esc_url($js_url) ?>"></script>

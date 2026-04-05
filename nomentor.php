@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.5.0
+ * Version:           0.5.1
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,9 +18,18 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.5.0');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
+
+function nomentor_version() {
+  static $ver;
+  if (!$ver) {
+    if (!function_exists('get_plugin_data')) require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    $data = get_plugin_data(__FILE__, false, false);
+    $ver = $data['Version'];
+  }
+  return $ver;
+}
 
 // --- Shared helpers ---
 
@@ -101,9 +110,9 @@ add_action('admin_enqueue_scripts', function ($hook) {
   if ($hook !== 'edit.php') return;
   $screen = get_current_screen();
   if (!$screen || $screen->post_type !== 'nomentor_page') return;
-  wp_enqueue_script('nomentor-admin-list', NOMENTOR_URL . 'editor/admin-list.js', [], NOMENTOR_VERSION, true);
+  wp_enqueue_script('nomentor-admin-list', NOMENTOR_URL . 'editor/admin-list.js', [], nomentor_version(), true);
   wp_localize_script('nomentor-admin-list', 'nmentorList', [
-    'version' => NOMENTOR_VERSION,
+    'version' => nomentor_version(),
     'importNonce' => wp_create_nonce('nomentor_import'),
     'exportNonce' => wp_create_nonce('nomentor_export'),
     'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -126,7 +135,7 @@ add_action('wp_ajax_nomentor_export', function () {
     foreach ($posts as $p) $pages[] = nomentor_export_page($p);
     $export = [
       'nomentor' => true,
-      'version' => NOMENTOR_VERSION,
+      'version' => nomentor_version(),
       'exportedAt' => gmdate('c'),
       'pages' => $pages,
     ];
@@ -139,7 +148,7 @@ add_action('wp_ajax_nomentor_export', function () {
     $page_data = nomentor_export_page($post);
     $export = [
       'nomentor' => true,
-      'version' => NOMENTOR_VERSION,
+      'version' => nomentor_version(),
       'exportedAt' => gmdate('c'),
       'layout' => $page_data['layout'],
       'pageSettings' => $page_data['pageSettings'],

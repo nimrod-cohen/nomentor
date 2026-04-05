@@ -24,8 +24,8 @@ function nomentor_render_editor() {
     : '';
   $title = esc_html($post->post_title);
 
-  $css_url = NOMENTOR_URL . 'editor/editor.css?v=' . NOMENTOR_VERSION;
-  $js_url = NOMENTOR_URL . 'editor/editor.js?v=' . NOMENTOR_VERSION;
+  $css_url = NOMENTOR_URL . 'editor/editor.css?v=' . nomentor_version();
+  $js_url = NOMENTOR_URL . 'editor/editor.js?v=' . nomentor_version();
 
   $nonce = wp_create_nonce('nomentor_editor');
   $global_settings = get_option('nomentor_global_settings', '{}');
