@@ -85,6 +85,10 @@ function nomentor_generate_static_html($post) {
   global $_nomentor_hidden_elements;
   $_nomentor_hidden_elements = [];
 
+  // Init responsive props collector
+  global $_nomentor_responsive_props;
+  $_nomentor_responsive_props = [];
+
   $body = '';
   foreach ($rows as $row) {
     $body .= nomentor_render_row($row);
@@ -135,6 +139,26 @@ function nomentor_generate_static_html($post) {
     if ($mobile_hide) $responsive_css .= "    @media (max-width: 768px) {\n{$mobile_hide}    }\n";
   }
   $_nomentor_hidden_elements = [];
+
+  // Build responsive props CSS (spacing, border overrides per viewport)
+  global $_nomentor_responsive_props;
+  if (!empty($_nomentor_responsive_props)) {
+    $tablet_props = '';
+    $mobile_props = '';
+    foreach ($_nomentor_responsive_props as $id => $vps) {
+      // Use #nm-el-ID for elements, .nm-el-ID for rows (rows use class)
+      $sel = '#nm-el-' . esc_attr($id) . ', .nm-el-' . esc_attr($id);
+      if (!empty($vps['tablet'])) {
+        $tablet_props .= "      {$sel} { " . implode('; ', $vps['tablet']) . " }\n";
+      }
+      if (!empty($vps['mobile'])) {
+        $mobile_props .= "      {$sel} { " . implode('; ', $vps['mobile']) . " }\n";
+      }
+    }
+    if ($tablet_props) $responsive_css .= "    @media (max-width: 1024px) {\n{$tablet_props}    }\n";
+    if ($mobile_props) $responsive_css .= "    @media (max-width: 768px) {\n{$mobile_props}    }\n";
+  }
+  $_nomentor_responsive_props = [];
 
   // Page scripts
   $head_scripts = '';
@@ -237,6 +261,7 @@ function nomentor_render_row($row) {
   $id = $row['id'] ?? '';
   $cls = 'nm-container';
   nomentor_collect_visibility($id, $row['props'] ?? []);
+  nomentor_collect_responsive_props($id, $row['props'] ?? []);
   if ($id) $cls .= ' nm-el-' . esc_attr($id);
 
   $style = nomentor_build_row_style($row['props'] ?? []);
@@ -250,6 +275,44 @@ function nomentor_collect_visibility($id, $props) {
   if (!$id || empty($props['hideOn'])) return;
   global $_nomentor_hidden_elements;
   $_nomentor_hidden_elements[$id] = $props['hideOn'];
+}
+
+function nomentor_collect_responsive_props($id, $props) {
+  if (!$id) return;
+  global $_nomentor_responsive_props;
+  $tablet = [];
+  $mobile = [];
+
+  foreach (['tablet', 'mobile'] as $vp) {
+    $rules = [];
+    $pad = nomentor_resolve_spacing($props, $vp . '_padding');
+    $mar = nomentor_resolve_spacing($props, $vp . '_margin');
+    if ($pad) $rules[] = 'padding: ' . $pad;
+    if ($mar) $rules[] = 'margin: ' . $mar;
+
+    $rg = $props[$vp . '_rowGap'] ?? null;
+    $cg = $props[$vp . '_colGap'] ?? null;
+    if ($rg !== null && $rg !== '') $rules[] = 'row-gap: ' . intval($rg) . 'px';
+    if ($cg !== null && $cg !== '') $rules[] = 'column-gap: ' . intval($cg) . 'px';
+
+    $b = $props[$vp . '_border'] ?? null;
+    if ($b && is_array($b) && !empty($b['width']) && ($b['style'] ?? 'none') !== 'none') {
+      $rules[] = 'border: ' . intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr(nomentor_resolve_color($b['color'] ?? '#000'));
+    }
+
+    $br = $props[$vp . '_borderRadius'] ?? null;
+    if ($br && is_array($br)) {
+      $rv = ($br['topLeft'] ?? 0) . 'px ' . ($br['topRight'] ?? 0) . 'px ' . ($br['bottomRight'] ?? 0) . 'px ' . ($br['bottomLeft'] ?? 0) . 'px';
+      if ($rv !== '0px 0px 0px 0px') $rules[] = 'border-radius: ' . $rv;
+    }
+
+    if ($vp === 'tablet') $tablet = $rules;
+    else $mobile = $rules;
+  }
+
+  if ($tablet || $mobile) {
+    $_nomentor_responsive_props[$id] = ['tablet' => $tablet, 'mobile' => $mobile];
+  }
 }
 
 function nomentor_build_row_style($props) {
@@ -298,8 +361,9 @@ function nomentor_render_element($element) {
   $props = $element['props'] ?? [];
   $id = $element['id'] ?? '';
 
-  // Collect visibility rules
+  // Collect visibility rules and responsive overrides
   nomentor_collect_visibility($id, $props);
+  nomentor_collect_responsive_props($id, $props);
 
   switch ($type) {
     case 'heading': $result = nomentor_render_heading($props); break;
@@ -316,8 +380,10 @@ function nomentor_render_element($element) {
   // Add scoped style block if customCss has nested selectors
   $scoped_css = nomentor_extract_scoped_css($id, $props['customCss'] ?? '');
 
-  // Wrap with ID for scoped CSS and/or visibility class
-  $needs_wrap = $scoped_css || !empty($props['hideOn']);
+  // Wrap with ID for scoped CSS, visibility, or responsive props
+  global $_nomentor_responsive_props;
+  $has_responsive = $id && isset($_nomentor_responsive_props[$id]);
+  $needs_wrap = $scoped_css || !empty($props['hideOn']) || $has_responsive;
   if ($id && $needs_wrap) {
     $cls = 'nm-el-' . esc_attr($id);
     $result = $scoped_css . '<div id="nm-el-' . esc_attr($id) . '" class="' . $cls . '">' . $result . '</div>';
