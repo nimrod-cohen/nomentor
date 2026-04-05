@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.4.5
+ * Version:           0.4.6
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,9 +18,50 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.4.5');
+define('NOMENTOR_VERSION', '0.4.6');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
+
+// --- Shared helpers ---
+
+function nomentor_verify_ajax($nonce_action, $capability = 'edit_pages') {
+  check_ajax_referer($nonce_action, 'nonce');
+  if (!current_user_can($capability)) wp_send_json_error('Unauthorized');
+}
+
+function nomentor_verify_ajax_post($nonce_action, $capability = 'edit_post') {
+  check_ajax_referer($nonce_action, 'nonce');
+  $post_id = intval($_POST['post_id'] ?? $_REQUEST['post_id'] ?? 0);
+  $post = get_post($post_id);
+  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can($capability, $post_id)) {
+    wp_send_json_error('Unauthorized');
+  }
+  return $post;
+}
+
+function nomentor_save_page_data($post_id, $layout, $page_settings = null) {
+  update_post_meta($post_id, '_nomentor_layout', wp_slash(json_encode($layout, JSON_UNESCAPED_UNICODE)));
+  if ($page_settings) {
+    update_post_meta($post_id, '_nomentor_page_settings', wp_slash(json_encode($page_settings, JSON_UNESCAPED_UNICODE)));
+  }
+}
+
+function nomentor_apply_global_settings($data) {
+  $apply_global = ($_POST['apply_global'] ?? '0') === '1';
+  if ($apply_global && !empty($data['globalSettings'])) {
+    update_option('nomentor_global_settings', json_encode($data['globalSettings'], JSON_UNESCAPED_UNICODE));
+  }
+}
+
+function nomentor_export_page($post) {
+  $layout = get_post_meta($post->ID, '_nomentor_layout', true) ?: '[]';
+  $ps = get_post_meta($post->ID, '_nomentor_page_settings', true);
+  return [
+    'title' => $post->post_title,
+    'layout' => json_decode($layout, true) ?: [],
+    'pageSettings' => $ps ? json_decode($ps, true) : null,
+  ];
+}
 
 // GitHub auto-updater
 require_once NOMENTOR_DIR . 'includes/github-updater.php';
@@ -55,137 +96,29 @@ add_action('init', function () {
   ]);
 });
 
-// List screen: Import/Export buttons + JS
-add_action('admin_head-edit.php', function () {
+// List screen: Import/Export buttons + JS (enqueued as external file)
+add_action('admin_enqueue_scripts', function ($hook) {
+  if ($hook !== 'edit.php') return;
   $screen = get_current_screen();
   if (!$screen || $screen->post_type !== 'nomentor_page') return;
-  $nonce = wp_create_nonce('nomentor_import');
-  $export_nonce = wp_create_nonce('nomentor_export');
-  ?>
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var ver = '<?= NOMENTOR_VERSION ?>';
-    var nonce = '<?= $nonce ?>';
-    var exportNonce = '<?= $export_nonce ?>';
-
-    // Add "Import Page" and "Export All" buttons next to "Add New Page"
-    var addBtn = document.querySelector('.wrap .page-title-action');
-    if (addBtn) {
-      var importBtn = document.createElement('button');
-      importBtn.className = 'page-title-action';
-      importBtn.textContent = 'Import Page';
-      importBtn.type = 'button';
-      addBtn.parentNode.insertBefore(importBtn, addBtn.nextSibling);
-
-      var exportAllBtn = document.createElement('button');
-      exportAllBtn.className = 'page-title-action';
-      exportAllBtn.textContent = 'Export All Pages';
-      exportAllBtn.type = 'button';
-      importBtn.parentNode.insertBefore(exportAllBtn, importBtn.nextSibling);
-
-      importBtn.addEventListener('click', function() { doImport(); });
-      exportAllBtn.addEventListener('click', function() { doExport('all'); });
-    }
-
-    // File input for import
-    var inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = '.json'; inp.style.display = 'none';
-    document.body.appendChild(inp);
-
-    // Import flow (target_id = null for new page, or existing post ID)
-    function doImport(targetId) {
-      inp._targetId = targetId || null;
-      inp.click();
-    }
-
-    inp.addEventListener('change', function() {
-      var file = inp.files[0];
-      if (!file) return;
-      var targetId = inp._targetId;
-      var reader = new FileReader();
-      reader.onload = function() {
-        try {
-          var data = JSON.parse(reader.result);
-          if (!data.nomentor || (!Array.isArray(data.layout) && !Array.isArray(data.pages))) {
-            alert('Not a valid Nomentor export file'); return;
-          }
-          if (data.version && data.version !== ver) {
-            if (!confirm('This export was created with v' + data.version + ', but you are running v' + ver + '. Continue anyway?')) return;
-          }
-          var applyGlobal = false;
-          if (data.globalSettings) {
-            applyGlobal = confirm('This export includes global settings. Apply them? (This will overwrite your current global settings)');
-          }
-          var fd = new FormData();
-          fd.append('action', 'nomentor_import');
-          fd.append('nonce', nonce);
-          fd.append('data', JSON.stringify(data));
-          fd.append('apply_global', applyGlobal ? '1' : '0');
-          if (targetId) fd.append('post_id', targetId);
-          fetch(ajaxurl, { method: 'POST', body: fd })
-            .then(function(r) { return r.json(); })
-            .then(function(r) {
-              if (r.success) window.location.href = r.data.design_url || r.data.redirect;
-              else alert('Import failed: ' + (r.data || 'Unknown error'));
-            });
-        } catch(e) { alert('Import failed: ' + e.message); }
-      };
-      reader.readAsText(file);
-      inp.value = '';
-    });
-
-    // Export flow
-    function doExport(idOrAll) {
-      var includeGlobal = confirm('Include global settings (typography, colors, direction) in the export?');
-      var fd = new FormData();
-      fd.append('action', 'nomentor_export');
-      fd.append('nonce', exportNonce);
-      fd.append('target', idOrAll);
-      fd.append('include_global', includeGlobal ? '1' : '0');
-      fetch(ajaxurl, { method: 'POST', body: fd })
-        .then(function(r) { return r.json(); })
-        .then(function(r) {
-          if (!r.success) { alert('Export failed: ' + (r.data || 'Unknown error')); return; }
-          var blob = new Blob([JSON.stringify(r.data.export, null, 2)], { type: 'application/json' });
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.href = url; a.download = r.data.filename; a.click();
-          URL.revokeObjectURL(url);
-        });
-    }
-
-    // Wire up row action clicks (delegated)
-    document.addEventListener('click', function(e) {
-      var link = e.target.closest('.nomentor-export-link');
-      if (link) { e.preventDefault(); doExport(link.dataset.postId); }
-      var imp = e.target.closest('.nomentor-import-link');
-      if (imp) { e.preventDefault(); doImport(imp.dataset.postId); }
-    });
-  });
-  </script>
-  <?php
+  wp_enqueue_script('nomentor-admin-list', NOMENTOR_URL . 'editor/admin-list.js', [], NOMENTOR_VERSION, true);
+  wp_localize_script('nomentor-admin-list', 'nmentorList', [
+    'version' => NOMENTOR_VERSION,
+    'importNonce' => wp_create_nonce('nomentor_import'),
+    'exportNonce' => wp_create_nonce('nomentor_export'),
+    'ajaxUrl' => admin_url('admin-ajax.php'),
+  ]);
 });
 
 // AJAX: export page(s)
 add_action('wp_ajax_nomentor_export', function () {
-  check_ajax_referer('nomentor_export', 'nonce');
-  if (!current_user_can('edit_pages')) wp_send_json_error('Unauthorized');
+  nomentor_verify_ajax('nomentor_export');
 
   $target = $_POST['target'] ?? '';
   $include_global = ($_POST['include_global'] ?? '0') === '1';
 
   $global_raw = get_option('nomentor_global_settings', '{}');
   $global = json_decode($global_raw, true) ?: [];
-
-  function nomentor_export_page($post) {
-    $layout = get_post_meta($post->ID, '_nomentor_layout', true) ?: '[]';
-    $ps = get_post_meta($post->ID, '_nomentor_page_settings', true);
-    return [
-      'title' => $post->post_title,
-      'layout' => json_decode($layout, true) ?: [],
-      'pageSettings' => $ps ? json_decode($ps, true) : null,
-    ];
-  }
 
   if ($target === 'all') {
     $posts = get_posts(['post_type' => 'nomentor_page', 'numberposts' => -1, 'post_status' => 'any']);
@@ -219,8 +152,7 @@ add_action('wp_ajax_nomentor_export', function () {
 
 // AJAX: import page (new or existing)
 add_action('wp_ajax_nomentor_import', function () {
-  check_ajax_referer('nomentor_import', 'nonce');
-  if (!current_user_can('edit_pages')) wp_send_json_error('Unauthorized');
+  nomentor_verify_ajax('nomentor_import');
 
   $raw = wp_unslash($_POST['data'] ?? '');
   $data = json_decode($raw, true);
@@ -228,10 +160,7 @@ add_action('wp_ajax_nomentor_import', function () {
 
   // Handle multi-page import
   if (!empty($data['pages']) && is_array($data['pages'])) {
-    $apply_global = ($_POST['apply_global'] ?? '0') === '1';
-    if ($apply_global && !empty($data['globalSettings'])) {
-      update_option('nomentor_global_settings', json_encode($data['globalSettings'], JSON_UNESCAPED_UNICODE));
-    }
+    nomentor_apply_global_settings($data);
     $count = 0;
     foreach ($data['pages'] as $page) {
       if (empty($page['layout'])) continue;
@@ -241,10 +170,7 @@ add_action('wp_ajax_nomentor_import', function () {
         'post_status' => 'draft',
       ]);
       if (is_wp_error($pid)) continue;
-      update_post_meta($pid, '_nomentor_layout', wp_slash(json_encode($page['layout'], JSON_UNESCAPED_UNICODE)));
-      if (!empty($page['pageSettings'])) {
-        update_post_meta($pid, '_nomentor_page_settings', wp_slash(json_encode($page['pageSettings'], JSON_UNESCAPED_UNICODE)));
-      }
+      nomentor_save_page_data($pid, $page['layout'], $page['pageSettings'] ?? null);
       $count++;
     }
     wp_send_json_success(['redirect' => admin_url('edit.php?post_type=nomentor_page'), 'count' => $count]);
@@ -267,15 +193,8 @@ add_action('wp_ajax_nomentor_import', function () {
     if (is_wp_error($post_id)) wp_send_json_error('Could not create page');
   }
 
-  update_post_meta($post_id, '_nomentor_layout', wp_slash(json_encode($data['layout'], JSON_UNESCAPED_UNICODE)));
-  if (!empty($data['pageSettings'])) {
-    update_post_meta($post_id, '_nomentor_page_settings', wp_slash(json_encode($data['pageSettings'], JSON_UNESCAPED_UNICODE)));
-  }
-
-  $apply_global = ($_POST['apply_global'] ?? '0') === '1';
-  if ($apply_global && !empty($data['globalSettings'])) {
-    update_option('nomentor_global_settings', json_encode($data['globalSettings'], JSON_UNESCAPED_UNICODE));
-  }
+  nomentor_save_page_data($post_id, $data['layout'], $data['pageSettings'] ?? null);
+  nomentor_apply_global_settings($data);
 
   wp_send_json_success([
     'post_id' => $post_id,
@@ -381,14 +300,9 @@ add_action('admin_footer-edit.php', function () {
 
 // AJAX: save page layout
 add_action('wp_ajax_nomentor_save', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
+  $post = nomentor_verify_ajax_post('nomentor_editor');
 
-  $post_id = intval($_POST['post_id'] ?? 0);
-  $post = get_post($post_id);
-
-  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {
-    wp_send_json_error('Unauthorized');
-  }
+  $post_id = $post->ID;
 
   // Layout and history are base64-encoded from JS to avoid WP slash corruption
   // JS encodes: btoa(unescape(encodeURIComponent(json))) — PHP reverses with base64_decode (already UTF-8)
@@ -411,8 +325,7 @@ add_action('wp_ajax_nomentor_save', function () {
 
 // AJAX: browse media library images
 add_action('wp_ajax_nomentor_media', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
-  if (!current_user_can('upload_files')) wp_send_json_error('Unauthorized');
+  nomentor_verify_ajax('nomentor_editor', 'upload_files');
 
   $page = max(1, intval($_GET['page'] ?? 1));
   $search = sanitize_text_field($_GET['search'] ?? '');
@@ -517,8 +430,7 @@ add_action('wp_ajax_nomentor_fonts', function () {
 
 // AJAX: upload image to media library
 add_action('wp_ajax_nomentor_upload', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
-  if (!current_user_can('upload_files')) wp_send_json_error('Unauthorized');
+  nomentor_verify_ajax('nomentor_editor', 'upload_files');
 
   if (empty($_FILES['file'])) wp_send_json_error('No file');
 
@@ -540,15 +452,10 @@ add_action('wp_ajax_nomentor_upload', function () {
 
 // AJAX: rename page
 add_action('wp_ajax_nomentor_rename', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
-  $post_id = intval($_POST['post_id'] ?? 0);
-  $post = get_post($post_id);
-  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {
-    wp_send_json_error('Unauthorized');
-  }
+  $post = nomentor_verify_ajax_post('nomentor_editor');
   $title = sanitize_text_field($_POST['title'] ?? '');
   if (empty($title)) wp_send_json_error('Empty title');
-  wp_update_post(['ID' => $post_id, 'post_title' => $title]);
+  wp_update_post(['ID' => $post->ID, 'post_title' => $title]);
   wp_send_json_success();
 });
 
@@ -574,8 +481,7 @@ add_action('wp_ajax_nomentor_load', function () {
 
 // AJAX: save global settings
 add_action('wp_ajax_nomentor_save_global_settings', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
-  if (!current_user_can('edit_pages')) wp_send_json_error('Unauthorized');
+  nomentor_verify_ajax('nomentor_editor');
   $settings = wp_unslash($_POST['settings'] ?? '{}');
   update_option('nomentor_global_settings', $settings);
   wp_send_json_success();
@@ -583,14 +489,9 @@ add_action('wp_ajax_nomentor_save_global_settings', function () {
 
 // AJAX: save page settings
 add_action('wp_ajax_nomentor_save_page_settings', function () {
-  check_ajax_referer('nomentor_editor', 'nonce');
-  $post_id = intval($_POST['post_id'] ?? 0);
-  $post = get_post($post_id);
-  if (!$post || $post->post_type !== 'nomentor_page' || !current_user_can('edit_post', $post_id)) {
-    wp_send_json_error('Unauthorized');
-  }
+  $post = nomentor_verify_ajax_post('nomentor_editor');
   $settings = wp_unslash($_POST['settings'] ?? '{}');
-  update_post_meta($post_id, '_nomentor_page_settings', $settings);
+  update_post_meta($post->ID, '_nomentor_page_settings', $settings);
   wp_send_json_success();
 });
 

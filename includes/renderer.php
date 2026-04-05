@@ -284,6 +284,36 @@ function nomentor_collect_visibility($id, $props) {
   $_nomentor_hidden_elements[$id] = $props['hideOn'];
 }
 
+/**
+ * Resolve a single responsive CSS rule for a given viewport prefix and property.
+ * Returns CSS string (e.g. "padding: 10px 20px 10px 20px") or null.
+ */
+function nomentor_resolve_responsive_rule($props, $vp_prefix, $prop, $css_prop) {
+  switch ($prop) {
+    case 'padding':
+    case 'margin':
+      $val = nomentor_resolve_spacing($props, $vp_prefix . $prop);
+      return $val ? $css_prop . ': ' . $val : null;
+
+    case 'rowGap':
+    case 'colGap':
+      $v = $props[$vp_prefix . $prop] ?? null;
+      return ($v !== null && $v !== '') ? $css_prop . ': ' . intval($v) . 'px' : null;
+
+    case 'border':
+      $b = $props[$vp_prefix . 'border'] ?? null;
+      if (!$b || !is_array($b) || empty($b['width']) || ($b['style'] ?? 'none') === 'none') return null;
+      return $css_prop . ': ' . intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr(nomentor_resolve_color($b['color'] ?? '#000'));
+
+    case 'borderRadius':
+      $br = $props[$vp_prefix . 'borderRadius'] ?? null;
+      if (!$br || !is_array($br)) return null;
+      $rv = ($br['topLeft'] ?? 0) . 'px ' . ($br['topRight'] ?? 0) . 'px ' . ($br['bottomRight'] ?? 0) . 'px ' . ($br['bottomLeft'] ?? 0) . 'px';
+      return $rv !== '0px 0px 0px 0px' ? $css_prop . ': ' . $rv : null;
+  }
+  return null;
+}
+
 function nomentor_collect_responsive_props($id, $props) {
   if (!$id) return;
   global $_nomentor_responsive_props;
@@ -291,45 +321,23 @@ function nomentor_collect_responsive_props($id, $props) {
   $viewports = ['desktop' => [], 'tablet' => [], 'mobile' => []];
   $has_any = false;
 
-  // For each CSS property, check if tablet or mobile override exists.
-  // If so, collect ALL viewports (including desktop) so inline style can be skipped.
+  // Property mappings: [prop key, css property name]
   $checks = [
-    'padding' => function($vp_prefix) use ($props) {
-      $pad = nomentor_resolve_spacing($props, $vp_prefix . 'padding');
-      return $pad ? 'padding: ' . $pad : null;
-    },
-    'margin' => function($vp_prefix) use ($props) {
-      $mar = nomentor_resolve_spacing($props, $vp_prefix . 'margin');
-      return $mar ? 'margin: ' . $mar : null;
-    },
-    'row-gap' => function($vp_prefix) use ($props) {
-      $v = $props[$vp_prefix . 'rowGap'] ?? null;
-      return ($v !== null && $v !== '') ? 'row-gap: ' . intval($v) . 'px' : null;
-    },
-    'column-gap' => function($vp_prefix) use ($props) {
-      $v = $props[$vp_prefix . 'colGap'] ?? null;
-      return ($v !== null && $v !== '') ? 'column-gap: ' . intval($v) . 'px' : null;
-    },
-    'border' => function($vp_prefix) use ($props) {
-      $b = $props[$vp_prefix . 'border'] ?? null;
-      if (!$b || !is_array($b) || empty($b['width']) || ($b['style'] ?? 'none') === 'none') return null;
-      return 'border: ' . intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr(nomentor_resolve_color($b['color'] ?? '#000'));
-    },
-    'border-radius' => function($vp_prefix) use ($props) {
-      $br = $props[$vp_prefix . 'borderRadius'] ?? null;
-      if (!$br || !is_array($br)) return null;
-      $rv = ($br['topLeft'] ?? 0) . 'px ' . ($br['topRight'] ?? 0) . 'px ' . ($br['bottomRight'] ?? 0) . 'px ' . ($br['bottomLeft'] ?? 0) . 'px';
-      return $rv !== '0px 0px 0px 0px' ? 'border-radius: ' . $rv : null;
-    },
+    ['padding', 'padding'],
+    ['margin', 'margin'],
+    ['rowGap', 'row-gap'],
+    ['colGap', 'column-gap'],
+    ['border', 'border'],
+    ['borderRadius', 'border-radius'],
   ];
 
-  foreach ($checks as $css_prop => $resolver) {
-    $tablet_val = $resolver('tablet_');
-    $mobile_val = $resolver('mobile_');
+  foreach ($checks as [$prop, $css_prop]) {
+    $tablet_val = nomentor_resolve_responsive_rule($props, 'tablet_', $prop, $css_prop);
+    $mobile_val = nomentor_resolve_responsive_rule($props, 'mobile_', $prop, $css_prop);
     if (!$tablet_val && !$mobile_val) continue;
 
     $has_any = true;
-    $desktop_val = $resolver('');
+    $desktop_val = nomentor_resolve_responsive_rule($props, '', $prop, $css_prop);
     if ($desktop_val) $viewports['desktop'][] = $desktop_val;
     if ($tablet_val) $viewports['tablet'][] = $tablet_val;
     if ($mobile_val) $viewports['mobile'][] = $mobile_val;
@@ -354,6 +362,21 @@ function nomentor_get_responsive_css_props($id) {
   return $props;
 }
 
+/**
+ * Apply common style properties shared across row, cell, and element style builders.
+ * Handles: responsive skip check, direction, border, padding, margin, customCss.
+ */
+function nomentor_apply_common_style(&$parts, $props, $id = '') {
+  $skip = nomentor_get_responsive_css_props($id);
+  if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
+  if (empty($skip['border']) && empty($skip['border-radius'])) nomentor_apply_border($parts, $props);
+  $pad = nomentor_resolve_spacing($props, 'padding');
+  $mar = nomentor_resolve_spacing($props, 'margin');
+  if (empty($skip['padding']) && $pad) $parts[] = 'padding: ' . $pad;
+  if (empty($skip['margin']) && $mar) $parts[] = 'margin: ' . $mar;
+  $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
+}
+
 function nomentor_build_row_style($props, $id = '') {
   $skip = nomentor_get_responsive_css_props($id);
   // If row has hideOn, move display to CSS so visibility rules can override it
@@ -376,15 +399,25 @@ function nomentor_build_row_style($props, $id = '') {
     $align_css = nomentor_align_to_css($props['align']);
     if ($align_css) $parts = array_merge($parts, $align_css);
   }
-  if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
   if (empty($skip['row-gap']) && !empty($props['rowGap'])) $parts[] = 'row-gap: ' . intval($props['rowGap']) . 'px';
   if (empty($skip['column-gap']) && !empty($props['colGap'])) $parts[] = 'column-gap: ' . intval($props['colGap']) . 'px';
-  if (empty($skip['border']) && empty($skip['border-radius'])) nomentor_apply_border($parts, $props);
-  $pad = nomentor_resolve_spacing($props, 'padding');
-  $mar = nomentor_resolve_spacing($props, 'margin');
-  if (empty($skip['padding']) && $pad) $parts[] = 'padding: ' . $pad;
-  if (empty($skip['margin']) && $mar && empty($props['maxWidth'])) $parts[] = 'margin: ' . $mar;
-  $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
+
+  // Apply common: direction, border, padding, margin, customCss
+  // But margin is special when maxWidth is set — skip it
+  if (!empty($props['maxWidth'])) {
+    // direction
+    if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
+    // border (with skip check)
+    if (empty($skip['border']) && empty($skip['border-radius'])) nomentor_apply_border($parts, $props);
+    // padding (with skip check)
+    $pad = nomentor_resolve_spacing($props, 'padding');
+    if (empty($skip['padding']) && $pad) $parts[] = 'padding: ' . $pad;
+    // margin skipped when maxWidth is set (auto margins already applied)
+    $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
+  } else {
+    nomentor_apply_common_style($parts, $props, $id);
+  }
+
   return implode('; ', $parts);
 }
 
@@ -414,13 +447,13 @@ function nomentor_render_element($element) {
   nomentor_collect_responsive_props($id, $props);
 
   switch ($type) {
-    case 'heading': $result = nomentor_render_heading($props, $id); break;
-    case 'text': $result = nomentor_render_text($props, $id); break;
-    case 'image': $result = nomentor_render_image($props, $id); break;
+    case 'heading': $result = nomentor_render_heading($element); break;
+    case 'text': $result = nomentor_render_text($element); break;
+    case 'image': $result = nomentor_render_image($element); break;
     case 'grid': $result = nomentor_render_grid($element); break;
-    case 'button': $result = nomentor_render_button($props, $id); break;
-    case 'list': $result = nomentor_render_list($props); break;
-    case 'timer': $result = nomentor_render_timer($props, $id); break;
+    case 'button': $result = nomentor_render_button($element); break;
+    case 'list': $result = nomentor_render_list($element); break;
+    case 'timer': $result = nomentor_render_timer($element); break;
     case 'form': $result = nomentor_render_form($element); break;
     default: return '';
   }
@@ -441,7 +474,9 @@ function nomentor_render_element($element) {
   return $result;
 }
 
-function nomentor_render_heading($props, $id = '') {
+function nomentor_render_heading($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
   $level = $props['level'] ?? 'h2';
   $text = esc_html($props['text'] ?? '');
   $allowed = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
@@ -539,7 +574,6 @@ function nomentor_resolve_spacing($props, $prop) {
 }
 
 function nomentor_build_style($props, $id = '') {
-  $skip = nomentor_get_responsive_css_props($id);
   static $default_sizes = [
     'xs' => 0.75, 'sm' => 0.875, 'base' => 1, 'lg' => 1.125,
     'xl' => 1.25, '2xl' => 1.5, '3xl' => 1.875, '4xl' => 2.25,
@@ -552,24 +586,22 @@ function nomentor_build_style($props, $id = '') {
     $parts[] = 'font-size: ' . $em . 'em';
   }
   if (!empty($props['textAlign'])) $parts[] = 'text-align: ' . esc_attr($props['textAlign']);
-  if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
-  if (empty($skip['border']) && empty($skip['border-radius'])) nomentor_apply_border($parts, $props);
-  $pad = nomentor_resolve_spacing($props, 'padding');
-  $mar = nomentor_resolve_spacing($props, 'margin');
-  if (empty($skip['padding']) && $pad) $parts[] = 'padding: ' . $pad;
-  if (empty($skip['margin']) && $mar) $parts[] = 'margin: ' . $mar;
-  $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
+  nomentor_apply_common_style($parts, $props, $id);
   return implode('; ', $parts);
 }
 
-function nomentor_render_text($props, $id = '') {
+function nomentor_render_text($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
   $text = wp_kses_post($props['text'] ?? '');
   $style = nomentor_build_style($props, $id);
   $attr = $style ? " style=\"{$style}\"" : '';
   return "<div{$attr}>{$text}</div>\n";
 }
 
-function nomentor_render_image($props, $id = '') {
+function nomentor_render_image($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
   $src = esc_url($props['src'] ?? '');
   $alt = esc_attr($props['alt'] ?? '');
   if (empty($src)) return '';
@@ -646,19 +678,15 @@ function nomentor_build_cell_style($props) {
     $align_css = nomentor_align_to_css($props['align']);
     if ($align_css) $parts = array_merge($parts, $align_css);
   }
-  if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
   if (!empty($props['rowGap'])) $parts[] = 'row-gap: ' . intval($props['rowGap']) . 'px';
   if (!empty($props['colGap'])) $parts[] = 'column-gap: ' . intval($props['colGap']) . 'px';
-  nomentor_apply_border($parts, $props);
-  $pad = nomentor_resolve_spacing($props, 'padding');
-  $mar = nomentor_resolve_spacing($props, 'margin');
-  if ($pad) $parts[] = 'padding: ' . $pad;
-  if ($mar) $parts[] = 'margin: ' . $mar;
-  $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
+  nomentor_apply_common_style($parts, $props);
   return implode('; ', $parts);
 }
 
-function nomentor_render_button($props, $id = '') {
+function nomentor_render_button($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
   $text = esc_html($props['text'] ?? 'Button');
   $url = esc_url($props['url'] ?? '#');
   $new_tab = !empty($props['newTab']) ? ' target="_blank" rel="noopener noreferrer"' : '';
@@ -773,7 +801,9 @@ function nomentor_render_button($props, $id = '') {
   return "<a href=\"{$url}\"{$new_tab} style=\"{$style}\">{$inner}</a>\n";
 }
 
-function nomentor_render_timer($props, $id) {
+function nomentor_render_timer($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
   $target = $props['targetDate'] ?? '';
   if (!$target) return '';
 
@@ -831,6 +861,23 @@ function nomentor_render_timer($props, $id) {
 HTML;
 }
 
+/**
+ * Get validation messages from global/page settings.
+ * Returns associative array with keys: required, email, phone, number.
+ */
+function nomentor_get_validation_messages() {
+  $global_raw = get_option('nomentor_global_settings', '{}');
+  $gs = json_decode($global_raw, true) ?: [];
+  $page_settings_raw = get_post_meta(get_the_ID() ?: 0, '_nomentor_page_settings', true);
+  $ps = $page_settings_raw ? json_decode($page_settings_raw, true) : [];
+  return [
+    'required' => esc_attr($ps['validationMsg_required'] ?? $gs['validationMsg_required'] ?? 'This field is required'),
+    'email' => esc_attr($ps['validationMsg_email'] ?? $gs['validationMsg_email'] ?? 'Invalid email address'),
+    'phone' => esc_attr($ps['validationMsg_phone'] ?? $gs['validationMsg_phone'] ?? 'Invalid phone number'),
+    'number' => esc_attr($ps['validationMsg_number'] ?? $gs['validationMsg_number'] ?? 'Must be a number'),
+  ];
+}
+
 function nomentor_render_form($element) {
   $props = $element['props'] ?? [];
   $id = $element['id'] ?? '';
@@ -876,14 +923,11 @@ function nomentor_render_form($element) {
   $validations_attr = esc_attr(json_encode($validations, JSON_UNESCAPED_UNICODE));
 
   // Validation messages from global/page settings
-  $global_raw = get_option('nomentor_global_settings', '{}');
-  $gs = json_decode($global_raw, true) ?: [];
-  $page_settings_raw = get_post_meta(get_the_ID() ?: 0, '_nomentor_page_settings', true);
-  $ps = $page_settings_raw ? json_decode($page_settings_raw, true) : [];
-  $msg_required = esc_attr($ps['validationMsg_required'] ?? $gs['validationMsg_required'] ?? 'This field is required');
-  $msg_email = esc_attr($ps['validationMsg_email'] ?? $gs['validationMsg_email'] ?? 'Invalid email address');
-  $msg_phone = esc_attr($ps['validationMsg_phone'] ?? $gs['validationMsg_phone'] ?? 'Invalid phone number');
-  $msg_number = esc_attr($ps['validationMsg_number'] ?? $gs['validationMsg_number'] ?? 'Must be a number');
+  $msgs = nomentor_get_validation_messages();
+  $msg_required = $msgs['required'];
+  $msg_email = $msgs['email'];
+  $msg_phone = $msgs['phone'];
+  $msg_number = $msgs['number'];
 
   $validate_script = <<<SCRIPT
 <script>
@@ -999,7 +1043,8 @@ function nomentor_render_form_field($f) {
   return $html;
 }
 
-function nomentor_render_list($props) {
+function nomentor_render_list($element) {
+  $props = $element['props'] ?? [];
   $list_type = ($props['listType'] ?? 'ul') === 'ol' ? 'ol' : 'ul';
   $items = $props['items'] ?? [];
   $default_icon = $props['icon'] ?? '';
