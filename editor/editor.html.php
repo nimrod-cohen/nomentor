@@ -16,7 +16,8 @@
       backUrl: <?= json_encode($back_url) ?>,
       viewUrl: <?= json_encode($view_url) ?>,
       ajaxUrl: <?= json_encode(admin_url('admin-ajax.php')) ?>,
-      nonce: <?= json_encode($nonce) ?>
+      nonce: <?= json_encode($nonce) ?>,
+      globalSettings: <?= $global_settings ?>
     };
   </script>
   <script src="<?= esc_url($js_url) ?>"></script>

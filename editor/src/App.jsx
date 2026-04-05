@@ -1,9 +1,12 @@
 import { Toolbar } from './components/Toolbar';
 import { Toolbox } from './components/Toolbox';
 import { History } from './components/History';
+import { Properties } from './components/Properties';
+import { Settings } from './components/Settings';
 import { Canvas } from './components/Canvas';
 import { Navigator } from './components/Navigator';
-import { sidebarMode, rows, syncIdCounter, loadHistory, leftSidebarOpen, rightSidebarOpen } from './state';
+import { MediaPicker } from './components/MediaPicker';
+import { sidebarMode, rows, syncIdCounter, loadHistory, loadPageSettings, leftSidebarOpen, rightSidebarOpen } from './state';
 
 // Load saved layout on mount
 (async function loadLayout() {
@@ -11,11 +14,16 @@ import { sidebarMode, rows, syncIdCounter, loadHistory, leftSidebarOpen, rightSi
   try {
     const resp = await fetch(`${ajaxUrl}?action=nomentor_load&post_id=${postId}`);
     const data = await resp.json();
-    if (data.success && data.data?.layout) {
-      const layout = JSON.parse(data.data.layout);
-      if (Array.isArray(layout) && layout.length > 0) {
-        rows.value = layout;
-        syncIdCounter(layout);
+    if (data.success && data.data?.layoutB64) {
+      try {
+        const json = decodeURIComponent(escape(atob(data.data.layoutB64)));
+        const layout = JSON.parse(json);
+        if (Array.isArray(layout) && layout.length > 0) {
+          rows.value = layout;
+          syncIdCounter(layout);
+        }
+      } catch (le) {
+        console.warn('Failed to parse layout, starting fresh:', le);
       }
     }
     if (data.success && data.data?.history && data.data.history.length > 2) {
@@ -29,6 +37,9 @@ import { sidebarMode, rows, syncIdCounter, loadHistory, leftSidebarOpen, rightSi
       } catch (he) {
         // Not base64 or invalid — ignore stale data
       }
+    }
+    if (data.success && data.data?.pageSettings) {
+      loadPageSettings(data.data.pageSettings);
     }
   } catch (e) {
     console.warn('Failed to load layout:', e);
@@ -47,10 +58,14 @@ export function App() {
     <>
       <Toolbar backUrl={backUrl} viewUrl={viewUrl} />
       <div class={editorClass}>
-        {mode === 'toolbox' ? <Toolbox /> : <History />}
+        {mode === 'globalSettings' || mode === 'pageSettings' ? <Settings mode={mode} />
+          : mode === 'properties' ? <Properties />
+          : mode === 'toolbox' ? <Toolbox />
+          : <History />}
         <Canvas />
         <Navigator />
       </div>
+      <MediaPicker />
     </>
   );
 }

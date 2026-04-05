@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@preact/signals": "^2.9.0",
+    "lucide": "^1.7.0",
     "preact": "^10.25.0"
   },
   "devDependencies": {

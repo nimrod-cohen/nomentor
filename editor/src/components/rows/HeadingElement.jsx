@@ -1,26 +1,11 @@
-import { useRef } from 'preact/hooks';
-import { updateElementProps, commitChange } from '../../state';
+import { buildStyle } from '../../utils';
+import { viewportMode, getHeadingSizeMap } from '../../state';
 
 export function HeadingElement({ element }) {
-  const ref = useRef(null);
   const Tag = element.props.level || 'h2';
+  const style = buildStyle(element.props);
+  const headingSizes = getHeadingSizeMap(viewportMode.value);
+  if (headingSizes[Tag]) style.fontSize = headingSizes[Tag];
 
-  function onBlur() {
-    if (!ref.current) return;
-    const text = ref.current.textContent;
-    if (text !== element.props.text) {
-      updateElementProps(element.id, { text });
-      commitChange('Edit heading');
-    }
-  }
-
-  return (
-    <Tag
-      ref={ref}
-      contentEditable
-      style={{ outline: 'none' }}
-      onBlur={onBlur}
-      dangerouslySetInnerHTML={{ __html: element.props.text }}
-    />
-  );
+  return <Tag style={style}>{element.props.text}</Tag>;
 }

@@ -1,4 +1,4 @@
-import { Grid, Heading, AlignLeft, Image } from '../icons';
+import { Grid, Heading, AlignLeft, Image, MousePointerClick, Timer, ClipboardList, List } from '../icons';
 import { dragging } from '../state';
 
 const COMPONENTS = [
@@ -6,6 +6,10 @@ const COMPONENTS = [
   { type: 'heading', label: 'Heading', icon: Heading },
   { type: 'text', label: 'Text', icon: AlignLeft },
   { type: 'image', label: 'Image', icon: Image },
+  { type: 'button', label: 'Button', icon: MousePointerClick },
+  { type: 'list', label: 'List', icon: List },
+  { type: 'timer', label: 'Timer', icon: Timer },
+  { type: 'form', label: 'Form', icon: ClipboardList },
 ];
 
 export function Toolbox() {

@@ -28,6 +28,7 @@ function nomentor_render_editor() {
   $js_url = NOMENTOR_URL . 'editor/editor.js?v=' . NOMENTOR_VERSION;
 
   $nonce = wp_create_nonce('nomentor_editor');
+  $global_settings = get_option('nomentor_global_settings', '{}');
 
   include __DIR__ . '/editor.html.php';
   exit;
