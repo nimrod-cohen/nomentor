@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.3.4
+ * Version:           0.3.5
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.3.4');
+define('NOMENTOR_VERSION', '0.3.5');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
 
@@ -52,6 +52,106 @@ add_action('init', function () {
     'menu_icon' => 'dashicons-layout',
     'supports' => ['title', 'author'],
     'capability_type' => 'page',
+  ]);
+});
+
+// Add "Import Page" button next to "Add New Page" on the list screen
+add_action('admin_head-edit.php', function () {
+  $screen = get_current_screen();
+  if (!$screen || $screen->post_type !== 'nomentor_page') return;
+  $nonce = wp_create_nonce('nomentor_import');
+  ?>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var wrap = document.querySelector('.wrap .page-title-action');
+    if (!wrap) return;
+    var btn = document.createElement('button');
+    btn.className = 'page-title-action';
+    btn.textContent = 'Import Page';
+    btn.type = 'button';
+    wrap.parentNode.insertBefore(btn, wrap.nextSibling);
+
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.json';
+    inp.style.display = 'none';
+    document.body.appendChild(inp);
+
+    btn.addEventListener('click', function() { inp.click(); });
+    inp.addEventListener('change', function() {
+      var file = inp.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function() {
+        try {
+          var data = JSON.parse(reader.result);
+          if (!data.nomentor || !Array.isArray(data.layout)) {
+            alert('Not a valid Nomentor export file');
+            return;
+          }
+          var ver = '<?= NOMENTOR_VERSION ?>';
+          if (data.version && data.version !== ver) {
+            if (!confirm('This export was created with v' + data.version + ', but you are running v' + ver + '. Continue anyway?')) return;
+          }
+          var applyGlobal = false;
+          if (data.globalSettings) {
+            applyGlobal = confirm('This export includes global settings. Apply them? (This will overwrite your current global settings)');
+          }
+          var fd = new FormData();
+          fd.append('action', 'nomentor_import');
+          fd.append('nonce', '<?= $nonce ?>');
+          fd.append('data', JSON.stringify(data));
+          fd.append('apply_global', applyGlobal ? '1' : '0');
+          fetch(ajaxurl, { method: 'POST', body: fd })
+            .then(function(r) { return r.json(); })
+            .then(function(r) {
+              if (r.success) {
+                window.location.href = r.data.design_url;
+              } else {
+                alert('Import failed: ' + (r.data || 'Unknown error'));
+              }
+            });
+        } catch(e) {
+          alert('Import failed: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+      inp.value = '';
+    });
+  });
+  </script>
+  <?php
+});
+
+// AJAX: import page
+add_action('wp_ajax_nomentor_import', function () {
+  check_ajax_referer('nomentor_import', 'nonce');
+  if (!current_user_can('edit_pages')) wp_send_json_error('Unauthorized');
+
+  $raw = wp_unslash($_POST['data'] ?? '');
+  $data = json_decode($raw, true);
+  if (!$data || empty($data['layout'])) wp_send_json_error('Invalid import data');
+
+  $post_id = wp_insert_post([
+    'post_type' => 'nomentor_page',
+    'post_title' => 'Imported Page',
+    'post_status' => 'draft',
+  ]);
+  if (is_wp_error($post_id)) wp_send_json_error('Could not create page');
+
+  update_post_meta($post_id, '_nomentor_layout', json_encode($data['layout'], JSON_UNESCAPED_UNICODE));
+  if (!empty($data['pageSettings'])) {
+    update_post_meta($post_id, '_nomentor_page_settings', json_encode($data['pageSettings'], JSON_UNESCAPED_UNICODE));
+  }
+
+  $apply_global = ($_POST['apply_global'] ?? '0') === '1';
+  if ($apply_global && !empty($data['globalSettings'])) {
+    update_option('nomentor_global_settings', json_encode($data['globalSettings'], JSON_UNESCAPED_UNICODE));
+  }
+
+  wp_send_json_success([
+    'post_id' => $post_id,
+    'design_url' => admin_url('admin.php?page=nomentor-designer&post_id=' . $post_id),
   ]);
 });
 

@@ -1,7 +1,7 @@
 import { useRef } from 'preact/hooks';
 import { signal } from '@preact/signals';
 import { Eye } from '../icons';
-import { saveStatus, sidebarMode, exitPreview, previewIndex, leftSidebarOpen, rightSidebarOpen, viewportMode, pageTitle, renamePost, selectedId, exportPage, importPage, applyImport } from '../state';
+import { saveStatus, sidebarMode, exitPreview, previewIndex, leftSidebarOpen, rightSidebarOpen, viewportMode, pageTitle, renamePost, selectedId, exportPage } from '../state';
 
 const menuOpen = signal(false);
 
@@ -11,7 +11,6 @@ if (typeof document !== 'undefined') {
 
 export function Toolbar({ backUrl, viewUrl }) {
   const titleRef = useRef(null);
-  const fileRef = useRef(null);
   const status = saveStatus.value;
   const mode = sidebarMode.value;
   const leftOpen = leftSidebarOpen.value;
@@ -42,34 +41,6 @@ export function Toolbar({ backUrl, viewUrl }) {
     menuOpen.value = false;
   }
 
-  function handleImport() {
-    menuOpen.value = false;
-    fileRef.current?.click();
-  }
-
-  function onFileSelected(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = importPage(reader.result);
-        const ver = window.nomentor.version;
-        if (data.version !== ver) {
-          if (!confirm(`This export was created with v${data.version}, but you are running v${ver}. Continue anyway?`)) return;
-        }
-        let applyGlobal = false;
-        if (data.globalSettings) {
-          applyGlobal = confirm('This export includes global settings. Apply them? (This will overwrite your current global settings)');
-        }
-        applyImport(data, applyGlobal);
-      } catch (err) {
-        alert('Import failed: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }
 
   return (
     <div class="nomentor-toolbar">
@@ -93,10 +64,6 @@ export function Toolbar({ backUrl, viewUrl }) {
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
               Export Page
             </button>
-            <button onClick={handleImport}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-              Import Page
-            </button>
             <div class="toolbar-menu-divider" />
             <a href={backUrl}>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
@@ -105,7 +72,6 @@ export function Toolbar({ backUrl, viewUrl }) {
           </div>
         )}
       </div>
-      <input type="file" ref={fileRef} accept=".json" style={{ display: 'none' }} onChange={onFileSelected} />
       <span class="separator" />
 
       <span
