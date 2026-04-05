@@ -769,37 +769,50 @@ var form=document.getElementById('nm-form-{$safe_id}');if(!form)return;
 var msgs={required:'{$msg_required}',email:'{$msg_email}',phone:'{$msg_phone}',number:'{$msg_number}'};
 var errStyle='border:2px solid #e74c3c;background:rgba(231,76,60,0.05)';
 var errTxtStyle='color:#e74c3c;font-size:0.8em;margin-top:4px;padding:4px 8px;background:rgba(231,76,60,0.08);border-radius:4px';
+function cErr(el){
+  if(!el)return;
+  var p=el.parentNode;if(p){var e=p.querySelector('.nm-field-error');if(e)e.remove();}
+  el.style.border='';el.style.background='';el.removeAttribute('data-nm-err');
+}
 function sErr(el,msg){
+  cErr(el);
   if(el){el.style.cssText+=';'+errStyle;el.setAttribute('data-nm-err','1');}
   var d=document.createElement('div');d.className='nm-field-error';d.style.cssText=errTxtStyle;
   d.textContent=msg;
   if(el&&el.parentNode)el.parentNode.appendChild(d);
 }
+async function vField(r){
+  var el=form.querySelector('[name="'+r.name+'"]');var val='';
+  if(r.type==='radio'){var c=form.querySelector('[name="'+r.name+'"]:checked');val=c?c.value:'';}
+  else if(r.type==='checkbox'){val=el&&el.checked?'yes':'';}
+  else{val=el?el.value.trim():'';}
+  cErr(el);
+  if(r.required&&!val){sErr(el,msgs.required);return null;}
+  var vt=r.validation&&r.validation!=='none'?r.validation:r.type;
+  if(val&&vt==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){sErr(el,msgs.email);return null;}
+  if(val&&vt==='phone'&&!/^[\d\s\-+().]{7,}$/.test(val)){sErr(el,msgs.phone);return null;}
+  if(val&&vt==='number'&&isNaN(val)){sErr(el,msgs.number);return null;}
+  if(r.customValidator){
+    try{var cv=eval(r.customValidator);if(typeof cv==='function'){var err=await cv(val,r.name);if(err){sErr(el,err);return null;}}}
+    catch(e){sErr(el,e.message||'Validation error');return null;}
+  }
+  return val;
+}
+var rules=JSON.parse(form.dataset.nmRules||'[]');
 form._nmValidate=async function(){
-  form.querySelectorAll('.nm-field-error').forEach(function(e){e.remove()});
-  form.querySelectorAll('[data-nm-err]').forEach(function(e){e.style.border='';e.style.background='';e.removeAttribute('data-nm-err')});
   var msgEl=form.querySelector('.nm-form-message');if(msgEl)msgEl.style.display='none';
-  var rules=JSON.parse(form.dataset.nmRules||'[]');
   var valid=true,data={};
   for(var i=0;i<rules.length;i++){
-    var r=rules[i];
-    var el=form.querySelector('[name="'+r.name+'"]');var val='';
-    if(r.type==='radio'){var c=form.querySelector('[name="'+r.name+'"]:checked');val=c?c.value:'';}
-    else if(r.type==='checkbox'){val=el&&el.checked?'yes':'';}
-    else{val=el?el.value.trim():'';}
-    data[r.name]=val;
-    if(r.required&&!val){valid=false;sErr(el,msgs.required);continue;}
-    var vt=r.validation&&r.validation!=='none'?r.validation:r.type;
-    if(val&&vt==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){valid=false;sErr(el,msgs.email);continue;}
-    if(val&&vt==='phone'&&!/^[\d\s\-+().]{7,}$/.test(val)){valid=false;sErr(el,msgs.phone);continue;}
-    if(val&&vt==='number'&&isNaN(val)){valid=false;sErr(el,msgs.number);continue;}
-    if(r.customValidator){
-      try{var cv=eval(r.customValidator);if(typeof cv==='function'){var err=await cv(val,r.name);if(err){valid=false;sErr(el,err);continue;}}}
-      catch(e){valid=false;sErr(el,e.message||'Validation error');continue;}
-    }
+    var v=await vField(rules[i]);
+    if(v===null)valid=false; else data[rules[i].name]=v;
   }
   return valid?data:null;
 };
+for(var i=0;i<rules.length;i++){(function(r){
+  var els=r.type==='radio'?form.querySelectorAll('[name="'+r.name+'"]'):[form.querySelector('[name="'+r.name+'"]')];
+  var evt=r.type==='radio'||r.type==='checkbox'||r.type==='select'?'change':'blur';
+  els.forEach(function(el){if(el)el.addEventListener(evt,function(){vField(r);});});
+})(rules[i]);}
 form.addEventListener('submit',async function(e){e.preventDefault();await form._nmValidate();});
 })();
 </script>
