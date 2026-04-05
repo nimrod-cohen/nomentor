@@ -777,7 +777,7 @@ function sErr(el,msg){
 }
 form._nmValidate=async function(){
   form.querySelectorAll('.nm-field-error').forEach(function(e){e.remove()});
-  form.querySelectorAll('[data-nm-err]').forEach(function(e){e.removeAttribute('style');e.removeAttribute('data-nm-err')});
+  form.querySelectorAll('[data-nm-err]').forEach(function(e){e.style.border='';e.style.background='';e.removeAttribute('data-nm-err')});
   var msgEl=form.querySelector('.nm-form-message');if(msgEl)msgEl.style.display='none';
   var rules=JSON.parse(form.dataset.nmRules||'[]');
   var valid=true,data={};
@@ -789,9 +789,10 @@ form._nmValidate=async function(){
     else{val=el?el.value.trim():'';}
     data[r.name]=val;
     if(r.required&&!val){valid=false;sErr(el,msgs.required);continue;}
-    if(val&&r.validation==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){valid=false;sErr(el,msgs.email);continue;}
-    if(val&&r.validation==='phone'&&!/^[\d\s\-+().]{7,}$/.test(val)){valid=false;sErr(el,msgs.phone);continue;}
-    if(val&&r.validation==='number'&&isNaN(val)){valid=false;sErr(el,msgs.number);continue;}
+    var vt=r.validation&&r.validation!=='none'?r.validation:r.type;
+    if(val&&vt==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){valid=false;sErr(el,msgs.email);continue;}
+    if(val&&vt==='phone'&&!/^[\d\s\-+().]{7,}$/.test(val)){valid=false;sErr(el,msgs.phone);continue;}
+    if(val&&vt==='number'&&isNaN(val)){valid=false;sErr(el,msgs.number);continue;}
     if(r.customValidator){
       try{var cv=eval(r.customValidator);if(typeof cv==='function'){var err=await cv(val,r.name);if(err){valid=false;sErr(el,err);continue;}}}
       catch(e){valid=false;sErr(el,e.message||'Validation error');continue;}
