@@ -734,13 +734,7 @@ function nomentor_render_form($element) {
   $msg_phone = esc_attr($ps['validationMsg_phone'] ?? $gs['validationMsg_phone'] ?? 'Invalid phone number');
   $msg_number = esc_attr($ps['validationMsg_number'] ?? $gs['validationMsg_number'] ?? 'Must be a number');
 
-  return <<<HTML
-<form id="nm-form-{$safe_id}" style="{$form_style}" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
-{$before_html}
-{$fields_html}
-{$after_html}
-  <div class="nm-form-message" style="display:none;text-align:center;padding:12px;font-weight:600"></div>
-</form>
+  $validate_script = <<<SCRIPT
 <script>
 (function(){
 var form=document.getElementById('nm-form-{$safe_id}');if(!form)return;
@@ -780,6 +774,16 @@ form._nmValidate=async function(){
 form.addEventListener('submit',async function(e){e.preventDefault();await form._nmValidate();});
 })();
 </script>
+SCRIPT;
+
+  return <<<HTML
+<form id="nm-form-{$safe_id}" style="{$form_style}" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
+{$before_html}
+{$fields_html}
+{$validate_script}
+{$after_html}
+  <div class="nm-form-message" style="display:none;text-align:center;padding:12px;font-weight:600"></div>
+</form>
 
 HTML;
 }
