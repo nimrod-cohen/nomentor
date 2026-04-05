@@ -141,13 +141,18 @@ function nomentor_generate_static_html($post) {
   $_nomentor_hidden_elements = [];
 
   // Build responsive props CSS (spacing, border overrides per viewport)
+  // Desktop values go in plain CSS (no media query) since they were removed from inline styles.
+  // Tablet/mobile go in media queries. All compete at the same specificity.
   global $_nomentor_responsive_props;
   if (!empty($_nomentor_responsive_props)) {
+    $desktop_props = '';
     $tablet_props = '';
     $mobile_props = '';
     foreach ($_nomentor_responsive_props as $id => $vps) {
-      // Use #nm-el-ID for elements, .nm-el-ID for rows (rows use class)
       $sel = '#nm-el-' . esc_attr($id) . ', .nm-el-' . esc_attr($id);
+      if (!empty($vps['desktop'])) {
+        $desktop_props .= "    {$sel} { " . implode('; ', $vps['desktop']) . " }\n";
+      }
       if (!empty($vps['tablet'])) {
         $tablet_props .= "      {$sel} { " . implode('; ', $vps['tablet']) . " }\n";
       }
@@ -155,6 +160,7 @@ function nomentor_generate_static_html($post) {
         $mobile_props .= "      {$sel} { " . implode('; ', $vps['mobile']) . " }\n";
       }
     }
+    if ($desktop_props) $responsive_css .= $desktop_props;
     if ($tablet_props) $responsive_css .= "    @media (max-width: 1024px) {\n{$tablet_props}    }\n";
     if ($mobile_props) $responsive_css .= "    @media (max-width: 768px) {\n{$mobile_props}    }\n";
   }
@@ -264,7 +270,7 @@ function nomentor_render_row($row) {
   nomentor_collect_responsive_props($id, $row['props'] ?? []);
   if ($id) $cls .= ' nm-el-' . esc_attr($id);
 
-  $style = nomentor_build_row_style($row['props'] ?? []);
+  $style = nomentor_build_row_style($row['props'] ?? [], $id);
   $attr = $style ? " style=\"{$style}\"" : '';
   $id_attr = $id ? ' id="nm-el-' . esc_attr($id) . '"' : '';
   $scoped = nomentor_extract_scoped_css($id, $row['props']['customCss'] ?? '');
@@ -280,42 +286,75 @@ function nomentor_collect_visibility($id, $props) {
 function nomentor_collect_responsive_props($id, $props) {
   if (!$id) return;
   global $_nomentor_responsive_props;
-  $tablet = [];
-  $mobile = [];
 
-  foreach (['tablet', 'mobile'] as $vp) {
-    $rules = [];
-    $pad = nomentor_resolve_spacing($props, $vp . '_padding');
-    $mar = nomentor_resolve_spacing($props, $vp . '_margin');
-    if ($pad) $rules[] = 'padding: ' . $pad;
-    if ($mar) $rules[] = 'margin: ' . $mar;
+  $viewports = ['desktop' => [], 'tablet' => [], 'mobile' => []];
+  $has_any = false;
 
-    $rg = $props[$vp . '_rowGap'] ?? null;
-    $cg = $props[$vp . '_colGap'] ?? null;
-    if ($rg !== null && $rg !== '') $rules[] = 'row-gap: ' . intval($rg) . 'px';
-    if ($cg !== null && $cg !== '') $rules[] = 'column-gap: ' . intval($cg) . 'px';
-
-    $b = $props[$vp . '_border'] ?? null;
-    if ($b && is_array($b) && !empty($b['width']) && ($b['style'] ?? 'none') !== 'none') {
-      $rules[] = 'border: ' . intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr(nomentor_resolve_color($b['color'] ?? '#000'));
-    }
-
-    $br = $props[$vp . '_borderRadius'] ?? null;
-    if ($br && is_array($br)) {
+  // For each CSS property, check if tablet or mobile override exists.
+  // If so, collect ALL viewports (including desktop) so inline style can be skipped.
+  $checks = [
+    'padding' => function($vp_prefix) use ($props) {
+      $pad = nomentor_resolve_spacing($props, $vp_prefix . 'padding');
+      return $pad ? 'padding: ' . $pad : null;
+    },
+    'margin' => function($vp_prefix) use ($props) {
+      $mar = nomentor_resolve_spacing($props, $vp_prefix . 'margin');
+      return $mar ? 'margin: ' . $mar : null;
+    },
+    'row-gap' => function($vp_prefix) use ($props) {
+      $v = $props[$vp_prefix . 'rowGap'] ?? null;
+      return ($v !== null && $v !== '') ? 'row-gap: ' . intval($v) . 'px' : null;
+    },
+    'column-gap' => function($vp_prefix) use ($props) {
+      $v = $props[$vp_prefix . 'colGap'] ?? null;
+      return ($v !== null && $v !== '') ? 'column-gap: ' . intval($v) . 'px' : null;
+    },
+    'border' => function($vp_prefix) use ($props) {
+      $b = $props[$vp_prefix . 'border'] ?? null;
+      if (!$b || !is_array($b) || empty($b['width']) || ($b['style'] ?? 'none') === 'none') return null;
+      return 'border: ' . intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr(nomentor_resolve_color($b['color'] ?? '#000'));
+    },
+    'border-radius' => function($vp_prefix) use ($props) {
+      $br = $props[$vp_prefix . 'borderRadius'] ?? null;
+      if (!$br || !is_array($br)) return null;
       $rv = ($br['topLeft'] ?? 0) . 'px ' . ($br['topRight'] ?? 0) . 'px ' . ($br['bottomRight'] ?? 0) . 'px ' . ($br['bottomLeft'] ?? 0) . 'px';
-      if ($rv !== '0px 0px 0px 0px') $rules[] = 'border-radius: ' . $rv;
-    }
+      return $rv !== '0px 0px 0px 0px' ? 'border-radius: ' . $rv : null;
+    },
+  ];
 
-    if ($vp === 'tablet') $tablet = $rules;
-    else $mobile = $rules;
+  foreach ($checks as $css_prop => $resolver) {
+    $tablet_val = $resolver('tablet_');
+    $mobile_val = $resolver('mobile_');
+    if (!$tablet_val && !$mobile_val) continue;
+
+    $has_any = true;
+    $desktop_val = $resolver('');
+    if ($desktop_val) $viewports['desktop'][] = $desktop_val;
+    if ($tablet_val) $viewports['tablet'][] = $tablet_val;
+    if ($mobile_val) $viewports['mobile'][] = $mobile_val;
   }
 
-  if ($tablet || $mobile) {
-    $_nomentor_responsive_props[$id] = ['tablet' => $tablet, 'mobile' => $mobile];
+  if ($has_any) {
+    $_nomentor_responsive_props[$id] = $viewports;
   }
 }
 
-function nomentor_build_row_style($props) {
+/** Check which CSS properties are handled by responsive CSS for this element */
+function nomentor_get_responsive_css_props($id) {
+  global $_nomentor_responsive_props;
+  if (!$id || empty($_nomentor_responsive_props[$id])) return [];
+  $props = [];
+  foreach ($_nomentor_responsive_props[$id] as $vp => $rules) {
+    foreach ($rules as $rule) {
+      $prop = explode(':', $rule)[0];
+      $props[trim($prop)] = true;
+    }
+  }
+  return $props;
+}
+
+function nomentor_build_row_style($props, $id = '') {
+  $skip = nomentor_get_responsive_css_props($id);
   $parts = ['display: flex', 'flex-direction: column'];
   if (!empty($props['maxWidth'])) {
     $parts[] = 'width: ' . esc_attr($props['maxWidth']);
@@ -329,13 +368,13 @@ function nomentor_build_row_style($props) {
     if ($align_css) $parts = array_merge($parts, $align_css);
   }
   if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
-  if (!empty($props['rowGap'])) $parts[] = 'row-gap: ' . intval($props['rowGap']) . 'px';
-  if (!empty($props['colGap'])) $parts[] = 'column-gap: ' . intval($props['colGap']) . 'px';
-  nomentor_apply_border($parts, $props);
+  if (empty($skip['row-gap']) && !empty($props['rowGap'])) $parts[] = 'row-gap: ' . intval($props['rowGap']) . 'px';
+  if (empty($skip['column-gap']) && !empty($props['colGap'])) $parts[] = 'column-gap: ' . intval($props['colGap']) . 'px';
+  if (empty($skip['border']) && empty($skip['border-radius'])) nomentor_apply_border($parts, $props);
   $pad = nomentor_resolve_spacing($props, 'padding');
   $mar = nomentor_resolve_spacing($props, 'margin');
-  if ($pad) $parts[] = 'padding: ' . $pad;
-  if ($mar && empty($props['maxWidth'])) $parts[] = 'margin: ' . $mar;
+  if (empty($skip['padding']) && $pad) $parts[] = 'padding: ' . $pad;
+  if (empty($skip['margin']) && $mar && empty($props['maxWidth'])) $parts[] = 'margin: ' . $mar;
   $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
   return implode('; ', $parts);
 }
@@ -366,8 +405,8 @@ function nomentor_render_element($element) {
   nomentor_collect_responsive_props($id, $props);
 
   switch ($type) {
-    case 'heading': $result = nomentor_render_heading($props); break;
-    case 'text': $result = nomentor_render_text($props); break;
+    case 'heading': $result = nomentor_render_heading($props, $id); break;
+    case 'text': $result = nomentor_render_text($props, $id); break;
     case 'image': $result = nomentor_render_image($props, $id); break;
     case 'grid': $result = nomentor_render_grid($element); break;
     case 'button': $result = nomentor_render_button($props, $id); break;
@@ -393,12 +432,12 @@ function nomentor_render_element($element) {
   return $result;
 }
 
-function nomentor_render_heading($props) {
+function nomentor_render_heading($props, $id = '') {
   $level = $props['level'] ?? 'h2';
   $text = esc_html($props['text'] ?? '');
   $allowed = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
   if (!in_array($level, $allowed)) $level = 'h2';
-  $style = nomentor_build_style($props);
+  $style = nomentor_build_style($props, $id);
   // Apply heading size from settings
   global $_nomentor_effective_heading_sizes;
   if (!empty($_nomentor_effective_heading_sizes[$level])) {
@@ -490,7 +529,8 @@ function nomentor_resolve_spacing($props, $prop) {
   return '';
 }
 
-function nomentor_build_style($props) {
+function nomentor_build_style($props, $id = '') {
+  $skip = nomentor_get_responsive_css_props($id);
   static $default_sizes = [
     'xs' => 0.75, 'sm' => 0.875, 'base' => 1, 'lg' => 1.125,
     'xl' => 1.25, '2xl' => 1.5, '3xl' => 1.875, '4xl' => 2.25,
@@ -498,25 +538,24 @@ function nomentor_build_style($props) {
   $parts = [];
   if (!empty($props['color'])) $parts[] = 'color: ' . esc_attr(nomentor_resolve_color($props['color']));
   if (!empty($props['fontSize']) && isset($default_sizes[$props['fontSize']])) {
-    // Use em from settings if available, otherwise default ratio
     global $_nomentor_effective_sizes;
     $em = $_nomentor_effective_sizes[$props['fontSize']] ?? $default_sizes[$props['fontSize']];
     $parts[] = 'font-size: ' . $em . 'em';
   }
   if (!empty($props['textAlign'])) $parts[] = 'text-align: ' . esc_attr($props['textAlign']);
   if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
-  nomentor_apply_border($parts, $props);
+  if (empty($skip['border']) && empty($skip['border-radius'])) nomentor_apply_border($parts, $props);
   $pad = nomentor_resolve_spacing($props, 'padding');
   $mar = nomentor_resolve_spacing($props, 'margin');
-  if ($pad) $parts[] = 'padding: ' . $pad;
-  if ($mar) $parts[] = 'margin: ' . $mar;
+  if (empty($skip['padding']) && $pad) $parts[] = 'padding: ' . $pad;
+  if (empty($skip['margin']) && $mar) $parts[] = 'margin: ' . $mar;
   $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $parts[] = $_ic;
   return implode('; ', $parts);
 }
 
-function nomentor_render_text($props) {
+function nomentor_render_text($props, $id = '') {
   $text = wp_kses_post($props['text'] ?? '');
-  $style = nomentor_build_style($props);
+  $style = nomentor_build_style($props, $id);
   $attr = $style ? " style=\"{$style}\"" : '';
   return "<div{$attr}>{$text}</div>\n";
 }
