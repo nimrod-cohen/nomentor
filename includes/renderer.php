@@ -124,23 +124,7 @@ function nomentor_generate_static_html($post) {
   }
   $_nomentor_responsive_images = [];
 
-  // Build visibility CSS (hide elements per viewport)
-  global $_nomentor_hidden_elements;
-  if (!empty($_nomentor_hidden_elements)) {
-    $desktop_hide = $tablet_hide = $mobile_hide = '';
-    foreach ($_nomentor_hidden_elements as $id => $vps) {
-      $cls = '.nm-el-' . esc_attr($id);
-      if (!empty($vps['desktop'])) $desktop_hide .= "    {$cls} { display: none !important; }\n";
-      if (!empty($vps['tablet'])) $tablet_hide .= "      {$cls} { display: none !important; }\n";
-      if (!empty($vps['mobile'])) $mobile_hide .= "      {$cls} { display: none !important; }\n";
-    }
-    if ($desktop_hide) $responsive_css .= "    @media (min-width: 1025px) {\n{$desktop_hide}    }\n";
-    if ($tablet_hide) $responsive_css .= "    @media (min-width: 769px) and (max-width: 1024px) {\n{$tablet_hide}    }\n";
-    if ($mobile_hide) $responsive_css .= "    @media (max-width: 768px) {\n{$mobile_hide}    }\n";
-  }
-  $_nomentor_hidden_elements = [];
-
-  // Build responsive props CSS (spacing, border overrides per viewport)
+  // Build responsive props CSS (spacing, border, display overrides per viewport)
   // Desktop values go in plain CSS (no media query) since they were removed from inline styles.
   // Tablet/mobile go in media queries. All compete at the same specificity.
   global $_nomentor_responsive_props;
@@ -165,6 +149,23 @@ function nomentor_generate_static_html($post) {
     if ($mobile_props) $responsive_css .= "    @media (max-width: 768px) {\n{$mobile_props}    }\n";
   }
   $_nomentor_responsive_props = [];
+
+  // Build visibility CSS (hide elements per viewport)
+  // Emitted AFTER responsive props so display:none overrides display:flex by source order.
+  global $_nomentor_hidden_elements;
+  if (!empty($_nomentor_hidden_elements)) {
+    $desktop_hide = $tablet_hide = $mobile_hide = '';
+    foreach ($_nomentor_hidden_elements as $id => $vps) {
+      $cls = '.nm-el-' . esc_attr($id);
+      if (!empty($vps['desktop'])) $desktop_hide .= "    {$cls} { display: none; }\n";
+      if (!empty($vps['tablet'])) $tablet_hide .= "      {$cls} { display: none; }\n";
+      if (!empty($vps['mobile'])) $mobile_hide .= "      {$cls} { display: none; }\n";
+    }
+    if ($desktop_hide) $responsive_css .= "    @media (min-width: 1025px) {\n{$desktop_hide}    }\n";
+    if ($tablet_hide) $responsive_css .= "    @media (min-width: 769px) and (max-width: 1024px) {\n{$tablet_hide}    }\n";
+    if ($mobile_hide) $responsive_css .= "    @media (max-width: 768px) {\n{$mobile_hide}    }\n";
+  }
+  $_nomentor_hidden_elements = [];
 
   // Page scripts
   $head_scripts = '';
@@ -211,7 +212,7 @@ function nomentor_generate_static_html($post) {
     @media (max-width: 1024px) { body { {$tablet_font}font-size: {$tablet['base']}px; } }
     @media (max-width: 768px) {
       body { {$mobile_font}font-size: {$mobile['base']}px; }
-      .nm-grid { grid-template-columns: 1fr !important; }
+
     }
 {$responsive_css}  </style>
 {$head_scripts}</head>
@@ -355,7 +356,15 @@ function nomentor_get_responsive_css_props($id) {
 
 function nomentor_build_row_style($props, $id = '') {
   $skip = nomentor_get_responsive_css_props($id);
-  $parts = ['display: flex', 'flex-direction: column'];
+  // If row has hideOn, move display to CSS so visibility rules can override it
+  $has_hide = !empty($props['hideOn']);
+  if ($has_hide) {
+    global $_nomentor_responsive_props;
+    if (!isset($_nomentor_responsive_props[$id])) $_nomentor_responsive_props[$id] = ['desktop' => [], 'tablet' => [], 'mobile' => []];
+    $_nomentor_responsive_props[$id]['desktop'][] = 'display: flex';
+    $_nomentor_responsive_props[$id]['desktop'][] = 'flex-direction: column';
+  }
+  $parts = $has_hide ? [] : ['display: flex', 'flex-direction: column'];
   if (!empty($props['maxWidth'])) {
     $parts[] = 'width: ' . esc_attr($props['maxWidth']);
     $parts[] = 'max-width: 100%';
@@ -615,12 +624,20 @@ function nomentor_render_grid($element) {
     $cells .= '<div class="' . $cell_cls . '"' . $cell_attr . '>' . $cellContent . '</div>' . "\n";
   }
 
-  $grid_style = 'grid-template-columns: repeat(' . $cols . ', 1fr)';
+  $grid_id = esc_attr($element['id'] ?? '');
   $gprops = $element['props'] ?? [];
-  if (!empty($gprops['maxWidth'])) $grid_style .= '; width: ' . esc_attr($gprops['maxWidth']) . '; max-width: 100%; margin-left: auto; margin-right: auto';
-  if (!empty($gprops['rowGap'])) $grid_style .= '; row-gap: ' . intval($gprops['rowGap']) . 'px';
-  if (!empty($gprops['colGap'])) $grid_style .= '; column-gap: ' . intval($gprops['colGap']) . 'px';
-  return '<div class="nm-grid" style="' . $grid_style . '">' . "\n" . $cells . '</div>' . "\n";
+  $grid_parts = [];
+  if (!empty($gprops['maxWidth'])) { $grid_parts[] = 'width: ' . esc_attr($gprops['maxWidth']); $grid_parts[] = 'max-width: 100%'; $grid_parts[] = 'margin-left: auto'; $grid_parts[] = 'margin-right: auto'; }
+  if (!empty($gprops['rowGap'])) $grid_parts[] = 'row-gap: ' . intval($gprops['rowGap']) . 'px';
+  if (!empty($gprops['colGap'])) $grid_parts[] = 'column-gap: ' . intval($gprops['colGap']) . 'px';
+  $grid_style = $grid_parts ? implode('; ', $grid_parts) : '';
+  $grid_attr = $grid_style ? " style=\"{$grid_style}\"" : '';
+  // Put grid-template-columns in CSS so mobile 1fr override works without !important
+  global $_nomentor_responsive_props;
+  if (!isset($_nomentor_responsive_props[$grid_id])) $_nomentor_responsive_props[$grid_id] = ['desktop' => [], 'tablet' => [], 'mobile' => []];
+  $_nomentor_responsive_props[$grid_id]['desktop'][] = 'grid-template-columns: repeat(' . $cols . ', 1fr)';
+  $_nomentor_responsive_props[$grid_id]['mobile'][] = 'grid-template-columns: 1fr';
+  return '<div class="nm-grid nm-el-' . $grid_id . '" id="nm-el-' . $grid_id . '"' . $grid_attr . '>' . "\n" . $cells . '</div>' . "\n";
 }
 
 function nomentor_build_cell_style($props) {
