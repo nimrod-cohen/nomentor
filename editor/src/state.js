@@ -617,6 +617,48 @@ export function selectElement(id) {
   }
 }
 
+// ── Export / Import ──
+
+export function exportPage(includeGlobal) {
+  const data = {
+    nomentor: true,
+    version: window.nomentor.version,
+    exportedAt: new Date().toISOString(),
+    layout: rows.value,
+    pageSettings: pageSettings.value || null,
+  };
+  if (includeGlobal) data.globalSettings = globalSettings.value;
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = (pageTitle.value || 'page').replace(/\s+/g, '-').toLowerCase();
+  a.href = url;
+  a.download = `nomentor-${slug}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importPage(json) {
+  const data = JSON.parse(json);
+  if (!data.nomentor || !Array.isArray(data.layout)) {
+    throw new Error('Not a valid Nomentor export file');
+  }
+  return data;
+}
+
+export function applyImport(data, applyGlobal) {
+  rows.value = data.layout;
+  syncIdCounter(data.layout);
+  if (data.pageSettings) {
+    loadPageSettings(data.pageSettings);
+    savePageSettings(data.pageSettings);
+  }
+  if (applyGlobal && data.globalSettings) {
+    saveGlobalSettings(data.globalSettings);
+  }
+  commitChange('Imported page');
+}
+
 // ── Drag state ──
 export const dragging = signal(null);
 export const dropTargetId = signal(null);
