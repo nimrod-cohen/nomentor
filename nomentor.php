@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.3.5
+ * Version:           0.3.6
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.3.5');
+define('NOMENTOR_VERSION', '0.3.6');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
 
@@ -139,9 +139,10 @@ add_action('wp_ajax_nomentor_import', function () {
   ]);
   if (is_wp_error($post_id)) wp_send_json_error('Could not create page');
 
-  update_post_meta($post_id, '_nomentor_layout', json_encode($data['layout'], JSON_UNESCAPED_UNICODE));
+  $layout_json = json_encode($data['layout'], JSON_UNESCAPED_UNICODE);
+  update_post_meta($post_id, '_nomentor_layout', wp_slash($layout_json));
   if (!empty($data['pageSettings'])) {
-    update_post_meta($post_id, '_nomentor_page_settings', json_encode($data['pageSettings'], JSON_UNESCAPED_UNICODE));
+    update_post_meta($post_id, '_nomentor_page_settings', wp_slash(json_encode($data['pageSettings'], JSON_UNESCAPED_UNICODE)));
   }
 
   $apply_global = ($_POST['apply_global'] ?? '0') === '1';
