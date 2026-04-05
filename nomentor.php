@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.4.0
+ * Version:           0.4.1
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.4.0');
+define('NOMENTOR_VERSION', '0.4.1');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
 
@@ -45,12 +45,14 @@ add_action('init', function () {
       'not_found_in_trash' => 'No pages found in trash',
       'all_items' => 'All Pages',
     ],
-    'public' => false,
+    'public' => true,
+    'publicly_queryable' => false,
+    'exclude_from_search' => true,
     'show_ui' => true,
     'show_in_menu' => true,
     'menu_position' => 30,
     'menu_icon' => 'dashicons-layout',
-    'supports' => ['title', 'author'],
+    'supports' => ['title', 'author', 'slug'],
     'capability_type' => 'page',
   ]);
 });
