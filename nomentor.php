@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.4.1
+ * Version:           0.4.2
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@
 
 defined('ABSPATH') || exit;
 
-define('NOMENTOR_VERSION', '0.4.1');
+define('NOMENTOR_VERSION', '0.4.2');
 define('NOMENTOR_DIR', plugin_dir_path(__FILE__));
 define('NOMENTOR_URL', plugin_dir_url(__FILE__));
 
@@ -45,14 +45,12 @@ add_action('init', function () {
       'not_found_in_trash' => 'No pages found in trash',
       'all_items' => 'All Pages',
     ],
-    'public' => true,
-    'publicly_queryable' => false,
-    'exclude_from_search' => true,
+    'public' => false,
     'show_ui' => true,
     'show_in_menu' => true,
     'menu_position' => 30,
     'menu_icon' => 'dashicons-layout',
-    'supports' => ['title', 'author', 'slug'],
+    'supports' => ['title', 'author'],
     'capability_type' => 'page',
   ]);
 });
@@ -328,11 +326,57 @@ function nomentor_add_row_actions($actions, $post) {
 add_filter('post_row_actions', 'nomentor_add_row_actions', 10, 2);
 add_filter('page_row_actions', 'nomentor_add_row_actions', 10, 2);
 
-// Add "Design" button on the edit screen
+// Add "Design" button and slug editor on the edit screen
 add_action('edit_form_after_title', function ($post) {
   if ($post->post_type !== 'nomentor_page') return;
   $url = admin_url('admin.php?page=nomentor-designer&post_id=' . $post->ID);
+  $slug = $post->post_name ?: '';
   echo '<div style="margin:12px 0"><a href="' . esc_url($url) . '" class="button button-primary button-large">Open Designer</a></div>';
+  echo '<div style="margin:12px 0">';
+  echo '<label for="nomentor_slug"><strong>Slug:</strong></label> ';
+  echo '<code>/static/</code>';
+  echo '<input type="text" id="nomentor_slug" name="post_name" value="' . esc_attr($slug) . '" style="width:300px" />';
+  echo '<code>/</code>';
+  echo '</div>';
+});
+
+// Quick edit: add slug field
+add_action('quick_edit_custom_box', function ($column, $post_type) {
+  if ($post_type !== 'nomentor_page' || $column !== 'nomentor_path') return;
+  ?>
+  <fieldset class="inline-edit-col-right">
+    <div class="inline-edit-col">
+      <label><span class="title">Slug</span><input type="text" name="post_name" value="" /></label>
+    </div>
+  </fieldset>
+  <?php
+}, 10, 2);
+
+// Populate quick edit slug field via JS
+add_action('admin_footer-edit.php', function () {
+  $screen = get_current_screen();
+  if (!$screen || $screen->post_type !== 'nomentor_page') return;
+  ?>
+  <script>
+  (function() {
+    var origEdit = inlineEditPost.edit;
+    inlineEditPost.edit = function(id) {
+      origEdit.apply(this, arguments);
+      var postId = typeof id === 'object' ? parseInt(this.getId(id)) : id;
+      var row = document.getElementById('post-' + postId);
+      if (!row) return;
+      var pathCell = row.querySelector('.column-nomentor_path code');
+      if (!pathCell) return;
+      var slug = pathCell.textContent.replace(/^\/static\//, '').replace(/\/$/, '');
+      var editRow = document.getElementById('edit-' + postId);
+      if (editRow) {
+        var input = editRow.querySelector('input[name="post_name"]');
+        if (input) input.value = slug;
+      }
+    };
+  })();
+  </script>
+  <?php
 });
 
 // AJAX: save page layout
