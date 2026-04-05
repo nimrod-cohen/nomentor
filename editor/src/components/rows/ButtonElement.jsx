@@ -1,6 +1,7 @@
 import { buildStyle } from '../../utils';
 import { viewportMode, getSizeMap } from '../../state';
 import { renderIconSvg } from '../../lucide-icons';
+import { resolveColor } from '../ColorSelector';
 
 export function ButtonElement({ element }) {
   const { text, url, bgColor, color, borderRadius, fontSize, fullWidth, icon, iconPosition } = element.props;
@@ -13,8 +14,8 @@ export function ButtonElement({ element }) {
     justifyContent: 'center',
     gap: '0.4em',
     padding: '0.6em 1.5em',
-    backgroundColor: bgColor || '#4a90d9',
-    color: color || '#ffffff',
+    backgroundColor: resolveColor(bgColor) || '#4a90d9',
+    color: resolveColor(color) || '#ffffff',
     borderRadius: (borderRadius || '6') + 'px',
     cursor: 'pointer',
     textDecoration: 'none',

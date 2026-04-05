@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { buildStyle } from '../../utils';
+import { resolveColor } from '../ColorSelector';
 
 function calcTimeLeft(targetDate, timezone) {
   if (!targetDate) return null;
@@ -41,13 +42,13 @@ export function TimerElement({ element }) {
   }
 
   if (time?.expired) {
-    return <div class="timer-expired" style={{ color: color || '#1a2744', ...extraStyle }}>{expiredText || 'Time is up!'}</div>;
+    return <div class="timer-expired" style={{ color: resolveColor(color) || '#1a2744', ...extraStyle }}>{expiredText || 'Time is up!'}</div>;
   }
 
   const bw = parseInt(element.props.boxWidth) || 20;
   const boxStyle = {
-    backgroundColor: bgColor || '#eef2f7',
-    color: color || '#1a2744',
+    backgroundColor: resolveColor(bgColor) || '#eef2f7',
+    color: resolveColor(color) || '#1a2744',
     borderRadius: (borderRadius || '12') + 'px',
     width: `calc(${bw}% - 9px)`,
     maxWidth: 'calc(25% - 9px)',

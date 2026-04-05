@@ -1,6 +1,25 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { getEffectiveColors } from '../state';
 
+/** Check if a value is a color variable reference ($name) */
+export function isColorVar(v) { return typeof v === 'string' && v.startsWith('$'); }
+
+/** Resolve a color value: $name → hex for display, hex → hex */
+export function resolveColor(v, palette) {
+  if (!v) return v;
+  if (!isColorVar(v)) return v;
+  const name = v.slice(1);
+  const c = (palette || getEffectiveColors()).find(c => c.name === name);
+  return c ? c.value : v;
+}
+
+/** Convert $name → var(--nm-name) for CSS output */
+export function colorToCss(v) {
+  if (!v) return v;
+  if (!isColorVar(v)) return v;
+  return 'var(--nm-' + v.slice(1).replace(/\s+/g, '-') + ')';
+}
+
 export function ColorSelector({ value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -15,12 +34,16 @@ export function ColorSelector({ value, onChange, placeholder }) {
     return () => document.removeEventListener('click', onClick);
   }, [open]);
 
-  const selectedColor = palette.find(c => c.value === value);
+  const isVar = isColorVar(value);
+  const selectedColor = isVar
+    ? palette.find(c => c.name === value.slice(1))
+    : palette.find(c => c.value === value);
+  const displayHex = resolveColor(value, palette);
 
   return (
     <div class="color-selector" ref={wrapRef}>
       <div class="color-selector-input" onClick={() => setOpen(!open)}>
-        <span class="color-selector-swatch" style={{ backgroundColor: value || 'transparent', border: value ? 'none' : '1px dashed #ccc' }} />
+        <span class="color-selector-swatch" style={{ backgroundColor: displayHex || 'transparent', border: displayHex ? 'none' : '1px dashed #ccc' }} />
         <span class="color-selector-label">{selectedColor ? selectedColor.name : (value || placeholder || 'Select color...')}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
       </div>
@@ -32,8 +55,8 @@ export function ColorSelector({ value, onChange, placeholder }) {
               {palette.map(c => (
                 <button
                   key={c.name}
-                  class={`color-selector-option ${value === c.value ? 'active' : ''}`}
-                  onClick={() => { onChange(c.value); setOpen(false); }}
+                  class={`color-selector-option ${isVar && value === '$' + c.name ? 'active' : ''}`}
+                  onClick={() => { onChange('$' + c.name); setOpen(false); }}
                 >
                   <span class="color-selector-swatch" style={{ backgroundColor: c.value }} />
                   <span class="color-selector-option-name">{c.name}</span>
@@ -45,9 +68,9 @@ export function ColorSelector({ value, onChange, placeholder }) {
           )}
           <div class="color-selector-section">Custom Color</div>
           <div class="color-selector-custom">
-            <input type="color" class="prop-color" value={value || '#000000'}
+            <input type="color" class="prop-color" value={displayHex || '#000000'}
               onInput={e => onChange(e.target.value)} />
-            <input type="text" class="color-selector-hex-input" value={value || ''} placeholder="#000000"
+            <input type="text" class="color-selector-hex-input" value={displayHex || ''} placeholder="#000000"
               onInput={e => onChange(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') setOpen(false); }} />
           </div>

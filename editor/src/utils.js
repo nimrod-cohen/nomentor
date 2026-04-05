@@ -1,5 +1,6 @@
 import { getSizeMap, getEffectiveSettings, viewportMode } from './state';
 import { shadowToCSS } from './components/BoxShadowEditor';
+import { resolveColor } from './components/ColorSelector';
 
 /** Resolve a simple numeric prop for current viewport (mobile → tablet → desktop) */
 function resolveViewportProp(props, prop) {
@@ -13,7 +14,7 @@ function resolveViewportProp(props, prop) {
 function resolveBorder(props) {
   const b = resolveViewportProp(props, 'border');
   if (!b || typeof b !== 'object' || !b.width || b.style === 'none') return null;
-  return `${b.width}px ${b.style} ${b.color || '#000'}`;
+  return `${b.width}px ${b.style} ${resolveColor(b.color) || '#000'}`;
 }
 
 /** Resolve border-radius for current viewport */
@@ -81,7 +82,7 @@ export function buildStyle(props) {
   const settings = getEffectiveSettings(viewport);
 
   if (settings.fontFamily) s.fontFamily = settings.fontFamily;
-  if (props.color) s.color = props.color;
+  if (props.color) s.color = resolveColor(props.color);
   if (props.fontSize) {
     const sizeMap = getSizeMap(viewport);
     if (sizeMap[props.fontSize]) s.fontSize = sizeMap[props.fontSize];
@@ -112,7 +113,7 @@ export function buildFlexContainerStyle(props) {
   const cg = resolveViewportProp(props, 'colGap');
   if (rg) s.rowGap = rg + 'px';
   if (cg) s.columnGap = cg + 'px';
-  if (props.bgColor) s.backgroundColor = props.bgColor;
+  if (props.bgColor) s.backgroundColor = resolveColor(props.bgColor);
   applyBorder(props, s);
   if (props.align && ALIGN_MAP[props.align]) {
     Object.assign(s, ALIGN_MAP[props.align]);

@@ -10,6 +10,15 @@ defined('ABSPATH') || exit;
 
 require_once __DIR__ . '/lucide-icons.php';
 
+/**
+ * Resolve a color value: $name → var(--nm-name), hex → hex
+ */
+function nomentor_resolve_color($value) {
+  if (!$value || !is_string($value) || $value[0] !== '$') return $value;
+  $name = substr($value, 1);
+  return 'var(--nm-' . preg_replace('/\s+/', '-', $name) . ')';
+}
+
 function nomentor_generate_static_html($post) {
   $title = esc_html($post->post_title);
   $layout_json = get_post_meta($post->ID, '_nomentor_layout', true);
@@ -26,6 +35,23 @@ function nomentor_generate_static_html($post) {
   $desktop = nomentor_merge_settings($global, $page, 'desktop');
   $tablet = nomentor_merge_settings($global, $page, 'tablet');
   $mobile = nomentor_merge_settings($global, $page, 'mobile');
+
+  // Build CSS color variables from palette (page colors override global by name)
+  $global_colors = $global['colors'] ?? [];
+  $page_colors = $page['colors'] ?? [];
+  $merged_colors = $global_colors;
+  foreach ($page_colors as $pc) {
+    $found = false;
+    foreach ($merged_colors as $i => $gc) {
+      if ($gc['name'] === $pc['name']) { $merged_colors[$i] = $pc; $found = true; break; }
+    }
+    if (!$found) $merged_colors[] = $pc;
+  }
+  $color_vars_css = '';
+  foreach ($merged_colors as $c) {
+    $var_name = preg_replace('/\s+/', '-', $c['name']);
+    $color_vars_css .= '      --nm-' . esc_attr($var_name) . ': ' . esc_attr($c['value']) . ";\n";
+  }
 
   $raw_font = $desktop['fontFamily'] ?: '';
   $font_family = esc_attr($raw_font ?: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
@@ -144,6 +170,8 @@ function nomentor_generate_static_html($post) {
   <title>{$title}</title>
   {$font_embed}
   <style>
+    :root {
+{$color_vars_css}    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: {$font_family}; line-height: 1.6; font-size: {$desktop['base']}px; }
     .nm-container { padding: 1rem; }
@@ -232,7 +260,7 @@ function nomentor_build_row_style($props) {
     $parts[] = 'margin-left: auto';
     $parts[] = 'margin-right: auto';
   }
-  if (!empty($props['bgColor'])) $parts[] = 'background-color: ' . esc_attr($props['bgColor']);
+  if (!empty($props['bgColor'])) $parts[] = 'background-color: ' . esc_attr(nomentor_resolve_color($props['bgColor']));
   if (!empty($props['align'])) {
     $align_css = nomentor_align_to_css($props['align']);
     if ($align_css) $parts = array_merge($parts, $align_css);
@@ -346,7 +374,7 @@ function nomentor_inline_css($css) {
 function nomentor_resolve_border($props) {
   $b = $props['border'] ?? null;
   if (!$b || !is_array($b) || empty($b['width']) || ($b['style'] ?? 'none') === 'none') return '';
-  return intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr($b['color'] ?? '#000');
+  return intval($b['width']) . 'px ' . esc_attr($b['style']) . ' ' . esc_attr(nomentor_resolve_color($b['color'] ?? '#000'));
 }
 
 function nomentor_resolve_border_radius($props) {
@@ -376,7 +404,7 @@ function nomentor_shadow_to_css($s) {
   $blur = intval($s['blur'] ?? 0);
   $spread = intval($s['spread'] ?? 0);
   if (!$x && !$y && !$blur && !$spread) return '';
-  $color = esc_attr($s['color'] ?? 'rgba(0,0,0,0.1)');
+  $color = esc_attr(nomentor_resolve_color($s['color'] ?? 'rgba(0,0,0,0.1)'));
   $inset = !empty($s['inset']) ? 'inset ' : '';
   return "{$inset}{$x}px {$y}px {$blur}px {$spread}px {$color}";
 }
@@ -402,7 +430,7 @@ function nomentor_build_style($props) {
     'xl' => 1.25, '2xl' => 1.5, '3xl' => 1.875, '4xl' => 2.25,
   ];
   $parts = [];
-  if (!empty($props['color'])) $parts[] = 'color: ' . esc_attr($props['color']);
+  if (!empty($props['color'])) $parts[] = 'color: ' . esc_attr(nomentor_resolve_color($props['color']));
   if (!empty($props['fontSize']) && isset($default_sizes[$props['fontSize']])) {
     // Use em from settings if available, otherwise default ratio
     global $_nomentor_effective_sizes;
@@ -525,8 +553,8 @@ function nomentor_render_button($props, $id = '') {
     'justify-content: center',
     'gap: 0.4em',
     'padding: 0.6em 1.5em',
-    'background-color: ' . esc_attr($props['bgColor'] ?? '#4a90d9'),
-    'color: ' . esc_attr($props['color'] ?? '#ffffff'),
+    'background-color: ' . esc_attr(nomentor_resolve_color($props['bgColor'] ?? '#4a90d9')),
+    'color: ' . esc_attr(nomentor_resolve_color($props['color'] ?? '#ffffff')),
     'border-radius: ' . intval($props['borderRadius'] ?? 6) . 'px',
     'border: none',
     'text-decoration: none',
@@ -627,8 +655,8 @@ function nomentor_render_timer($props, $id) {
   if (!$target) return '';
 
   $tz = esc_attr($props['timezone'] ?? 'UTC');
-  $bg = esc_attr($props['bgColor'] ?? '#eef2f7');
-  $color = esc_attr($props['color'] ?? '#1a2744');
+  $bg = esc_attr(nomentor_resolve_color($props['bgColor'] ?? '#eef2f7'));
+  $color = esc_attr(nomentor_resolve_color($props['color'] ?? '#1a2744'));
   $radius = intval($props['borderRadius'] ?? 12);
   $labels = [
     esc_html($props['labelDays'] ?? 'Days'),
@@ -838,8 +866,8 @@ function nomentor_render_list($props) {
   $list_type = ($props['listType'] ?? 'ul') === 'ol' ? 'ol' : 'ul';
   $items = $props['items'] ?? [];
   $default_icon = $props['icon'] ?? '';
-  $icon_color = esc_attr($props['iconColor'] ?? '');
-  $item_bg = esc_attr($props['itemBgColor'] ?? '');
+  $icon_color = esc_attr(nomentor_resolve_color($props['iconColor'] ?? ''));
+  $item_bg = esc_attr(nomentor_resolve_color($props['itemBgColor'] ?? ''));
   $item_padding = esc_attr($props['itemPadding'] ?? '8px 12px');
   $item_radius = intval($props['itemRadius'] ?? 0);
   $item_gap = intval($props['itemGap'] ?? 4);
@@ -857,7 +885,7 @@ function nomentor_render_list($props) {
     $wrap_parts[] = 'font-size:' . $em . 'em';
   }
   if (!empty($props['fontWeight'])) $wrap_parts[] = 'font-weight:' . esc_attr($props['fontWeight']);
-  if (!empty($props['color'])) $wrap_parts[] = 'color:' . esc_attr($props['color']);
+  if (!empty($props['color'])) $wrap_parts[] = 'color:' . esc_attr(nomentor_resolve_color($props['color']));
   if (!empty($props['direction'])) $wrap_parts[] = 'direction:' . esc_attr($props['direction']);
   nomentor_apply_border($wrap_parts, $props);
   $pad = nomentor_resolve_spacing($props, 'padding');
@@ -871,7 +899,7 @@ function nomentor_render_list($props) {
   foreach ($items as $item) {
     $text = esc_html($item['text'] ?? '');
     $li_icon = $item['icon'] ?? $default_icon;
-    $li_bg = !empty($item['bgColor']) ? $item['bgColor'] : $item_bg;
+    $li_bg = !empty($item['bgColor']) ? nomentor_resolve_color($item['bgColor']) : $item_bg;
 
     $li_parts = ['display:flex', 'align-items:center', 'gap:8px', 'padding:' . $item_padding];
     if ($item_radius) $li_parts[] = 'border-radius:' . $item_radius . 'px';
@@ -882,7 +910,7 @@ function nomentor_render_list($props) {
 
     $icon_html = '';
     if ($li_icon) {
-      $ic = esc_attr($item['iconColor'] ?? $icon_color ?: 'currentColor');
+      $ic = esc_attr(nomentor_resolve_color($item['iconColor'] ?? '') ?: $icon_color ?: 'currentColor');
       $icon_weight = floatval($props['iconWeight'] ?? 2);
       $icon_html = '<span style="display:flex;align-items:center;flex-shrink:0;color:' . $ic . '">' . nomentor_get_icon_svg($li_icon, '1em', $icon_weight) . '</span>';
     }
