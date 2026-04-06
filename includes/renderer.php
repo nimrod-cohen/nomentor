@@ -142,7 +142,7 @@ function nomentor_generate_static_html($post) {
     $tablet_props = '';
     $mobile_props = '';
     foreach ($_nomentor_responsive_props as $id => $vps) {
-      $sel = '#nm-el-' . esc_attr($id) . ', .nm-el-' . esc_attr($id);
+      $sel = '#' . esc_attr($id) . ', .nm-el-' . esc_attr($id);
       if (!empty($vps['desktop'])) {
         $desktop_props .= "    {$sel} { " . implode('; ', $vps['desktop']) . " }\n";
       }
@@ -333,7 +333,7 @@ function nomentor_render_row($row) {
     nomentor_add_css('.nm-el-' . esc_attr($id), $style);
   }
   $attr = ($style && !$id) ? " style=\"{$style}\"" : '';
-  $id_attr = $id ? ' id="nm-el-' . esc_attr($id) . '"' : '';
+  $id_attr = $id ? ' id="' . esc_attr($id) . '"' : '';
   $scoped = nomentor_extract_scoped_css($id, $row['props']['customCss'] ?? '');
   return $scoped . '<div class="' . $cls . '"' . $id_attr . $attr . '>' . $inner . '</div>' . "\n";
 }
@@ -522,13 +522,12 @@ function nomentor_render_element($element) {
   // Add scoped style block if customCss has nested selectors
   $scoped_css = nomentor_extract_scoped_css($id, $props['customCss'] ?? '');
 
-  // Wrap with ID for scoped CSS, visibility, or responsive props
+  // Always wrap with a predictable ID for anchor linking and CSS targeting
+  // ID uses raw element ID (e.g. "el-32") so users can link with #el-32
   global $_nomentor_responsive_props;
-  $has_responsive = $id && isset($_nomentor_responsive_props[$id]);
-  $needs_wrap = $scoped_css || !empty($props['hideOn']) || $has_responsive;
-  if ($id && $needs_wrap) {
-    $cls = 'nm-el-' . esc_attr($id);
-    $result = $scoped_css . '<div id="nm-el-' . esc_attr($id) . '" class="' . $cls . '">' . $result . '</div>';
+  if ($id) {
+    $safe = esc_attr($id);
+    $result = $scoped_css . '<div id="' . $safe . '" class="nm-el-' . $safe . '">' . $result . '</div>';
   } elseif ($scoped_css) {
     $result = $scoped_css . $result;
   }
@@ -568,13 +567,13 @@ function nomentor_extract_scoped_css($id, $css) {
   $safe_id = esc_attr($id);
   // Scope all selectors under this element's ID
   // The user writes: input[type="text"] { background:#efefef; }
-  // We output: #nm-el-ID input[type="text"] { background:#efefef; }
+  // We output: #ID input[type="text"] { background:#efefef; }
   $scoped = preg_replace_callback('/([^{}]+)\{/', function($m) use ($safe_id) {
     $selector = trim($m[1]);
     if (!$selector) return $m[0];
     // Don't double-scope if already has the ID
-    if (strpos($selector, '#nm-el-' . $safe_id) !== false) return $m[0];
-    return '#nm-el-' . $safe_id . ' ' . $selector . ' {';
+    if (strpos($selector, '#' . $safe_id) !== false) return $m[0];
+    return '#' . $safe_id . ' ' . $selector . ' {';
   }, $css);
   return "<style>{$scoped}</style>\n";
 }
@@ -748,13 +747,13 @@ function nomentor_render_grid($element) {
   if (!empty($gprops['maxWidth'])) { $grid_parts[] = 'width: ' . esc_attr($gprops['maxWidth']); $grid_parts[] = 'max-width: 100%'; $grid_parts[] = 'margin-left: auto'; $grid_parts[] = 'margin-right: auto'; }
   if (!empty($gprops['rowGap'])) $grid_parts[] = 'row-gap: ' . intval($gprops['rowGap']) . 'px';
   if (!empty($gprops['colGap'])) $grid_parts[] = 'column-gap: ' . intval($gprops['colGap']) . 'px';
-  if ($grid_parts) nomentor_add_css('#nm-el-' . $grid_id, $grid_parts);
+  if ($grid_parts) nomentor_add_css('#' . $grid_id, $grid_parts);
   // Put grid-template-columns in CSS so mobile 1fr override works without !important
   global $_nomentor_responsive_props;
   if (!isset($_nomentor_responsive_props[$grid_id])) $_nomentor_responsive_props[$grid_id] = ['desktop' => [], 'tablet' => [], 'mobile' => []];
   $_nomentor_responsive_props[$grid_id]['desktop'][] = 'grid-template-columns: repeat(' . $cols . ', 1fr)';
   $_nomentor_responsive_props[$grid_id]['mobile'][] = 'grid-template-columns: 1fr';
-  return '<div class="nm-grid nm-el-' . $grid_id . '" id="nm-el-' . $grid_id . '">' . "\n" . $cells . '</div>' . "\n";
+  return '<div class="nm-grid nm-el-' . $grid_id . '" id="' . $grid_id . '">' . "\n" . $cells . '</div>' . "\n";
 }
 
 function nomentor_build_cell_style($props) {
