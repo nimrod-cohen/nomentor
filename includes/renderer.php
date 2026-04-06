@@ -205,7 +205,7 @@ function nomentor_generate_static_html($post) {
 {$color_vars_css}    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: {$font_family}; line-height: 1.6; font-size: {$desktop['base']}px; }
-    .nm-container { padding: 1rem; }
+    .nm-container { }
     .nm-grid { display: grid; gap: 1rem; width: 100%; }
     .nm-cell { min-height: 1rem; }
     img { max-width: 100%; height: auto; }
@@ -561,14 +561,13 @@ function nomentor_shadow_to_css($s) {
 
 function nomentor_resolve_spacing($props, $prop) {
   $val = $props[$prop] ?? null;
-  if (!$val) return '';
+  if ($val === null || $val === '') return '';
   if (is_string($val)) return esc_attr($val);
   if (is_array($val)) {
     $t = intval($val['top'] ?? 0);
     $r = intval($val['right'] ?? 0);
     $b = intval($val['bottom'] ?? 0);
     $l = intval($val['left'] ?? 0);
-    if (!$t && !$r && !$b && !$l) return '';
     return "{$t}px {$r}px {$b}px {$l}px";
   }
   return '';

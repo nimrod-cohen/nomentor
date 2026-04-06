@@ -41,9 +41,10 @@ function resolveSpacing(props, prop) {
   if (vp === 'mobile') val = props['mobile_' + prop] || props['tablet_' + prop] || props[prop];
   else if (vp === 'tablet') val = props['tablet_' + prop] || props[prop];
   else val = props[prop];
-  if (!val || typeof val !== 'object') return typeof val === 'string' ? val : undefined;
+  if (val == null || val === '') return undefined;
+  if (typeof val === 'string') return val;
+  if (typeof val !== 'object') return undefined;
   const { top, right, bottom, left } = val;
-  if (!top && !right && !bottom && !left) return undefined;
   return `${top || 0}px ${right || 0}px ${bottom || 0}px ${left || 0}px`;
 }
 
