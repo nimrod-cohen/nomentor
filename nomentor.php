@@ -5,8 +5,8 @@
  * @wordpress-plugin
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
- * Description:       A lightweight WYSIWYG page builder that generates clean, static HTML. No bloat, no overhead.
- * Version:           0.5.3
+ * Description:       A lightweight WYSIWYG page builder that generates clean, modern, static HTML. No bloat, no overhead.
+ * Version:           0.5.4
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
