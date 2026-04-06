@@ -528,6 +528,77 @@ export function removeGridCell(elementId, cellId) {
   }));
 }
 
+// ── Deep clone with new IDs ──
+function deepClone(element) {
+  const prefix = element.id?.split('-').slice(0, -1).join('-') || 'el';
+  const clone = { ...element, id: nextId(prefix), props: { ...element.props } };
+  if (clone.children) {
+    clone.children = clone.children.map(child => {
+      const childPrefix = child.id?.split('-').slice(0, -1).join('-') || 'cell';
+      const childClone = { ...child, id: nextId(childPrefix) };
+      if (childClone.elements) childClone.elements = childClone.elements.map(el => deepClone(el));
+      if (childClone.slot !== undefined) childClone.slot = child.slot;
+      return childClone;
+    });
+  }
+  if (clone.props.items) clone.props.items = clone.props.items.map(item => ({ ...item, id: 'li' + Date.now() + Math.random().toString(36).slice(2, 5) }));
+  if (clone.props.fields) clone.props.fields = clone.props.fields.map(f => ({ ...f, id: 'f' + Date.now() + Math.random().toString(36).slice(2, 5) }));
+  return clone;
+}
+
+export function duplicateElement(elementId) {
+  const original = findElementById(elementId);
+  if (!original) return;
+  const clone = deepClone(original);
+
+  rows.value = rows.value.map(row => {
+    // Check top-level elements
+    const idx = row.elements.findIndex(el => el.id === elementId);
+    if (idx >= 0) {
+      const elems = [...row.elements];
+      elems.splice(idx + 1, 0, clone);
+      return { ...row, elements: elems };
+    }
+    // Check inside children (grids/forms)
+    return {
+      ...row,
+      elements: row.elements.map(el => {
+        if (!el.children) return el;
+        let found = false;
+        const newChildren = el.children.map(cell => {
+          const ci = cell.elements.findIndex(e => e.id === elementId);
+          if (ci >= 0) {
+            found = true;
+            const elems = [...cell.elements];
+            elems.splice(ci + 1, 0, clone);
+            return { ...cell, elements: elems };
+          }
+          return cell;
+        });
+        return found ? { ...el, children: newChildren } : el;
+      })
+    };
+  });
+
+  selectedId.value = clone.id;
+}
+
+export function duplicateRow(rowId) {
+  const original = rows.value.find(r => r.id === rowId);
+  if (!original) return;
+  const clone = {
+    ...original,
+    id: nextId('row'),
+    props: { ...original.props },
+    elements: original.elements.map(el => deepClone(el)),
+  };
+  const list = [...rows.value];
+  const idx = list.findIndex(r => r.id === rowId);
+  list.splice(idx + 1, 0, clone);
+  rows.value = list;
+  selectedId.value = clone.id;
+}
+
 export function removeElement(elementId) {
   rows.value = rows.value.map(row => ({
     ...row,

@@ -1,4 +1,4 @@
-import { rows, selectedId, selectElement, removeRow, removeElement, addGridCell, removeGridCell, commitChange, reorderRow, moveElement, findElementById, addRow } from '../state';
+import { rows, selectedId, selectElement, removeRow, removeElement, addGridCell, removeGridCell, commitChange, reorderRow, moveElement, findElementById, addRow, duplicateElement, duplicateRow } from '../state';
 import { signal } from '@preact/signals';
 
 const contextMenu = signal(null);
@@ -79,6 +79,13 @@ function ContextMenu() {
     contextMenu.value = null;
   }
 
+  function onDuplicate(e) {
+    e.stopPropagation();
+    if (kind === 'container') { duplicateRow(id); commitChange('Duplicate container'); }
+    else { duplicateElement(id); commitChange('Duplicate ' + kind); }
+    contextMenu.value = null;
+  }
+
   function onAddCell(e) {
     e.stopPropagation();
     addGridCell(id);
@@ -94,15 +101,13 @@ function ContextMenu() {
     if (grid?.children) canRemoveCell = grid.children.length > 1;
   }
 
+  const dupIcon = <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>;
+  const trashIcon = <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>;
+
   return (
     <div class="nav-context-menu" style={{ top: y, left: x }} onClick={e => e.stopPropagation()}>
       {kind === 'cell' ? (
-        canRemoveCell && (
-          <button onClick={onRemove}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-            Remove cell
-          </button>
-        )
+        canRemoveCell && <button onClick={onRemove}>{trashIcon} Remove cell</button>
       ) : (
         <>
           {isGrid && (
@@ -111,10 +116,8 @@ function ContextMenu() {
               Add cell
             </button>
           )}
-          <button onClick={onRemove}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-            Remove {kind}
-          </button>
+          <button onClick={onDuplicate}>{dupIcon} Duplicate</button>
+          <button onClick={onRemove}>{trashIcon} Remove {kind}</button>
         </>
       )}
     </div>
