@@ -864,6 +864,7 @@ html, body, #nomentor-root {
 .nav-context-menu button:hover { background: #fdf0ef; }
 .nav-context-menu button.context-action { color: var(--text-secondary); }
 .nav-context-menu button.context-action:hover { background: #f0f4ff; }
+.nav-context-menu .context-disabled { display: block; padding: 7px 10px; font-size: 12px; color: #999; }
 
 /* ── History ── */
 .history-count { font-weight: 400; color: #bbb; font-size: 10px; margin-left: 4px; }
