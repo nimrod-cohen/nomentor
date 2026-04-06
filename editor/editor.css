@@ -834,11 +834,12 @@ html, body, #nomentor-root {
   align-content: start;
 }
 .media-picker-item {
-  aspect-ratio: 1; border-radius: 4px; overflow: hidden; cursor: pointer;
+  position: relative; border-radius: 4px; overflow: hidden; cursor: pointer;
   border: 2px solid transparent; transition: border-color 0.15s;
+  height: 0; padding-bottom: 100%;
 }
 .media-picker-item:hover { border-color: var(--accent); }
-.media-picker-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media-picker-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .media-picker-loading, .media-picker-empty {
   grid-column: 1 / -1; text-align: center; color: #999; font-size: 13px; padding: 24px;
 }
