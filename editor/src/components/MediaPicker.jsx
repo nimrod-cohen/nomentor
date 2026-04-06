@@ -27,6 +27,7 @@ function MediaPickerModal({ onSelect, onClose }) {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(null);
   const fileRef = useRef(null);
   const searchTimer = useRef(null);
 
@@ -102,13 +103,23 @@ function MediaPickerModal({ onSelect, onClose }) {
         </div>
         <div class="media-picker-grid">
           {items.map(img => (
-            <div key={img.id} class="media-picker-item" onClick={() => onSelect({ url: img.url, alt: img.alt || img.title || '' })} title={img.title}>
+            <div key={img.id} class="media-picker-item" onClick={() => setPreview(img)} title={img.title}>
               <img src={img.thumb || img.url} alt={img.alt} loading="lazy" />
             </div>
           ))}
           {loading && <div class="media-picker-loading">Loading...</div>}
           {!loading && items.length === 0 && <div class="media-picker-empty">No images found</div>}
         </div>
+        {preview && (
+          <div class="media-picker-preview" onClick={() => setPreview(null)}>
+            <img src={preview.url} alt={preview.alt} onClick={e => e.stopPropagation()} />
+            {preview.title && <div class="media-picker-preview-title">{preview.title}</div>}
+            <div class="media-picker-preview-actions" onClick={e => e.stopPropagation()}>
+              <button class="preview-select" onClick={() => { onSelect({ url: preview.url, alt: preview.alt || preview.title || '' }); }}>Select</button>
+              <button class="preview-cancel" onClick={() => setPreview(null)}>Back</button>
+            </div>
+          </div>
+        )}
         {hasMore && !loading && (
           <div class="media-picker-footer">
             <button class="media-picker-load-more" onClick={() => load(page + 1, search)}>Load more</button>
