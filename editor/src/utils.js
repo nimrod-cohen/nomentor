@@ -10,13 +10,6 @@ const resolveViewportProp = (props, prop) => {
   return props[prop];
 };
 
-/** Resolve border for current viewport */
-const resolveBorder = (props) => {
-  const b = resolveViewportProp(props, 'border');
-  if (!b || typeof b !== 'object' || !b.width || b.style === 'none') return null;
-  return `${b.width}px ${b.style} ${resolveColor(b.color) || '#000'}`;
-};
-
 /** Resolve border-radius for current viewport */
 const resolveBorderRadius = (props) => {
   const r = resolveViewportProp(props, 'borderRadius');
@@ -27,9 +20,13 @@ const resolveBorderRadius = (props) => {
 };
 
 const applyBorder = (props, s) => {
-  const border = resolveBorder(props);
+  const b = resolveViewportProp(props, 'border');
+  if (b && typeof b === 'object' && b.width && b.style !== 'none') {
+    s.borderWidth = `${b.width}px`;
+    s.borderStyle = b.style;
+    s.borderColor = resolveColor(b.color) || '#000';
+  }
   const radius = resolveBorderRadius(props);
-  if (border) s.border = border;
   if (radius) s.borderRadius = radius;
   if (props.boxShadow) s.boxShadow = shadowToCSS(props.boxShadow);
 };
