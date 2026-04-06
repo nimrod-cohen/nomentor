@@ -1,21 +1,16 @@
 import { addElementToCell, dragging, commitChange, selectedId, selectElement, viewportMode } from '../../state';
 import { ElementRenderer } from './ElementRenderer';
-import { buildCellStyle } from '../../utils';
+import { buildCellStyle, buildFlexContainerStyle } from '../../utils';
 
 function buildGridStyle(props, cols) {
-  const s = { gridTemplateColumns: `repeat(${cols}, 1fr)` };
-  if (props.maxWidth) { s.width = props.maxWidth; s.maxWidth = '100%'; s.marginLeft = 'auto'; s.marginRight = 'auto'; }
-  const vp = viewportMode.value;
-  function resolve(prop) {
-    if (vp === 'mobile') return props['mobile_' + prop] ?? props['tablet_' + prop] ?? props[prop];
-    if (vp === 'tablet') return props['tablet_' + prop] ?? props[prop];
-    return props[prop];
-  }
-  const rg = resolve('rowGap');
-  const cg = resolve('colGap');
-  if (rg) s.rowGap = rg + 'px';
-  if (cg) s.columnGap = cg + 'px';
-  return s;
+  const flexStyle = buildFlexContainerStyle(props) || {};
+  // Drop flex-specific properties; grid uses display:grid (set by .grid-element class)
+  delete flexStyle.display;
+  delete flexStyle.flexDirection;
+  delete flexStyle.justifyContent;
+  delete flexStyle.alignItems;
+  delete flexStyle.backgroundColor;
+  return { ...flexStyle, gridTemplateColumns: `repeat(${cols}, 1fr)` };
 }
 
 export function GridElement({ element, gridDepth = 0 }) {

@@ -768,6 +768,8 @@ function nomentor_render_grid($element) {
   if (!empty($gprops['maxWidth'])) { $grid_parts[] = 'width: ' . esc_attr($gprops['maxWidth']); $grid_parts[] = 'max-width: 100%'; $grid_parts[] = 'margin-left: auto'; $grid_parts[] = 'margin-right: auto'; }
   if (!empty($gprops['rowGap'])) $grid_parts[] = 'row-gap: ' . intval($gprops['rowGap']) . 'px';
   if (!empty($gprops['colGap'])) $grid_parts[] = 'column-gap: ' . intval($gprops['colGap']) . 'px';
+  // Apply common: direction, border, padding, margin, customCss
+  nomentor_apply_common_style($grid_parts, $gprops, $grid_id);
   if ($grid_parts) nomentor_add_css('#' . $grid_id, $grid_parts);
   // Put grid-template-columns in CSS so mobile 1fr override works without !important
   global $_nomentor_responsive_props;
