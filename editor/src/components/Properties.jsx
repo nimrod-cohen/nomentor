@@ -5,7 +5,7 @@ import { ColorSelector } from './ColorSelector';
 import { BoxShadowEditor, shadowToCSS } from './BoxShadowEditor';
 import {
   PropField, ColorField, AlignField, DirectionField, DirectionPicker, AlignmentPicker,
-  VisibilityField, CssEditor, SpacingFields, GapFields, BorderFields,
+  VisibilityField, CssEditor, SpacingFields, GapFields, BorderFields, LineHeightField,
   TEXT_SIZES, FONT_WEIGHTS, VP_PREFIX,
 } from './properties/shared';
 
@@ -131,6 +131,7 @@ function HeadingProps({ element }) {
       </PropField>
       <ColorField element={element} label="Color" />
       <AlignField element={element} />
+      <LineHeightField element={element} />
     </>
   );
 }
@@ -152,6 +153,7 @@ function TextProps({ element }) {
       </PropField>
       <ColorField element={element} label="Color" />
       <AlignField element={element} />
+      <LineHeightField element={element} />
     </>
   );
 }

@@ -90,6 +90,8 @@ export function buildStyle(props) {
   }
   if (props.textAlign) s.textAlign = props.textAlign;
   if (props.direction) s.direction = props.direction;
+  const lh = resolveViewportProp(props, 'lineHeight');
+  if (lh) s.lineHeight = lh;
   applyBorder(props, s);
   const pad = resolveSpacing(props, 'padding');
   const mar = resolveSpacing(props, 'margin');

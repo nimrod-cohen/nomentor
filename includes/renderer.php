@@ -371,6 +371,10 @@ function nomentor_resolve_responsive_rule($props, $vp_prefix, $prop, $css_prop) 
       if (!$br || !is_array($br)) return null;
       $rv = ($br['topLeft'] ?? 0) . 'px ' . ($br['topRight'] ?? 0) . 'px ' . ($br['bottomRight'] ?? 0) . 'px ' . ($br['bottomLeft'] ?? 0) . 'px';
       return $rv !== '0px 0px 0px 0px' ? $css_prop . ': ' . $rv : null;
+
+    case 'lineHeight':
+      $v = $props[$vp_prefix . 'lineHeight'] ?? null;
+      return ($v !== null && $v !== '') ? $css_prop . ': ' . esc_attr($v) : null;
   }
   return null;
 }
@@ -390,6 +394,7 @@ function nomentor_collect_responsive_props($id, $props) {
     ['colGap', 'column-gap'],
     ['border', 'border'],
     ['borderRadius', 'border-radius'],
+    ['lineHeight', 'line-height'],
   ];
 
   foreach ($checks as [$prop, $css_prop]) {
@@ -657,6 +662,10 @@ function nomentor_build_style($props, $id = '') {
     $parts[] = 'font-size: ' . $em . 'em';
   }
   if (!empty($props['textAlign'])) $parts[] = 'text-align: ' . esc_attr($props['textAlign']);
+  $skip = nomentor_get_responsive_css_props($id);
+  if (empty($skip['line-height']) && !empty($props['lineHeight'])) {
+    $parts[] = 'line-height: ' . esc_attr($props['lineHeight']);
+  }
   nomentor_apply_common_style($parts, $props, $id);
   return implode('; ', $parts);
 }

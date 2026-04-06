@@ -335,3 +335,27 @@ export function BorderFields({ props, onUpdate }) {
 // ── Text sizes ──
 export const TEXT_SIZES = ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl'];
 export const FONT_WEIGHTS = ['300', '400', '500', '600', '700', '800'];
+
+// ── Line height (viewport-aware) ──
+export function LineHeightField({ element }) {
+  const vp = viewportMode.value;
+  const prefix = VP_PREFIX[vp];
+  const key = prefix + 'lineHeight';
+  const isDesktop = vp === 'desktop';
+  const raw = element.props[key];
+  const effective = (() => {
+    if (vp === 'mobile') return element.props.mobile_lineHeight ?? element.props.tablet_lineHeight ?? element.props.lineHeight ?? '';
+    if (vp === 'tablet') return element.props.tablet_lineHeight ?? element.props.lineHeight ?? '';
+    return element.props.lineHeight ?? '';
+  })();
+  const hasOverride = !isDesktop && raw != null && raw !== '';
+
+  return (
+    <PropField label={<>Line Height{!isDesktop && <span class="spacing-vp-label"> ({vp})</span>}{hasOverride && <button class="settings-reset" onClick={() => { updateElementProps(element.id, { [key]: undefined }); commitChange('Reset line height'); }} title="Reset">&times;</button>}</>}>
+      <input type="text" class={`prop-input ${hasOverride ? 'overridden' : ''}`} value={effective}
+        placeholder="e.g. 1.6, 24px"
+        onInput={e => updateElementProps(element.id, { [key]: e.target.value })}
+        onBlur={() => commitChange('Change line height')} />
+    </PropField>
+  );
+}
