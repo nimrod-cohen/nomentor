@@ -648,7 +648,7 @@ function TimerProps({ element }) {
 const LINE_STYLES = ['solid', 'dashed', 'dotted', 'wave'];
 
 function SeparatorProps({ element }) {
-  const { lineColor, lineThickness, lineWidth, lineStyle } = element.props;
+  const { lineColor, lineThickness, lineWidth, lineStyle, lineAlign } = element.props;
   function update(p) { updateElementProps(element.id, p); commitChange('Edit separator'); }
 
   return (
@@ -671,6 +671,16 @@ function SeparatorProps({ element }) {
             onBlur={() => commitChange('Change separator width')} />
         )}
       </PropField>
+      {lineWidth && (
+        <PropField label="Alignment">
+          <div class="prop-btn-group">
+            {[['left', 'Left'], ['center', 'Center'], ['right', 'Right']].map(([val, label]) => (
+              <button key={val} class={`prop-btn ${(lineAlign || 'center') === val ? 'active' : ''}`}
+                onClick={() => update({ lineAlign: val })}>{label}</button>
+            ))}
+          </div>
+        </PropField>
+      )}
       <PropField label="Style">
         <div class="prop-btn-group">
           {LINE_STYLES.map(s => (

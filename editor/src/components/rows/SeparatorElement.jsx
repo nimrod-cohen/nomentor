@@ -1,19 +1,22 @@
 import { buildStyle } from '../../utils';
 import { resolveColor } from '../ColorSelector';
 
+const ALIGN_MARGIN = { left: '0 auto 0 0', center: '0 auto', right: '0 0 0 auto' };
+
 export function SeparatorElement({ element }) {
-  const { lineColor, lineThickness, lineWidth, lineStyle } = element.props;
+  const { lineColor, lineThickness, lineWidth, lineStyle, lineAlign } = element.props;
   const extraStyle = buildStyle(element.props);
 
   const color = resolveColor(lineColor) || '#ddd';
   const thickness = lineThickness || '1';
   const style = lineStyle || 'solid';
   const width = lineWidth || '100%';
+  const align = lineAlign || 'center';
 
   const hrStyle = {
     border: 'none',
     width,
-    margin: '0 auto',
+    margin: ALIGN_MARGIN[align],
   };
 
   if (style === 'wave') {
@@ -27,7 +30,7 @@ export function SeparatorElement({ element }) {
   }
 
   return (
-    <div style={extraStyle}>
+    <div style={{ width: '100%', ...extraStyle }}>
       <hr style={hrStyle} />
     </div>
   );
