@@ -247,9 +247,11 @@ function nomentor_generate_static_html($post) {
     .nm-form { display:flex; flex-direction:column; gap:12px; }
     .nm-form-message { display:none; text-align:center; padding:12px; font-weight:600; }
     .nm-field { display:flex; flex-direction:column; gap:4px; }
-    .nm-field-label { font-size:0.9em; font-weight:600; }
-    .nm-field-input { padding:8px 12px; border:1px solid #ddd; border-radius:4px; font-size:0.9em; font-family:inherit; width:100%; box-sizing:border-box; }
-    .nm-field-option { display:flex; align-items:center; gap:6px; font-size:0.9em; cursor:pointer; }
+    .nm-field-label { font-size:1.17em; font-weight:600; }
+    .nm-field-input { padding:8px 12px; border:1px solid #ddd; border-radius:4px; font-size:1em; font-family:inherit; width:100%; box-sizing:border-box; background:#fafafa; color:inherit; direction:inherit; text-align:inherit; }
+    .nm-field-input[type="tel"] { direction:inherit; text-align:inherit; }
+    .nm-field-option { display:flex; align-items:center; gap:8px; font-size:1em; cursor:pointer; }
+    .nm-field-option input[type="checkbox"], .nm-field-option input[type="radio"] { width:18px; height:18px; flex-shrink:0; cursor:pointer; }
     .nm-required { color:#e74c3c; }
     .nm-list { display:flex; flex-direction:column; padding-inline-start:0; margin:0; }
     .nm-list-item { display:flex; align-items:center; gap:8px; }
@@ -581,9 +583,14 @@ function nomentor_extract_scoped_css($id, $css) {
   $scoped = preg_replace_callback('/([^{}]+)\{/', function($m) use ($safe_id) {
     $selector = trim($m[1]);
     if (!$selector) return $m[0];
-    // Don't double-scope if already has the ID
-    if (strpos($selector, '#' . $safe_id) !== false) return $m[0];
-    return '#' . $safe_id . ' ' . $selector . ' {';
+    // Split comma-separated selectors and scope each individually
+    $parts = array_map('trim', explode(',', $selector));
+    $scoped_parts = array_map(function($p) use ($safe_id) {
+      if (!$p) return $p;
+      if (strpos($p, '#' . $safe_id) !== false) return $p;
+      return '#' . $safe_id . ' ' . $p;
+    }, $parts);
+    return implode(', ', $scoped_parts) . ' {';
   }, $css);
   return "<style>{$scoped}</style>\n";
 }
@@ -982,6 +989,7 @@ function nomentor_render_form($element) {
 
   $form_parts = [];
   if (!empty($props['direction'])) $form_parts[] = 'direction: ' . esc_attr($props['direction']);
+  if (isset($props['fieldGap']) && $props['fieldGap'] !== '') $form_parts[] = 'gap: ' . intval($props['fieldGap']) . 'px';
   nomentor_apply_border($form_parts, $props);
   $pad = nomentor_resolve_spacing($props, 'padding');
   $mar = nomentor_resolve_spacing($props, 'margin');

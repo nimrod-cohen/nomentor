@@ -417,6 +417,10 @@ function FormProps({ element }) {
 
   return (
     <>
+      <PropField label="Field Gap (px)">
+        <input type="number" class="prop-input" value={element.props.fieldGap ?? '12'} min={0}
+          onInput={e => update({ fieldGap: e.target.value })} />
+      </PropField>
       <PropField label="Form Fields">
         <div class="form-fields-list">
           {(fields || []).map((f, i) => (

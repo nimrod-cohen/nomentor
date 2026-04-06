@@ -454,15 +454,16 @@ html, body, #nomentor-root {
 /* ── Form element ── */
 .form-element { display: flex; flex-direction: column; gap: 12px; }
 .form-field-preview { display: flex; flex-direction: column; gap: 4px; }
-.form-field-label { font-size: 0.9em; font-weight: 600; }
+.form-field-label { font-size: 1.17em; font-weight: 600; }
 .form-required { color: #e74c3c; }
 .form-field-input {
   padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;
-  font-size: 0.9em; font-family: inherit; background: #fafafa;
+  font-size: 1em; font-family: inherit; background: #fafafa;
 }
 .form-field-textarea { resize: vertical; }
 .form-field-options { display: flex; flex-direction: column; gap: 6px; }
-.form-field-option { display: flex; align-items: center; gap: 6px; font-size: 0.9em; cursor: default; }
+.form-field-option { display: flex; align-items: center; gap: 8px; font-size: 1em; cursor: default; }
+.form-field-option input[type="checkbox"], .form-field-option input[type="radio"] { width: 18px; height: 18px; flex-shrink: 0; }
 
 /* ── Form field editor (properties) ── */
 .form-fields-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }

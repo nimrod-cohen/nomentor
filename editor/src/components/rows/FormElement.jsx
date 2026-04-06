@@ -3,8 +3,9 @@ import { addElementToCell, dragging, commitChange } from '../../state';
 import { ElementRenderer } from './ElementRenderer';
 
 export function FormElement({ element, gridDepth = 0 }) {
-  const { fields } = element.props;
+  const { fields, fieldGap } = element.props;
   const style = buildStyle(element.props);
+  if (fieldGap !== undefined && fieldGap !== '') style.gap = `${fieldGap}px`;
 
   // Ensure children exist (backward compat)
   if (!element.children || element.children.length < 2) {
