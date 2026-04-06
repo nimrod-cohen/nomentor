@@ -233,6 +233,7 @@ function nomentor_generate_static_html($post) {
   <style>
     :root {
 {$color_vars_css}    }
+    html { scroll-behavior: smooth; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: {$font_family}; line-height: 1.6; font-size: {$desktop['base']}px; }
     .nm-grid { display: grid; gap: 1rem; width: 100%; }
