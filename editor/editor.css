@@ -859,6 +859,7 @@ html, body, #nomentor-root {
   display: flex; align-items: center; gap: 8px; width: 100%;
   padding: 7px 10px; border: none; background: none; border-radius: 4px;
   font-size: 12px; color: #c0392b; cursor: pointer; font-family: inherit; text-align: left;
+  white-space: nowrap;
 }
 .nav-context-menu button:hover { background: #fdf0ef; }
 .nav-context-menu button.context-action { color: var(--text-secondary); }
