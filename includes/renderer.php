@@ -208,6 +208,19 @@ function nomentor_generate_static_html($post) {
   if (!empty($page['direction'])) $direction = esc_attr($page['direction']);
   elseif (!empty($global['direction'])) $direction = esc_attr($global['direction']);
 
+  // Meta tags
+  $meta_tags = '';
+  if (!empty($page['meta']) && is_array($page['meta'])) {
+    foreach ($page['meta'] as $m) {
+      $name = trim($m['name'] ?? '');
+      $content = esc_attr($m['content'] ?? '');
+      if (!$name) continue;
+      // Use property attr for og: and twitter: prefixes, name attr otherwise
+      $attr = (str_starts_with($name, 'og:') || str_starts_with($name, 'twitter:')) ? 'property' : 'name';
+      $meta_tags .= '  <meta ' . $attr . '="' . esc_attr($name) . '" content="' . $content . '">' . "\n";
+    }
+  }
+
   return <<<HTML
 <!DOCTYPE html>
 <html lang="he" dir="{$direction}">
@@ -215,6 +228,7 @@ function nomentor_generate_static_html($post) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{$title}</title>
+{$meta_tags}
   {$font_embed}
   <style>
     :root {
@@ -249,7 +263,9 @@ function nomentor_generate_static_html($post) {
 {$responsive_css}  </style>
 {$head_scripts}</head>
 <body>
+<main>
 {$body}
+</main>
 {$page_scripts}
 </body>
 </html>

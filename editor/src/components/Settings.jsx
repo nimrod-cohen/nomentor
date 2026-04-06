@@ -330,6 +330,16 @@ export function Settings({ mode }) {
           </div>
         )}
 
+        {!isGlobal && (
+          <div class="prop-field">
+            <label class="prop-label">Meta Tags</label>
+            <MetaEditor
+              meta={raw?.meta || []}
+              onChange={m => savePageSettings({ ...(pageSettings.value || {}), meta: m.length ? m : undefined })}
+            />
+          </div>
+        )}
+
         <ColorPaletteEditor isGlobal={isGlobal} />
       </div>
     </aside>
@@ -462,6 +472,31 @@ function ScriptsEditor({ scripts, onChange }) {
         </div>
       ))}
       <button class="palette-add-btn" onClick={addScript}>+ Add Script</button>
+    </div>
+  );
+}
+
+// ── Meta Tags Editor ──
+
+function MetaEditor({ meta, onChange }) {
+  const list = Array.isArray(meta) ? meta : [];
+
+  const addMeta = () => onChange([...list, { name: '', content: '' }]);
+  const updateMeta = (idx, patch) => onChange(list.map((m, i) => i === idx ? { ...m, ...patch } : m));
+  const removeMeta = (idx) => onChange(list.filter((_, i) => i !== idx));
+
+  return (
+    <div class="scripts-list">
+      {list.map((m, i) => (
+        <div key={i} class="script-row">
+          <input type="text" class="prop-input prop-css" value={m.name || ''} placeholder="name / property"
+            onInput={e => updateMeta(i, { name: e.target.value })} style={{ width: '35%', fontSize: '11px' }} />
+          <input type="text" class="prop-input prop-css" value={m.content || ''} placeholder="content"
+            onInput={e => updateMeta(i, { content: e.target.value })} style={{ flex: 1, fontSize: '11px' }} />
+          <button class="form-field-action form-field-remove" onClick={() => removeMeta(i)}>&times;</button>
+        </div>
+      ))}
+      <button class="palette-add-btn" onClick={addMeta}>+ Add Meta Tag</button>
     </div>
   );
 }
