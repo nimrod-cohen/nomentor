@@ -455,6 +455,7 @@ function nomentor_render_element($element) {
     case 'list': $result = nomentor_render_list($element); break;
     case 'timer': $result = nomentor_render_timer($element); break;
     case 'form': $result = nomentor_render_form($element); break;
+    case 'separator': $result = nomentor_render_separator($element); break;
     default: return '';
   }
 
@@ -995,6 +996,30 @@ SCRIPT;
 </form>
 
 HTML;
+}
+
+function nomentor_render_separator($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
+
+  $color = esc_attr(nomentor_resolve_color($props['lineColor'] ?? '#ddd'));
+  $width = intval($props['lineWidth'] ?? 1);
+  $style = $props['lineStyle'] ?? 'solid';
+
+  $parts = [];
+  nomentor_apply_common_style($parts, $props, $id);
+  $wrap_style = $parts ? implode('; ', $parts) : '';
+  $wrap_attr = $wrap_style ? " style=\"{$wrap_style}\"" : '';
+
+  if ($style === 'wave') {
+    $h = max($width * 2, 6);
+    $svg = urlencode("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='6' viewBox='0 0 20 6'><path d='M0 3 Q5 0 10 3 Q15 6 20 3' stroke='{$color}' stroke-width='{$width}' fill='none'/></svg>");
+    $hr_style = "border:none;width:100%;height:{$h}px;background-image:url(\"data:image/svg+xml,{$svg}\");background-repeat:repeat-x;background-size:20px 100%";
+  } else {
+    $hr_style = "border:none;border-top:{$width}px {$style} {$color};width:100%";
+  }
+
+  return "<div{$wrap_attr}><hr style=\"{$hr_style}\"></div>\n";
 }
 
 function nomentor_render_form_field($f) {

@@ -94,6 +94,7 @@ function ElementProps({ element }) {
     case 'list': return <ListProps element={element} />;
     case 'timer': return <TimerProps element={element} />;
     case 'form': return <FormProps element={element} />;
+    case 'separator': return <SeparatorProps element={element} />;
     default: return null;
   }
 }
@@ -637,6 +638,35 @@ function TimerProps({ element }) {
       </PropField>
       <PropField label="Expired Text">
         <input type="text" class="prop-input" value={expiredText || ''} placeholder="Time is up!" onInput={e => update({ expiredText: e.target.value })} />
+      </PropField>
+    </>
+  );
+}
+
+// ── Separator ──
+
+const LINE_STYLES = ['solid', 'dashed', 'dotted', 'wave'];
+
+function SeparatorProps({ element }) {
+  const { lineColor, lineWidth, lineStyle } = element.props;
+  function update(p) { updateElementProps(element.id, p); commitChange('Edit separator'); }
+
+  return (
+    <>
+      <PropField label="Color">
+        <ColorSelector value={lineColor || ''} onChange={v => update({ lineColor: v })} placeholder="#ddd" />
+      </PropField>
+      <PropField label="Width (px)">
+        <input type="number" class="prop-input" value={lineWidth || '1'} min={1} max={20}
+          onInput={e => update({ lineWidth: e.target.value })} />
+      </PropField>
+      <PropField label="Style">
+        <div class="prop-btn-group">
+          {LINE_STYLES.map(s => (
+            <button key={s} class={`prop-btn ${(lineStyle || 'solid') === s ? 'active' : ''}`}
+              onClick={() => update({ lineStyle: s })}>{s}</button>
+          ))}
+        </div>
       </PropField>
     </>
   );

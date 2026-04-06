@@ -20,3 +20,4 @@ export const Timer = (p) => I(p, <><line x1="10" x2="14" y1="2" y2="2"/><line x1
 export const MousePointerClick = (p) => I(p, <><rect width="18" height="10" x="3" y="7" rx="5"/><path d="M7 12h10"/></>);
 export const Trash = (p) => I(p, <><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></>);
 export const GripVertical = (p) => I(p, <><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></>);
+export const UnfoldVertical = (p) => I(p, <><path d="M12 22v-6"/><path d="M12 8V2"/><path d="M4 12h16"/><path d="m15 19-3 3-3-3"/><path d="m15 5-3-3-3 3"/></>);
