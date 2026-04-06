@@ -1015,12 +1015,15 @@ function nomentor_render_separator($element) {
   nomentor_apply_common_style($parts, $props, $id);
   $wrap_style = implode('; ', $parts);
 
+  $base = "border:none;display:block;padding:0;width:{$w};margin:{$margin}";
   if ($style === 'wave') {
     $h = max($thickness * 2, 6);
     $svg = urlencode("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='6' viewBox='0 0 20 6'><path d='M0 3 Q5 0 10 3 Q15 6 20 3' stroke='{$color}' stroke-width='{$thickness}' fill='none'/></svg>");
-    $hr_style = "border:none;width:{$w};margin:{$margin};height:{$h}px;background-image:url(\"data:image/svg+xml,{$svg}\");background-repeat:repeat-x;background-size:20px 100%";
+    $hr_style = "{$base};height:{$h}px;background-image:url(\"data:image/svg+xml,{$svg}\");background-repeat:repeat-x;background-size:20px 100%";
+  } elseif ($style === 'solid') {
+    $hr_style = "{$base};height:{$thickness}px;background-color:{$color}";
   } else {
-    $hr_style = "border:none;border-top:{$thickness}px {$style} {$color};width:{$w};margin:{$margin}";
+    $hr_style = "{$base};height:0;border-top:{$thickness}px {$style} {$color}";
   }
 
   return "<div style=\"{$wrap_style}\"><hr style=\"{$hr_style}\"></div>\n";
