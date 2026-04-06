@@ -5,7 +5,7 @@ export const saveStatus = signal('saved');
 export const history = signal([]);
 const MAX_HISTORY = 100;
 
-function pushHistory(action = '') {
+const pushHistory = (action = '') => {
   const snapshot = JSON.stringify(rows.value);
   const list = [...history.value];
   list.push({ timestamp: Date.now(), snapshot, action, pinned: false });
@@ -15,7 +15,7 @@ function pushHistory(action = '') {
     list.splice(idx, 1);
   }
   history.value = list;
-}
+};
 
 export function togglePin(index) {
   history.value = history.value.map((entry, i) =>
@@ -24,7 +24,7 @@ export function togglePin(index) {
   debouncedSave();
 }
 
-function autoSave() {
+const autoSave = () => {
   const { ajaxUrl, nonce, postId } = window.nomentor;
   const data = JSON.stringify(rows.value);
   const historyData = JSON.stringify(history.value);
@@ -43,17 +43,17 @@ function autoSave() {
     .then(r => r.json())
     .then(r => { saveStatus.value = r.success ? 'saved' : 'error'; })
     .catch(() => { saveStatus.value = 'error'; });
-}
+};
 
 export function loadHistory(entries) {
   if (Array.isArray(entries)) history.value = entries;
 }
 
 let saveTimer = null;
-function debouncedSave() {
+const debouncedSave = () => {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(autoSave, 800);
-}
+};
 
 // ── History preview / revert ──
 export const previewIndex = signal(null);
@@ -87,7 +87,7 @@ export function revertToVersion(index) {
     rows.value = JSON.parse(entry.snapshot);
     _liveSnapshot = null;
     previewIndex.value = null;
-    pushHistory('Reverted to version ' + (index + 1));
+    pushHistory(`Reverted to version ${index + 1}`);
     autoSave();
   } catch {}
 }
@@ -107,7 +107,7 @@ export const DEFAULT_HEADING_SIZES = { h1: 2.5, h2: 2, h3: 1.75, h4: 1.5, h5: 1.
 const DEFAULT_DESKTOP = { base: 16, fontFamily: '', sizes: { ...DEFAULT_SIZES }, headingSizes: { ...DEFAULT_HEADING_SIZES } };
 
 // Global settings: only stores explicit values. desktop is the base, tablet/mobile only store overrides.
-export const globalSettings = signal(window.nomentor?.globalSettings || {});
+export const globalSettings = signal(window.nomentor?.globalSettings ?? {});
 export const pageSettings = signal(null);
 
 // Load Google Fonts used in settings on startup
@@ -122,14 +122,14 @@ export function loadGoogleFontCSS(family) {
 }
 
 if (typeof document !== 'undefined') {
-  const gs = window.nomentor?.globalSettings || {};
+  const gs = window.nomentor?.globalSettings ?? {};
   for (const vp of ['desktop', 'tablet', 'mobile']) {
     loadGoogleFontCSS(gs[vp]?.fontFamily);
   }
 }
 
 export function loadPageSettings(settings) {
-  pageSettings.value = settings || null;
+  pageSettings.value = settings ?? null;
   if (settings) {
     for (const vp of ['desktop', 'tablet', 'mobile']) {
       loadGoogleFontCSS(settings[vp]?.fontFamily);
@@ -151,7 +151,7 @@ export function getEffectiveSettings(viewport) {
     : viewport === 'tablet' ? ['desktop', 'tablet']
     : ['desktop', 'tablet', 'mobile'];
 
-  function resolve(key, fallback) {
+  const resolve = (key, fallback) => {
     // Walk page chain (most specific first), then global chain
     for (let i = vpChain.length - 1; i >= 0; i--) {
       if (p?.[vpChain[i]]?.[key] != null) return p[vpChain[i]][key];
@@ -160,17 +160,17 @@ export function getEffectiveSettings(viewport) {
       if (g[vpChain[i]]?.[key] != null) return g[vpChain[i]][key];
     }
     return fallback;
-  }
+  };
 
   // Merge sizes through the full chain
   const sizes = { ...DEFAULT_SIZES };
-  for (const vp of vpChain) Object.assign(sizes, g[vp]?.sizes || {});
-  for (const vp of vpChain) Object.assign(sizes, p?.[vp]?.sizes || {});
+  for (const vp of vpChain) Object.assign(sizes, g[vp]?.sizes ?? {});
+  for (const vp of vpChain) Object.assign(sizes, p?.[vp]?.sizes ?? {});
 
   // Merge heading sizes
   const headingSizes = { ...DEFAULT_HEADING_SIZES };
-  for (const vp of vpChain) Object.assign(headingSizes, g[vp]?.headingSizes || {});
-  for (const vp of vpChain) Object.assign(headingSizes, p?.[vp]?.headingSizes || {});
+  for (const vp of vpChain) Object.assign(headingSizes, g[vp]?.headingSizes ?? {});
+  for (const vp of vpChain) Object.assign(headingSizes, p?.[vp]?.headingSizes ?? {});
 
   return {
     base: resolve('base', DEFAULT_DESKTOP.base),
@@ -183,11 +183,9 @@ export function getEffectiveSettings(viewport) {
 /** Get computed heading size map in em for a viewport */
 export function getHeadingSizeMap(viewport) {
   const { headingSizes } = getEffectiveSettings(viewport);
-  const map = {};
-  for (const [key, em] of Object.entries(headingSizes)) {
-    map[key] = em + 'em';
-  }
-  return map;
+  return Object.fromEntries(
+    Object.entries(headingSizes).map(([key, em]) => [key, `${em}em`])
+  );
 }
 
 /**
@@ -209,7 +207,7 @@ export function getEffectiveDirection() {
 
 /** Get effective color palette: global colors + page color overrides/additions */
 export function getEffectiveColors() {
-  const g = globalSettings.value.colors || [];
+  const g = globalSettings.value.colors ?? [];
   const p = pageSettings.value?.colors;
   if (!p) return g;
   // Page colors override global by name, or add new ones
@@ -225,11 +223,9 @@ export function getEffectiveColors() {
 /** Get the computed size map in em for a viewport */
 export function getSizeMap(viewport) {
   const { sizes } = getEffectiveSettings(viewport);
-  const map = {};
-  for (const [key, em] of Object.entries(sizes)) {
-    map[key] = em + 'em';
-  }
-  return map;
+  return Object.fromEntries(
+    Object.entries(sizes).map(([key, em]) => [key, `${em}em`])
+  );
 }
 
 export function saveGlobalSettings(settings) {
@@ -251,7 +247,7 @@ export function savePageSettings(settings) {
 }
 
 // ── Page title ──
-export const pageTitle = signal(window.nomentor?.title || '');
+export const pageTitle = signal(window.nomentor?.title ?? '');
 
 export function renamePost(newTitle) {
   const clean = newTitle.replace(/<[^>]*>/g, '').trim();
@@ -283,25 +279,25 @@ export const rows = signal([]);
 export const selectedId = signal(null);
 
 let _nextId = 1;
-function nextId(prefix = 'el') { return prefix + '-' + (_nextId++); }
+const nextId = (prefix = 'el') => `${prefix}-${_nextId++}`;
 
 export function syncIdCounter(rowList) {
   let max = 0;
-  function scan(items) {
+  const scan = (items) => {
     if (!items) return;
     for (const item of items) {
-      const num = parseInt((item.id || '').split('-').pop());
+      const num = parseInt((item.id ?? '').split('-').pop());
       if (num > max) max = num;
       if (item.elements) scan(item.elements);
       if (item.children) scan(item.children);
     }
-  }
+  };
   scan(rowList);
   if (max >= _nextId) _nextId = max + 1;
 }
 
 // ── Default props per element type ──
-function defaultProps(type) {
+const defaultProps = (type) => {
   switch (type) {
     case 'heading': return { text: 'Heading', level: 'h2' };
     case 'text': return { text: 'Type your text here...' };
@@ -325,7 +321,7 @@ function defaultProps(type) {
     case 'separator': return { lineColor: '#ddd', lineThickness: '1', lineWidth: '', lineStyle: 'solid' };
     default: return {};
   }
-}
+};
 
 // ── Create an element ──
 export function createElement(type) {
@@ -347,25 +343,23 @@ export function createElement(type) {
 
 // ── Deep tree helpers (support nested grids, max 2 levels) ──
 
-function deepFilterElement(elements, elementId) {
-  return elements
+const deepFilterElement = (elements, elementId) =>
+  elements
     .filter(el => el.id !== elementId)
     .map(el => {
       if (!el.children) return el;
       return { ...el, children: el.children.map(cell => ({ ...cell, elements: deepFilterElement(cell.elements, elementId) })) };
     });
-}
 
-function deepMapElement(elements, elementId, fn) {
-  return elements.map(el => {
+const deepMapElement = (elements, elementId, fn) =>
+  elements.map(el => {
     if (el.id === elementId) return fn(el);
     if (!el.children) return el;
     return { ...el, children: el.children.map(cell => ({ ...cell, elements: deepMapElement(cell.elements, elementId, fn) })) };
   });
-}
 
-function deepMapCell(elements, cellId, fn) {
-  return elements.map(el => {
+const deepMapCell = (elements, cellId, fn) =>
+  elements.map(el => {
     if (!el.children) return el;
     let found = false;
     const newChildren = el.children.map(cell => {
@@ -375,9 +369,8 @@ function deepMapCell(elements, cellId, fn) {
     if (found) return { ...el, children: newChildren };
     return { ...el, children: el.children.map(cell => ({ ...cell, elements: deepMapCell(cell.elements, cellId, fn) })) };
   });
-}
 
-function findInElements(elements, elementId) {
+const findInElements = (elements, elementId) => {
   for (const el of elements) {
     if (el.id === elementId) return el;
     if (el.children) {
@@ -388,7 +381,7 @@ function findInElements(elements, elementId) {
     }
   }
   return null;
-}
+};
 
 export function findElementById(elementId) {
   for (const row of rows.value) {
@@ -398,7 +391,7 @@ export function findElementById(elementId) {
   return null;
 }
 
-function findCellInElements(elements, cellId) {
+const findCellInElements = (elements, cellId) => {
   for (const el of elements) {
     if (el.children) {
       for (const cell of el.children) {
@@ -409,7 +402,7 @@ function findCellInElements(elements, cellId) {
     }
   }
   return null;
-}
+};
 
 export function findCellById(cellId) {
   for (const row of rows.value) {
@@ -423,7 +416,7 @@ export function updateCellProps(cellId, props) {
   rows.value = rows.value.map(row => ({
     ...row,
     elements: deepMapCell(row.elements, cellId, cell => ({
-      ...cell, props: { ...(cell.props || {}), ...props }
+      ...cell, props: { ...(cell.props ?? {}), ...props }
     }))
   }));
 }
@@ -432,7 +425,7 @@ export function updateCellProps(cellId, props) {
 export function updateRowProps(rowId, props) {
   rows.value = rows.value.map(row => {
     if (row.id !== rowId) return row;
-    return { ...row, props: { ...(row.props || {}), ...props } };
+    return { ...row, props: { ...(row.props ?? {}), ...props } };
   });
 }
 
@@ -530,7 +523,7 @@ export function removeGridCell(elementId, cellId) {
 }
 
 // ── Deep clone with new IDs ──
-function deepClone(element) {
+const deepClone = (element) => {
   const prefix = element.id?.split('-').slice(0, -1).join('-') || 'el';
   const clone = { ...element, id: nextId(prefix), props: { ...element.props } };
   if (clone.children) {
@@ -542,10 +535,10 @@ function deepClone(element) {
       return childClone;
     });
   }
-  if (clone.props.items) clone.props.items = clone.props.items.map(item => ({ ...item, id: 'li' + Date.now() + Math.random().toString(36).slice(2, 5) }));
-  if (clone.props.fields) clone.props.fields = clone.props.fields.map(f => ({ ...f, id: 'f' + Date.now() + Math.random().toString(36).slice(2, 5) }));
+  if (clone.props.items) clone.props.items = clone.props.items.map(item => ({ ...item, id: `li${Date.now()}${Math.random().toString(36).slice(2, 5)}` }));
+  if (clone.props.fields) clone.props.fields = clone.props.fields.map(f => ({ ...f, id: `f${Date.now()}${Math.random().toString(36).slice(2, 5)}` }));
   return clone;
-}
+};
 
 export function duplicateElement(elementId) {
   const original = findElementById(elementId);
@@ -665,13 +658,13 @@ export function moveElement(elementId, target) {
 export function dropOnCanvas(type, beforeRowId = null) {
   const rowId = addRow(beforeRowId);
   addElementToRow(rowId, type);
-  commitChange('Add ' + type);
+  commitChange(`Add ${type}`);
 }
 
 // ── Drop on existing container: adds element to bottom of that container ──
 export function dropOnContainer(type, rowId) {
   addElementToRow(rowId, type);
-  commitChange('Add ' + type);
+  commitChange(`Add ${type}`);
 }
 
 // ── Explicit change tracking ──
@@ -697,7 +690,7 @@ export function exportPage(includeGlobal) {
     version: window.nomentor.version,
     exportedAt: new Date().toISOString(),
     layout: rows.value,
-    pageSettings: pageSettings.value || null,
+    pageSettings: pageSettings.value ?? null,
   };
   if (includeGlobal) data.globalSettings = globalSettings.value;
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

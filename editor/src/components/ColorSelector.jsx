@@ -2,23 +2,23 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import { getEffectiveColors } from '../state';
 
 /** Check if a value is a color variable reference ($name) */
-export function isColorVar(v) { return typeof v === 'string' && v.startsWith('$'); }
+export const isColorVar = (v) => typeof v === 'string' && v.startsWith('$');
 
 /** Resolve a color value: $name → hex for display, hex → hex */
 export function resolveColor(v, palette) {
   if (!v) return v;
   if (!isColorVar(v)) return v;
   const name = v.slice(1);
-  const c = (palette || getEffectiveColors()).find(c => c.name === name);
+  const c = (palette ?? getEffectiveColors()).find(c => c.name === name);
   return c ? c.value : v;
 }
 
 /** Convert $name → var(--nm-name) for CSS output */
-export function colorToCss(v) {
+export const colorToCss = (v) => {
   if (!v) return v;
   if (!isColorVar(v)) return v;
-  return 'var(--nm-' + v.slice(1).replace(/\s+/g, '-') + ')';
-}
+  return `var(--nm-${v.slice(1).replace(/\s+/g, '-')})`;
+};
 
 export function ColorSelector({ value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -27,9 +27,9 @@ export function ColorSelector({ value, onChange, placeholder }) {
 
   useEffect(() => {
     if (!open) return;
-    function onClick(e) {
+    const onClick = (e) => {
       if (!wrapRef.current?.contains(e.target)) setOpen(false);
-    }
+    };
     document.addEventListener('click', onClick);
     return () => document.removeEventListener('click', onClick);
   }, [open]);
@@ -55,8 +55,8 @@ export function ColorSelector({ value, onChange, placeholder }) {
               {palette.map(c => (
                 <button
                   key={c.name}
-                  class={`color-selector-option ${isVar && value === '$' + c.name ? 'active' : ''}`}
-                  onClick={() => { onChange('$' + c.name); setOpen(false); }}
+                  class={`color-selector-option ${isVar && value === `$${c.name}` ? 'active' : ''}`}
+                  onClick={() => { onChange(`$${c.name}`); setOpen(false); }}
                 >
                   <span class="color-selector-swatch" style={{ backgroundColor: c.value }} />
                   <span class="color-selector-option-name">{c.name}</span>

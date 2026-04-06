@@ -205,10 +205,25 @@ function nomentor_generate_static_html($post) {
 {$color_vars_css}    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: {$font_family}; line-height: 1.6; font-size: {$desktop['base']}px; }
-    .nm-container { }
     .nm-grid { display: grid; gap: 1rem; width: 100%; }
-    .nm-cell { min-height: 1rem; }
+    .nm-cell { display:flex; flex-direction:column; min-height:1rem; }
     img { max-width: 100%; height: auto; }
+    .nm-btn { display:inline-flex; align-items:center; justify-content:center; gap:0.4em; padding:0.6em 1.5em; border:none; text-decoration:none; font-family:inherit; line-height:1.4; text-align:center; cursor:pointer; }
+    .nm-timer-wrap { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .nm-timer-box { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px 20px; min-width:60px; }
+    .nm-tn { font-size:2em; font-weight:800; line-height:1.1; }
+    .nm-timer-label { font-size:0.8em; font-weight:500; margin-top:4px; opacity:0.8; }
+    .nm-form { display:flex; flex-direction:column; gap:12px; }
+    .nm-form-message { display:none; text-align:center; padding:12px; font-weight:600; }
+    .nm-field { display:flex; flex-direction:column; gap:4px; }
+    .nm-field-label { font-size:0.9em; font-weight:600; }
+    .nm-field-input { padding:8px 12px; border:1px solid #ddd; border-radius:4px; font-size:0.9em; font-family:inherit; width:100%; box-sizing:border-box; }
+    .nm-field-option { display:flex; align-items:center; gap:6px; font-size:0.9em; cursor:pointer; }
+    .nm-required { color:#e74c3c; }
+    .nm-list { display:flex; flex-direction:column; padding-inline-start:0; margin:0; }
+    .nm-list-item { display:flex; align-items:center; gap:8px; }
+    .nm-list-icon { display:flex; align-items:center; flex-shrink:0; }
+    .nm-separator hr { border:none; display:block; padding:0; }
     @media (max-width: 1024px) { body { {$tablet_font}font-size: {$tablet['base']}px; } }
     @media (max-width: 768px) {
       body { {$mobile_font}font-size: {$mobile['base']}px; }
@@ -673,7 +688,7 @@ function nomentor_render_grid($element) {
 }
 
 function nomentor_build_cell_style($props) {
-  $parts = ['display: flex', 'flex-direction: column'];
+  $parts = [];
   if (!empty($props['align'])) {
     $align_css = nomentor_align_to_css($props['align']);
     if ($align_css) $parts = array_merge($parts, $align_css);
@@ -698,20 +713,11 @@ function nomentor_render_button($element) {
 
   $has_icon = !empty($props['icon']);
   $parts = [
-    'display: ' . (empty($props['fullWidth']) ? 'inline-flex' : 'flex'),
-    'align-items: center',
-    'justify-content: center',
-    'gap: 0.4em',
-    'padding: 0.6em 1.5em',
     'background-color: ' . esc_attr(nomentor_resolve_color($props['bgColor'] ?? '#4a90d9')),
     'color: ' . esc_attr(nomentor_resolve_color($props['color'] ?? '#ffffff')),
     'border-radius: ' . intval($props['borderRadius'] ?? 6) . 'px',
-    'border: none',
-    'text-decoration: none',
-    'font-family: inherit',
-    'line-height: 1.4',
-    'text-align: center',
   ];
+  if (!empty($props['fullWidth'])) $parts[] = 'display: flex';
 
   if (!empty($props['fullWidth'])) $parts[] = 'width: 100%';
   else $parts[] = 'width: fit-content';
@@ -759,7 +765,7 @@ function nomentor_render_button($element) {
     $success_msg = esc_attr($props['successMessage'] ?? 'Thank you!');
     $redirect_url = esc_url($props['redirectUrl'] ?? '');
 
-    return "<button id=\"{$btn_id}\" type=\"button\" style=\"{$style}\">{$inner}</button>\n"
+    return "<button id=\"{$btn_id}\" type=\"button\" class=\"nm-btn\" style=\"{$style}\">{$inner}</button>\n"
       . "<script>\n(function(){\n"
       . "var btn=document.getElementById('{$btn_id}');if(!btn)return;\n"
       . "var cb={$callback_js}||null;\n"
@@ -789,16 +795,16 @@ function nomentor_render_button($element) {
 
   if ($action === 'redirect') {
     $redirect_url = esc_url($props['redirectUrl'] ?? '#');
-    return "<a href=\"{$redirect_url}\" style=\"{$style}\">{$inner}</a>\n";
+    return "<a href=\"{$redirect_url}\" class=\"nm-btn\" style=\"{$style}\">{$inner}</a>\n";
   }
 
   if ($action === 'showMessage') {
     $msg = esc_attr($props['successMessage'] ?? 'Thank you!');
-    return "<button id=\"{$btn_id}\" type=\"button\" style=\"{$style}\" onclick=\"this.outerHTML='<div style=\\'text-align:center;padding:12px;font-weight:600;color:#2ecc71\\'>{$msg}</div>'\">{$inner}</button>\n";
+    return "<button id=\"{$btn_id}\" type=\"button\" class=\"nm-btn\" style=\"{$style}\" onclick=\"this.outerHTML='<div style=\\'text-align:center;padding:12px;font-weight:600;color:#2ecc71\\'>{$msg}</div>'\">{$inner}</button>\n";
   }
 
   // Default: link
-  return "<a href=\"{$url}\"{$new_tab} style=\"{$style}\">{$inner}</a>\n";
+  return "<a href=\"{$url}\"{$new_tab} class=\"nm-btn\" style=\"{$style}\">{$inner}</a>\n";
 }
 
 function nomentor_render_timer($element) {
@@ -821,10 +827,10 @@ function nomentor_render_timer($element) {
   $safe_id = esc_attr($id);
 
   $bw = intval($props['boxWidth'] ?? 20);
-  $box_style = "display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 20px;width:calc({$bw}% - 9px);max-width:calc(25% - 9px);min-width:60px;border-radius:{$radius}px;background-color:{$bg};color:{$color}";
+  $box_style = "width:calc({$bw}% - 9px);max-width:calc(25% - 9px);border-radius:{$radius}px;background-color:{$bg};color:{$color}";
 
   // Build outer wrapper style with all shared properties
-  $outer_parts = ['display:flex', 'gap:12px', 'justify-content:center', 'flex-wrap:wrap'];
+  $outer_parts = [];
   if (!empty($props['direction'])) $outer_parts[] = 'direction: ' . esc_attr($props['direction']);
   nomentor_apply_border($outer_parts, $props);
   $pad = nomentor_resolve_spacing($props, 'padding');
@@ -835,11 +841,11 @@ function nomentor_render_timer($element) {
   $outer_style = implode('; ', $outer_parts);
 
   return <<<HTML
-<div id="nm-timer-{$safe_id}" style="{$outer_style}">
-  <div style="{$box_style}"><span class="nm-tn" style="font-size:2em;font-weight:800;line-height:1.1" data-u="d">00</span><span style="font-size:0.8em;font-weight:500;margin-top:4px;opacity:0.8">{$labels[0]}</span></div>
-  <div style="{$box_style}"><span class="nm-tn" style="font-size:2em;font-weight:800;line-height:1.1" data-u="h">00</span><span style="font-size:0.8em;font-weight:500;margin-top:4px;opacity:0.8">{$labels[1]}</span></div>
-  <div style="{$box_style}"><span class="nm-tn" style="font-size:2em;font-weight:800;line-height:1.1" data-u="m">00</span><span style="font-size:0.8em;font-weight:500;margin-top:4px;opacity:0.8">{$labels[2]}</span></div>
-  <div style="{$box_style}"><span class="nm-tn" style="font-size:2em;font-weight:800;line-height:1.1" data-u="s">00</span><span style="font-size:0.8em;font-weight:500;margin-top:4px;opacity:0.8">{$labels[3]}</span></div>
+<div id="nm-timer-{$safe_id}" class="nm-timer-wrap" style="{$outer_style}">
+  <div class="nm-timer-box" style="{$box_style}"><span class="nm-tn" data-u="d">00</span><span class="nm-timer-label">{$labels[0]}</span></div>
+  <div class="nm-timer-box" style="{$box_style}"><span class="nm-tn" data-u="h">00</span><span class="nm-timer-label">{$labels[1]}</span></div>
+  <div class="nm-timer-box" style="{$box_style}"><span class="nm-tn" data-u="m">00</span><span class="nm-timer-label">{$labels[2]}</span></div>
+  <div class="nm-timer-box" style="{$box_style}"><span class="nm-tn" data-u="s">00</span><span class="nm-timer-label">{$labels[3]}</span></div>
 </div>
 <script>
 (function(){
@@ -884,7 +890,7 @@ function nomentor_render_form($element) {
   $fields = $props['fields'] ?? [];
   $safe_id = esc_attr($id);
 
-  $form_parts = ['display:flex', 'flex-direction:column', 'gap:12px'];
+  $form_parts = [];
   if (!empty($props['direction'])) $form_parts[] = 'direction:' . esc_attr($props['direction']);
   nomentor_apply_border($form_parts, $props);
   $pad = nomentor_resolve_spacing($props, 'padding');
@@ -986,12 +992,12 @@ form.addEventListener('submit',async function(e){e.preventDefault();await form._
 SCRIPT;
 
   return <<<HTML
-<form id="nm-form-{$safe_id}" style="{$form_style}" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
+<form id="nm-form-{$safe_id}" class="nm-form" style="{$form_style}" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
 {$before_html}
 {$fields_html}
 {$validate_script}
 {$after_html}
-  <div class="nm-form-message" style="display:none;text-align:center;padding:12px;font-weight:600"></div>
+  <div class="nm-form-message"></div>
 </form>
 
 HTML;
@@ -1014,7 +1020,7 @@ function nomentor_render_separator($element) {
   nomentor_apply_common_style($parts, $props, $id);
   $wrap_style = implode('; ', $parts);
 
-  $base = "border:none;display:block;padding:0;width:{$w};margin:{$margin}";
+  $base = "width:{$w};margin:{$margin}";
   if ($style === 'wave') {
     $h = max($thickness * 2, 6);
     $svg = urlencode("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='6' viewBox='0 0 20 6'><path d='M0 3 Q5 0 10 3 Q15 6 20 3' stroke='{$color}' stroke-width='{$thickness}' fill='none'/></svg>");
@@ -1025,7 +1031,7 @@ function nomentor_render_separator($element) {
     $hr_style = "{$base};height:0;border-top:{$thickness}px {$style} {$color}";
   }
 
-  return "<div style=\"{$wrap_style}\"><hr style=\"{$hr_style}\"></div>\n";
+  return "<div class=\"nm-separator\" style=\"{$wrap_style}\"><hr style=\"{$hr_style}\"></div>\n";
 }
 
 function nomentor_render_form_field($f) {
@@ -1034,22 +1040,21 @@ function nomentor_render_form_field($f) {
   $name = esc_attr($f['name'] ?? '');
   $placeholder = esc_attr($f['placeholder'] ?? '');
   $required = !empty($f['required']);
-  $req_star = $required ? ' <span style="color:#e74c3c">*</span>' : '';
-  $input_style = 'padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-size:0.9em;font-family:inherit;width:100%;box-sizing:border-box';
+  $req_star = $required ? ' <span class="nm-required">*</span>' : '';
 
-  $html = '<div style="display:flex;flex-direction:column;gap:4px">';
-  if ($label && $type !== 'checkbox') $html .= "<label style=\"font-size:0.9em;font-weight:600\">{$label}{$req_star}</label>";
+  $html = '<div class="nm-field">';
+  if ($label && $type !== 'checkbox') $html .= "<label class=\"nm-field-label\">{$label}{$req_star}</label>";
 
   switch ($type) {
     case 'text': case 'email': case 'phone': case 'number':
       $input_type = $type === 'phone' ? 'tel' : ($type === 'email' ? 'email' : ($type === 'number' ? 'number' : 'text'));
-      $html .= "<input type=\"{$input_type}\" name=\"{$name}\" placeholder=\"{$placeholder}\" style=\"{$input_style}\"" . ($required ? ' required' : '') . ">";
+      $html .= "<input type=\"{$input_type}\" name=\"{$name}\" placeholder=\"{$placeholder}\" class=\"nm-field-input\"" . ($required ? ' required' : '') . ">";
       break;
     case 'textarea':
-      $html .= "<textarea name=\"{$name}\" placeholder=\"{$placeholder}\" style=\"{$input_style};resize:vertical\" rows=\"3\"" . ($required ? ' required' : '') . "></textarea>";
+      $html .= "<textarea name=\"{$name}\" placeholder=\"{$placeholder}\" class=\"nm-field-input\" style=\"resize:vertical\" rows=\"3\"" . ($required ? ' required' : '') . "></textarea>";
       break;
     case 'select':
-      $html .= "<select name=\"{$name}\" style=\"{$input_style}\"" . ($required ? ' required' : '') . ">";
+      $html .= "<select name=\"{$name}\" class=\"nm-field-input\"" . ($required ? ' required' : '') . ">";
       $html .= "<option value=\"\">{$placeholder}</option>";
       foreach (($f['options'] ?? []) as $opt) {
         $opt_label = is_array($opt) ? ($opt['label'] ?? '') : $opt;
@@ -1062,11 +1067,11 @@ function nomentor_render_form_field($f) {
       foreach (($f['options'] ?? []) as $opt) {
         $opt_label = is_array($opt) ? ($opt['label'] ?? '') : $opt;
         $opt_value = is_array($opt) ? ($opt['value'] ?? $opt_label) : $opt;
-        $html .= '<label style="display:flex;align-items:center;gap:6px;font-size:0.9em;cursor:pointer"><input type="radio" name="' . $name . '" value="' . esc_attr($opt_value) . '">' . esc_html($opt_label) . '</label>';
+        $html .= '<label class="nm-field-option"><input type="radio" name="' . $name . '" value="' . esc_attr($opt_value) . '">' . esc_html($opt_label) . '</label>';
       }
       break;
     case 'checkbox':
-      $html .= '<label style="display:flex;align-items:center;gap:6px;font-size:0.9em;cursor:pointer"><input type="checkbox" name="' . $name . '">' . $label . $req_star . '</label>';
+      $html .= '<label class="nm-field-option"><input type="checkbox" name="' . $name . '">' . $label . $req_star . '</label>';
       break;
   }
 
@@ -1090,7 +1095,7 @@ function nomentor_render_list($element) {
     'xl' => 1.25, '2xl' => 1.5, '3xl' => 1.875, '4xl' => 2.25,
   ];
 
-  $wrap_parts = ['display:flex', 'flex-direction:column', 'gap:' . $item_gap . 'px', 'padding-inline-start:0', 'margin:0'];
+  $wrap_parts = ['gap:' . $item_gap . 'px'];
   if ($default_icon) $wrap_parts[] = 'list-style:none';
   if (!empty($props['fontSize']) && isset($default_sizes[$props['fontSize']])) {
     global $_nomentor_effective_sizes;
@@ -1108,13 +1113,13 @@ function nomentor_render_list($element) {
   $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $wrap_parts[] = $_ic;
   $wrap_style = implode(';', $wrap_parts);
 
-  $html = "<{$list_type} style=\"{$wrap_style}\">\n";
+  $html = "<{$list_type} class=\"nm-list\" style=\"{$wrap_style}\">\n";
   foreach ($items as $item) {
     $text = esc_html($item['text'] ?? '');
     $li_icon = $item['icon'] ?? $default_icon;
     $li_bg = !empty($item['bgColor']) ? nomentor_resolve_color($item['bgColor']) : $item_bg;
 
-    $li_parts = ['display:flex', 'align-items:center', 'gap:8px', 'padding:' . $item_padding];
+    $li_parts = ['padding:' . $item_padding];
     if ($item_radius) $li_parts[] = 'border-radius:' . $item_radius . 'px';
     if ($li_bg) $li_parts[] = 'background-color:' . esc_attr($li_bg);
     $item_shadow = nomentor_shadow_to_css($props['itemShadow'] ?? null);
@@ -1125,10 +1130,10 @@ function nomentor_render_list($element) {
     if ($li_icon) {
       $ic = esc_attr(nomentor_resolve_color($item['iconColor'] ?? '') ?: $icon_color ?: 'currentColor');
       $icon_weight = floatval($props['iconWeight'] ?? 2);
-      $icon_html = '<span style="display:flex;align-items:center;flex-shrink:0;color:' . $ic . '">' . nomentor_get_icon_svg($li_icon, '1em', $icon_weight) . '</span>';
+      $icon_html = '<span class="nm-list-icon" style="color:' . $ic . '">' . nomentor_get_icon_svg($li_icon, '1em', $icon_weight) . '</span>';
     }
 
-    $html .= "  <li style=\"{$li_style}\">{$icon_html}<span>{$text}</span></li>\n";
+    $html .= "  <li class=\"nm-list-item\" style=\"{$li_style}\">{$icon_html}<span>{$text}</span></li>\n";
   }
   $html .= "</{$list_type}>\n";
   return $html;

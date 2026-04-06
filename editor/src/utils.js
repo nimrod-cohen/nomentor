@@ -3,50 +3,50 @@ import { shadowToCSS } from './components/BoxShadowEditor';
 import { resolveColor } from './components/ColorSelector';
 
 /** Resolve a simple numeric prop for current viewport (mobile → tablet → desktop) */
-function resolveViewportProp(props, prop) {
+const resolveViewportProp = (props, prop) => {
   const vp = viewportMode.value;
-  if (vp === 'mobile') return props['mobile_' + prop] ?? props['tablet_' + prop] ?? props[prop];
-  if (vp === 'tablet') return props['tablet_' + prop] ?? props[prop];
+  if (vp === 'mobile') return props[`mobile_${prop}`] ?? props[`tablet_${prop}`] ?? props[prop];
+  if (vp === 'tablet') return props[`tablet_${prop}`] ?? props[prop];
   return props[prop];
-}
+};
 
 /** Resolve border for current viewport */
-function resolveBorder(props) {
+const resolveBorder = (props) => {
   const b = resolveViewportProp(props, 'border');
   if (!b || typeof b !== 'object' || !b.width || b.style === 'none') return null;
   return `${b.width}px ${b.style} ${resolveColor(b.color) || '#000'}`;
-}
+};
 
 /** Resolve border-radius for current viewport */
-function resolveBorderRadius(props) {
+const resolveBorderRadius = (props) => {
   const r = resolveViewportProp(props, 'borderRadius');
   if (!r || typeof r !== 'object') return undefined;
   const { topLeft, topRight, bottomRight, bottomLeft } = r;
   if (!topLeft && !topRight && !bottomRight && !bottomLeft) return undefined;
   return `${topLeft || 0}px ${topRight || 0}px ${bottomRight || 0}px ${bottomLeft || 0}px`;
-}
+};
 
-function applyBorder(props, s) {
+const applyBorder = (props, s) => {
   const border = resolveBorder(props);
   const radius = resolveBorderRadius(props);
   if (border) s.border = border;
   if (radius) s.borderRadius = radius;
   if (props.boxShadow) s.boxShadow = shadowToCSS(props.boxShadow);
-}
+};
 
 /** Resolve spacing object for current viewport (mobile → tablet → desktop) */
-function resolveSpacing(props, prop) {
+const resolveSpacing = (props, prop) => {
   const vp = viewportMode.value;
   let val;
-  if (vp === 'mobile') val = props['mobile_' + prop] || props['tablet_' + prop] || props[prop];
-  else if (vp === 'tablet') val = props['tablet_' + prop] || props[prop];
+  if (vp === 'mobile') val = props[`mobile_${prop}`] || props[`tablet_${prop}`] || props[prop];
+  else if (vp === 'tablet') val = props[`tablet_${prop}`] || props[prop];
   else val = props[prop];
   if (val == null || val === '') return undefined;
   if (typeof val === 'string') return val;
   if (typeof val !== 'object') return undefined;
   const { top, right, bottom, left } = val;
   return `${top || 0}px ${right || 0}px ${bottom || 0}px ${left || 0}px`;
-}
+};
 
 // flex-direction: column → justify = vertical, align = horizontal
 const ALIGN_MAP = {
@@ -61,18 +61,18 @@ const ALIGN_MAP = {
   'bottom-right':  { justifyContent: 'flex-end',   alignItems: 'flex-end' },
 };
 
-function parseCustomCss(css, s) {
+const parseCustomCss = (css, s) => {
   if (!css) return;
-  css.split(';').forEach(rule => {
+  for (const rule of css.split(';')) {
     const [key, ...rest] = rule.split(':');
-    if (!key || !rest.length) return;
+    if (!key || !rest.length) continue;
     const prop = key.trim();
     const val = rest.join(':').trim();
-    if (!prop || !val) return;
+    if (!prop || !val) continue;
     const camel = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
     s[camel] = val;
-  });
-}
+  }
+};
 
 /**
  * Build an inline style object from element props.
@@ -112,8 +112,8 @@ export function buildFlexContainerStyle(props) {
   if (cMar && !props.maxWidth) s.margin = cMar;
   const rg = resolveViewportProp(props, 'rowGap');
   const cg = resolveViewportProp(props, 'colGap');
-  if (rg) s.rowGap = rg + 'px';
-  if (cg) s.columnGap = cg + 'px';
+  if (rg) s.rowGap = `${rg}px`;
+  if (cg) s.columnGap = `${cg}px`;
   if (props.bgColor) s.backgroundColor = resolveColor(props.bgColor);
   applyBorder(props, s);
   if (props.align && ALIGN_MAP[props.align]) {
@@ -136,8 +136,8 @@ export function buildCellStyle(props) {
   if (cellMar) s.margin = cellMar;
   const cellRg = resolveViewportProp(props, 'rowGap');
   const cellCg = resolveViewportProp(props, 'colGap');
-  if (cellRg) s.rowGap = cellRg + 'px';
-  if (cellCg) s.columnGap = cellCg + 'px';
+  if (cellRg) s.rowGap = `${cellRg}px`;
+  if (cellCg) s.columnGap = `${cellCg}px`;
   applyBorder(props, s);
   if (props.align && ALIGN_MAP[props.align]) {
     Object.assign(s, ALIGN_MAP[props.align]);
