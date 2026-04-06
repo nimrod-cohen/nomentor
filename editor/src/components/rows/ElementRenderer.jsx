@@ -31,10 +31,11 @@ export function ElementRenderer({ element, gridDepth = 0 }) {
 
   const isSelected = selectedId.value === element.id;
   const hidden = isHiddenOnViewport(element.props, viewportMode.value);
+  const stretch = !['button', 'image'].includes(element.type);
 
   return (
     <div
-      class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''}`}
+      class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''} ${stretch ? 'el-stretch' : ''}`}
       data-element-id={element.id}
       onClick={e => { e.stopPropagation(); selectElement(element.id); }}
     >

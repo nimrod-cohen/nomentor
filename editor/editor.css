@@ -207,9 +207,10 @@ html, body, #nomentor-root {
 
 /* ── Elements ── */
 .element-wrapper {
-  position: relative; padding: 4px; width: 100%;
+  position: relative; padding: 4px;
   outline: 1px solid transparent; outline-offset: -1px; border-radius: 3px; transition: outline-color 0.15s;
 }
+.element-wrapper.el-stretch { align-self: stretch; }
 .element-wrapper:hover { outline-color: #d0d8e8; }
 .element-wrapper.selected { outline-color: var(--accent); }
 
