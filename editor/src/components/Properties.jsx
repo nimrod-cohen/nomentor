@@ -415,10 +415,6 @@ function FormProps({ element }) {
 
   return (
     <>
-      <PropField label="Form ID">
-        <input type="text" class="prop-input prop-css" value={element.id} disabled style={{ opacity: 0.6 }} />
-        <span style={{ fontSize: '10px', color: '#999', display: 'block', marginTop: '2px' }}>Use this ID in a Button's "Submit Form" action</span>
-      </PropField>
       <PropField label="Form Fields">
         <div class="form-fields-list">
           {(fields || []).map((f, i) => (
