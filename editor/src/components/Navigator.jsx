@@ -126,7 +126,7 @@ function ContextMenu() {
               Add cell
             </button>
           )}
-          <button onClick={onDuplicate}>{dupIcon} Duplicate</button>
+          <button class="context-action" onClick={onDuplicate}>{dupIcon} Duplicate</button>
           <button onClick={onRemove}>{trashIcon} Remove {kind}</button>
         </>
       )}
