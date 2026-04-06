@@ -39,6 +39,11 @@ export function Properties() {
           <SpacingFields label="margin" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit margin'); }} />
           <CssEditor value={row.props?.customCss || ''} selector="selector"
             onChange={v => updateRowProps(row.id, { customCss: v })} onBlur={() => commitChange('Edit container CSS')} />
+          <PropField label="Container ID">
+            <input type="text" class="prop-input prop-css" value={row.props?.anchorId || ''} placeholder={row.id}
+              onInput={e => updateRowProps(row.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
+              onBlur={() => commitChange('Set container ID')} />
+          </PropField>
         </div>
       </aside>
     );
@@ -79,6 +84,11 @@ export function Properties() {
         <SpacingFields label="margin" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit margin'); }} />
         <CssEditor value={element.props.customCss || ''} selector="selector"
           onChange={v => updateElementProps(element.id, { customCss: v })} onBlur={() => commitChange('Edit custom CSS')} />
+        <PropField label="Element ID">
+          <input type="text" class="prop-input prop-css" value={element.props.anchorId || ''} placeholder={element.id}
+            onInput={e => updateElementProps(element.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
+            onBlur={() => commitChange('Set element ID')} />
+        </PropField>
       </div>
     </aside>
   );

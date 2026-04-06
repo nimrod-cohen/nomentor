@@ -333,7 +333,8 @@ function nomentor_render_row($row) {
     nomentor_add_css('.nm-el-' . esc_attr($id), $style);
   }
   $attr = ($style && !$id) ? " style=\"{$style}\"" : '';
-  $id_attr = $id ? ' id="' . esc_attr($id) . '"' : '';
+  $html_id = esc_attr($row['props']['anchorId'] ?? $id);
+  $id_attr = $id ? ' id="' . $html_id . '"' : '';
   $scoped = nomentor_extract_scoped_css($id, $row['props']['customCss'] ?? '');
   return $scoped . '<div class="' . $cls . '"' . $id_attr . $attr . '>' . $inner . '</div>' . "\n";
 }
@@ -527,7 +528,8 @@ function nomentor_render_element($element) {
   global $_nomentor_responsive_props;
   if ($id) {
     $safe = esc_attr($id);
-    $result = $scoped_css . '<div id="' . $safe . '" class="nm-el-' . $safe . '">' . $result . '</div>';
+    $html_id = esc_attr($props['anchorId'] ?? $id);
+    $result = $scoped_css . '<div id="' . $html_id . '" class="nm-el-' . $safe . '">' . $result . '</div>';
   } elseif ($scoped_css) {
     $result = $scoped_css . $result;
   }
