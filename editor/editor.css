@@ -207,7 +207,7 @@ html, body, #nomentor-root {
 
 /* ── Elements ── */
 .element-wrapper {
-  position: relative; padding: 4px;
+  position: relative; padding: 4px; width: 100%;
   outline: 1px solid transparent; outline-offset: -1px; border-radius: 3px; transition: outline-color 0.15s;
 }
 .element-wrapper:hover { outline-color: #d0d8e8; }
