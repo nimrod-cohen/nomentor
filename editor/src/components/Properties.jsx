@@ -648,7 +648,7 @@ function TimerProps({ element }) {
 const LINE_STYLES = ['solid', 'dashed', 'dotted', 'wave'];
 
 function SeparatorProps({ element }) {
-  const { lineColor, lineWidth, lineStyle } = element.props;
+  const { lineColor, lineThickness, lineWidth, lineStyle } = element.props;
   function update(p) { updateElementProps(element.id, p); commitChange('Edit separator'); }
 
   return (
@@ -656,9 +656,20 @@ function SeparatorProps({ element }) {
       <PropField label="Color">
         <ColorSelector value={lineColor || ''} onChange={v => update({ lineColor: v })} placeholder="#ddd" />
       </PropField>
-      <PropField label="Width (px)">
-        <input type="number" class="prop-input" value={lineWidth || '1'} min={1} max={20}
-          onInput={e => update({ lineWidth: e.target.value })} />
+      <PropField label="Thickness (px)">
+        <input type="number" class="prop-input" value={lineThickness || '1'} min={1} max={20}
+          onInput={e => update({ lineThickness: e.target.value })} />
+      </PropField>
+      <PropField label="Width">
+        <div class="prop-btn-group" style={{ marginBottom: '6px' }}>
+          <button class={`prop-btn ${!lineWidth ? 'active' : ''}`} onClick={() => update({ lineWidth: '' })}>Full</button>
+          <button class={`prop-btn ${lineWidth ? 'active' : ''}`} onClick={() => { if (!lineWidth) update({ lineWidth: '50%' }); }}>Set Width</button>
+        </div>
+        {lineWidth && (
+          <input type="text" class="prop-input" value={lineWidth} placeholder="e.g. 50%, 200px"
+            onInput={e => updateElementProps(element.id, { lineWidth: e.target.value })}
+            onBlur={() => commitChange('Change separator width')} />
+        )}
       </PropField>
       <PropField label="Style">
         <div class="prop-btn-group">

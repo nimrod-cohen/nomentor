@@ -1003,8 +1003,10 @@ function nomentor_render_separator($element) {
   $id = $element['id'] ?? '';
 
   $color = esc_attr(nomentor_resolve_color($props['lineColor'] ?? '#ddd'));
-  $width = intval($props['lineWidth'] ?? 1);
+  $thickness = intval($props['lineThickness'] ?? 1);
+  $line_width = esc_attr($props['lineWidth'] ?? '');
   $style = $props['lineStyle'] ?? 'solid';
+  $w = $line_width ?: '100%';
 
   $parts = [];
   nomentor_apply_common_style($parts, $props, $id);
@@ -1012,11 +1014,11 @@ function nomentor_render_separator($element) {
   $wrap_attr = $wrap_style ? " style=\"{$wrap_style}\"" : '';
 
   if ($style === 'wave') {
-    $h = max($width * 2, 6);
-    $svg = urlencode("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='6' viewBox='0 0 20 6'><path d='M0 3 Q5 0 10 3 Q15 6 20 3' stroke='{$color}' stroke-width='{$width}' fill='none'/></svg>");
-    $hr_style = "border:none;width:100%;height:{$h}px;background-image:url(\"data:image/svg+xml,{$svg}\");background-repeat:repeat-x;background-size:20px 100%";
+    $h = max($thickness * 2, 6);
+    $svg = urlencode("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='6' viewBox='0 0 20 6'><path d='M0 3 Q5 0 10 3 Q15 6 20 3' stroke='{$color}' stroke-width='{$thickness}' fill='none'/></svg>");
+    $hr_style = "border:none;width:{$w};margin:0 auto;height:{$h}px;background-image:url(\"data:image/svg+xml,{$svg}\");background-repeat:repeat-x;background-size:20px 100%";
   } else {
-    $hr_style = "border:none;border-top:{$width}px {$style} {$color};width:100%";
+    $hr_style = "border:none;border-top:{$thickness}px {$style} {$color};width:{$w};margin:0 auto";
   }
 
   return "<div{$wrap_attr}><hr style=\"{$hr_style}\"></div>\n";

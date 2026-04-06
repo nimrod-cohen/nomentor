@@ -322,6 +322,7 @@ function defaultProps(type) {
       itemPadding: '8px 12px', itemBgColor: '', itemRadius: '0', itemGap: '4',
     };
     case 'timer': return { targetDate: '', timezone: 'Asia/Jerusalem', bgColor: '#eef2f7', color: '#1a2744', labelDays: 'ימים', labelHours: 'שעות', labelMinutes: 'דקות', labelSeconds: 'שניות', expiredText: 'הזמן נגמר!' };
+    case 'separator': return { lineColor: '#ddd', lineThickness: '1', lineWidth: '', lineStyle: 'solid' };
     default: return {};
   }
 }
