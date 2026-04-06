@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, modern, static HTML. No bloat, no overhead.
- * Version:           0.6.1
+ * Version:           0.6.2
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -32,6 +32,15 @@ function nomentor_version() {
 }
 
 // --- Shared helpers ---
+
+function nomentor_rmdir_recursive(string $dir): void {
+  if (!is_dir($dir)) return;
+  $items = glob($dir . '/{,.}[!.,!..]*', GLOB_BRACE);
+  foreach ($items as $item) {
+    is_dir($item) ? nomentor_rmdir_recursive($item) : unlink($item);
+  }
+  @rmdir($dir);
+}
 
 function nomentor_verify_ajax($nonce_action, $capability = 'edit_pages') {
   check_ajax_referer($nonce_action, 'nonce');
@@ -528,13 +537,7 @@ add_action('transition_post_status', function ($new_status, $old_status, $post) 
     file_put_contents($static_dir . '/index.html', $html);
   } else {
     // Remove the static folder when unpublished
-    if (is_dir($static_dir)) {
-      $files = glob($static_dir . '/*');
-      foreach ($files as $file) {
-        if (is_file($file)) unlink($file);
-      }
-      @rmdir($static_dir);
-    }
+    nomentor_rmdir_recursive($static_dir);
   }
 }, 10, 3);
 
@@ -556,13 +559,7 @@ add_action('wp_trash_post', function ($post_id) {
   if (empty($slug)) return;
 
   $static_dir = ABSPATH . 'static/' . $slug;
-  if (is_dir($static_dir)) {
-    $files = glob($static_dir . '/*');
-    foreach ($files as $file) {
-      if (is_file($file)) unlink($file);
-    }
-    @rmdir($static_dir);
-  }
+  nomentor_rmdir_recursive($static_dir);
 });
 
 // nomentor_generate_static_html() is in includes/renderer.php

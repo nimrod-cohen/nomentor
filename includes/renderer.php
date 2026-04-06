@@ -9,6 +9,7 @@
 defined('ABSPATH') || exit;
 
 require_once __DIR__ . '/lucide-icons.php';
+require_once __DIR__ . '/image-optimizer.php';
 
 /**
  * Resolve a color value: $name → var(--nm-name), hex → hex
@@ -92,6 +93,10 @@ function nomentor_generate_static_html($post) {
   // Init per-element CSS collector
   global $_nomentor_element_css;
   $_nomentor_element_css = [];
+
+  // Set current slug for image optimizer
+  global $_nomentor_current_slug;
+  $_nomentor_current_slug = $post->post_name;
 
   $body = '';
   foreach ($rows as $row) {
@@ -685,6 +690,13 @@ function nomentor_render_image($element) {
     }
   }
 
+  // Try WebP conversion
+  global $_nomentor_current_slug;
+  $webp = $_nomentor_current_slug ? nomentor_maybe_convert_to_webp($props['src'] ?? '', $_nomentor_current_slug) : null;
+
+  if ($webp) {
+    return "<picture>\n  <source srcset=\"{$webp}\" type=\"image/webp\">\n  <img src=\"{$src}\" alt=\"{$alt}\"{$class}{$style} loading=\"lazy\">\n</picture>\n";
+  }
   return "<img src=\"{$src}\" alt=\"{$alt}\"{$class}{$style} loading=\"lazy\">\n";
 }
 
