@@ -452,8 +452,11 @@ function nomentor_build_row_style($props, $id = '') {
   if (!empty($props['maxWidth'])) {
     $parts[] = 'width: ' . esc_attr($props['maxWidth']);
     $parts[] = 'max-width: 100%';
-    $parts[] = 'margin-left: auto';
-    $parts[] = 'margin-right: auto';
+    // Auto left/right for centering; top/bottom from user margin if set
+    $mar = $props['margin'] ?? null;
+    $top = is_array($mar) ? intval($mar['top'] ?? 0) : 0;
+    $bot = is_array($mar) ? intval($mar['bottom'] ?? 0) : 0;
+    $parts[] = "margin: {$top}px auto {$bot}px auto";
   }
   if (!empty($props['bgColor'])) $parts[] = 'background-color: ' . esc_attr(nomentor_resolve_color($props['bgColor']));
   if (!empty($props['align'])) {

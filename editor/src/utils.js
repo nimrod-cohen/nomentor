@@ -105,7 +105,14 @@ export function buildStyle(props) {
 export function buildFlexContainerStyle(props) {
   if (!props) return undefined;
   const s = { display: 'flex', flexDirection: 'column' };
-  if (props.maxWidth) { s.width = props.maxWidth; s.maxWidth = '100%'; s.marginLeft = 'auto'; s.marginRight = 'auto'; }
+  if (props.maxWidth) {
+    s.width = props.maxWidth;
+    s.maxWidth = '100%';
+    const m = props.margin;
+    const top = (m && typeof m === 'object') ? (m.top || 0) : 0;
+    const bot = (m && typeof m === 'object') ? (m.bottom || 0) : 0;
+    s.margin = `${top}px auto ${bot}px auto`;
+  }
   const cPad = resolveSpacing(props, 'padding');
   const cMar = resolveSpacing(props, 'margin');
   if (cPad) s.padding = cPad;
