@@ -937,13 +937,14 @@ function nomentor_render_timer($element) {
   if ($pad) $outer_parts[] = 'padding: ' . $pad;
   if ($mar) $outer_parts[] = 'margin: ' . $mar;
   $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $outer_parts[] = $_ic;
-  if (!$has_target) $outer_parts[] = 'display: none';
   if ($outer_parts) nomentor_add_css("#nm-timer-{$safe_id}", $outer_parts);
 
   $target_js = $has_target ? "'" . esc_js($target) . "'" : 'null';
+  // Inline style (not CSS rule) so the JS can clear it and let the class's display:flex take over.
+  $hidden_attr = $has_target ? '' : ' style="display:none"';
 
   return <<<HTML
-<div id="nm-timer-{$safe_id}" class="nm-timer-wrap" data-nm-id="{$safe_id}">
+<div id="nm-timer-{$safe_id}" class="nm-timer-wrap" data-nm-id="{$safe_id}"{$hidden_attr}>
   <div class="nm-timer-box"><span class="nm-tn" data-u="d">00</span><span class="nm-timer-label">{$labels[0]}</span></div>
   <div class="nm-timer-box"><span class="nm-tn" data-u="h">00</span><span class="nm-timer-label">{$labels[1]}</span></div>
   <div class="nm-timer-box"><span class="nm-tn" data-u="m">00</span><span class="nm-timer-label">{$labels[2]}</span></div>
