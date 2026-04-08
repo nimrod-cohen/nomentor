@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, modern, static HTML. No bloat, no overhead.
- * Version:           0.6.13
+ * Version:           0.6.14
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -510,6 +510,14 @@ add_action('wp_ajax_nomentor_save_page_settings', function () {
   $post = nomentor_verify_ajax_post('nomentor_editor');
   $settings = wp_unslash($_POST['settings'] ?? '{}');
   update_post_meta($post->ID, '_nomentor_page_settings', $settings);
+
+  // Regenerate static HTML so changes (scripts, meta, colors, etc.) take effect immediately.
+  if ($post->post_status === 'publish' && $post->post_name) {
+    $static_dir = ABSPATH . 'static/' . $post->post_name;
+    if (!is_dir($static_dir)) wp_mkdir_p($static_dir);
+    file_put_contents($static_dir . '/index.html', nomentor_generate_static_html($post));
+  }
+
   wp_send_json_success();
 });
 
