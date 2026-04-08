@@ -903,7 +903,7 @@ function nomentor_render_timer($element) {
   $props = $element['props'] ?? [];
   $id = $element['id'] ?? '';
   $target = $props['targetDate'] ?? '';
-  if (!$target) return '';
+  $has_target = $target !== '';
 
   $tz = esc_attr($props['timezone'] ?? 'UTC');
   $bg = esc_attr(nomentor_resolve_color($props['bgColor'] ?? '#eef2f7'));
@@ -937,10 +937,13 @@ function nomentor_render_timer($element) {
   if ($pad) $outer_parts[] = 'padding: ' . $pad;
   if ($mar) $outer_parts[] = 'margin: ' . $mar;
   $_ic = nomentor_inline_css($props['customCss'] ?? ''); if ($_ic) $outer_parts[] = $_ic;
+  if (!$has_target) $outer_parts[] = 'display: none';
   if ($outer_parts) nomentor_add_css("#nm-timer-{$safe_id}", $outer_parts);
 
+  $target_js = $has_target ? "'" . esc_js($target) . "'" : 'null';
+
   return <<<HTML
-<div id="nm-timer-{$safe_id}" class="nm-timer-wrap">
+<div id="nm-timer-{$safe_id}" class="nm-timer-wrap" data-nm-id="{$safe_id}">
   <div class="nm-timer-box"><span class="nm-tn" data-u="d">00</span><span class="nm-timer-label">{$labels[0]}</span></div>
   <div class="nm-timer-box"><span class="nm-tn" data-u="h">00</span><span class="nm-timer-label">{$labels[1]}</span></div>
   <div class="nm-timer-box"><span class="nm-tn" data-u="m">00</span><span class="nm-timer-label">{$labels[2]}</span></div>
@@ -948,18 +951,29 @@ function nomentor_render_timer($element) {
 </div>
 <script>
 (function(){
-  var el=document.getElementById('nm-timer-{$safe_id}');if(!el)return;
-  var t=new Date('{$target}').getTime();
-  function u(){
-    var n=Date.now(),d=t-n;
-    if(d<=0){el.innerHTML='<div style="text-align:center;font-size:1.5em;font-weight:700;padding:20px;color:{$color}">{$expired}</div>';return;}
+  var id='{$safe_id}',el=document.getElementById('nm-timer-'+id);if(!el)return;
+  var t=null,iv=null,original=el.innerHTML;
+  function tick(){
+    var d=t-Date.now();
+    if(d<=0){clearInterval(iv);iv=null;el.innerHTML='<div style="text-align:center;font-size:1.5em;font-weight:700;padding:20px;color:{$color}">{$expired}</div>';return;}
     var ns=el.querySelectorAll('.nm-tn');
     ns[0].textContent=String(Math.floor(d/864e5)).padStart(2,'0');
     ns[1].textContent=String(Math.floor(d/36e5%24)).padStart(2,'0');
     ns[2].textContent=String(Math.floor(d/6e4%60)).padStart(2,'0');
     ns[3].textContent=String(Math.floor(d/1e3%60)).padStart(2,'0');
   }
-  u();setInterval(u,1000);
+  function setDate(date){
+    if(date==null){el.style.display='none';if(iv){clearInterval(iv);iv=null;}t=null;return;}
+    var parsed=date instanceof Date?date.getTime():(typeof date==='number'?date:new Date(date).getTime());
+    if(isNaN(parsed))return;
+    t=parsed;el.innerHTML=original;el.style.display='';
+    if(iv)clearInterval(iv);
+    tick();iv=setInterval(tick,1000);
+  }
+  (window.nmTimers=window.nmTimers||{})[id]=setDate;
+  window.nmTimerSet=window.nmTimerSet||function(i,d){var f=(window.nmTimers||{})[i];if(f)f(d);};
+  var initial={$target_js};
+  if(initial!==null)setDate(initial);
 })();
 </script>
 

@@ -616,6 +616,9 @@ function TimerProps({ element }) {
     <>
       <PropField label="Target Date & Time">
         <input type="datetime-local" class="prop-input" value={targetDate || ''} onInput={e => update({ targetDate: e.target.value })} />
+        <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+          Leave empty to hide until set via JS: <code>nmTimerSet('{element.id}', date)</code>
+        </div>
       </PropField>
       <PropField label="Timezone">
         <select class="prop-input" value={timezone || 'Asia/Jerusalem'} onChange={e => update({ timezone: e.target.value })}>

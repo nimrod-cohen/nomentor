@@ -1,3 +1,2 @@
-2. page tags and comment
-10. component editing
-12. duplicate in navigator
+1. page tags and comment
+2. set timer via js function
