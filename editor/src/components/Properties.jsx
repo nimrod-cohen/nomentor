@@ -5,7 +5,7 @@ import { ColorSelector } from './ColorSelector';
 import { BoxShadowEditor, shadowToCSS } from './BoxShadowEditor';
 import {
   PropField, ColorField, AlignField, DirectionField, DirectionPicker, AlignmentPicker,
-  VisibilityField, CssEditor, SpacingFields, GapFields, BorderFields, LineHeightField,
+  VisibilityField, CssEditor, CssClassesField, SpacingFields, GapFields, BorderFields, LineHeightField,
   TEXT_SIZES, FONT_WEIGHTS, VP_PREFIX,
 } from './properties/shared';
 
@@ -39,6 +39,8 @@ export function Properties() {
           <SpacingFields label="margin" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit margin'); }} />
           <CssEditor value={row.props?.customCss || ''} selector="selector"
             onChange={v => updateRowProps(row.id, { customCss: v })} onBlur={() => commitChange('Edit container CSS')} />
+          <CssClassesField value={row.props?.cssClasses || ''}
+            onChange={v => updateRowProps(row.id, { cssClasses: v })} onBlur={() => commitChange('Edit container classes')} />
           <PropField label="Container ID">
             <input type="text" class="prop-input prop-css" value={row.props?.anchorId || ''} placeholder={row.id}
               onInput={e => updateRowProps(row.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
@@ -84,6 +86,8 @@ export function Properties() {
         <SpacingFields label="margin" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit margin'); }} />
         <CssEditor value={element.props.customCss || ''} selector="selector"
           onChange={v => updateElementProps(element.id, { customCss: v })} onBlur={() => commitChange('Edit custom CSS')} />
+        <CssClassesField value={element.props.cssClasses || ''}
+          onChange={v => updateElementProps(element.id, { cssClasses: v })} onBlur={() => commitChange('Edit element classes')} />
         <PropField label="Element ID">
           <input type="text" class="prop-input prop-css" value={element.props.anchorId || ''} placeholder={element.id}
             onInput={e => updateElementProps(element.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
@@ -779,6 +783,8 @@ function CellProps({ cell }) {
       <SpacingFields label="margin" props={props} onUpdate={(k, v) => { updateCellProps(cell.id, { [k]: v }); commitChange('Edit margin'); }} />
       <CssEditor value={props.customCss || ''} selector="selector"
         onChange={v => updateCellProps(cell.id, { customCss: v })} onBlur={() => commitChange('Edit cell CSS')} />
+      <CssClassesField value={props.cssClasses || ''}
+        onChange={v => updateCellProps(cell.id, { cssClasses: v })} onBlur={() => commitChange('Edit cell classes')} />
     </>
   );
 }

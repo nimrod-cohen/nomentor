@@ -139,6 +139,21 @@ export function VisibilityField({ props, onUpdate }) {
   );
 }
 
+// ── CSS Classes (space-separated, sanitized) ──
+export function CssClassesField({ value, onChange, onBlur }) {
+  function sanitize(v) {
+    return (v || '').replace(/[^a-zA-Z0-9 _-]/g, '').replace(/\s+/g, ' ');
+  }
+  return (
+    <PropField label="CSS Classes">
+      <input type="text" class="prop-input prop-css" value={value || ''}
+        placeholder="my-class another-class"
+        onInput={e => onChange(sanitize(e.target.value))}
+        onBlur={onBlur} />
+    </PropField>
+  );
+}
+
 // ── CSS Editor ──
 export function CssEditor({ value, selector, onChange, onBlur }) {
   return (

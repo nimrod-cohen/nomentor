@@ -329,6 +329,7 @@ function nomentor_render_row($row) {
   nomentor_collect_visibility($id, $row['props'] ?? []);
   nomentor_collect_responsive_props($id, $row['props'] ?? []);
   if ($id) $cls .= ' nm-el-' . esc_attr($id);
+  $cls .= nomentor_extra_classes($row['props'] ?? []);
 
   $style = nomentor_build_row_style($row['props'] ?? [], $id);
   if ($style && $id) {
@@ -434,6 +435,19 @@ function nomentor_get_responsive_css_props($id) {
  * Apply common style properties shared across row, cell, and element style builders.
  * Handles: responsive skip check, direction, border, padding, margin, customCss.
  */
+/**
+ * Sanitize and return user-supplied CSS classes from props as a leading-space string,
+ * suitable for concatenation into an existing class attribute. Returns '' if none.
+ */
+function nomentor_extra_classes($props) {
+  $cls = trim($props['cssClasses'] ?? '');
+  if ($cls === '') return '';
+  // Allow only class-name-safe characters; collapse whitespace.
+  $cls = preg_replace('/[^a-zA-Z0-9 _-]/', '', $cls);
+  $cls = preg_replace('/\s+/', ' ', trim($cls));
+  return $cls === '' ? '' : ' ' . esc_attr($cls);
+}
+
 function nomentor_apply_common_style(&$parts, $props, $id = '') {
   $skip = nomentor_get_responsive_css_props($id);
   if (!empty($props['direction'])) $parts[] = 'direction: ' . esc_attr($props['direction']);
@@ -559,15 +573,17 @@ function nomentor_render_heading($element) {
   if (!empty($_nomentor_effective_heading_sizes[$level])) {
     $style = 'font-size: ' . $_nomentor_effective_heading_sizes[$level] . 'em' . ($style ? '; ' . $style : '');
   }
+  $extra = nomentor_extra_classes($props);
+  $cls_attr = $extra ? ' class="' . ltrim($extra) . '"' : '';
   $id_attr = '';
   if ($id) {
     $safe_id = esc_attr($id);
     $id_attr = " id=\"nm-{$safe_id}\"";
     if ($style) nomentor_add_css("#nm-{$safe_id}", $style);
-    return "<{$level}{$id_attr}>{$text}</{$level}>\n";
+    return "<{$level}{$id_attr}{$cls_attr}>{$text}</{$level}>\n";
   }
   $attr = $style ? " style=\"{$style}\"" : '';
-  return "<{$level}{$attr}>{$text}</{$level}>\n";
+  return "<{$level}{$attr}{$cls_attr}>{$text}</{$level}>\n";
 }
 
 /**
@@ -682,13 +698,15 @@ function nomentor_render_text($element) {
   $id = $element['id'] ?? '';
   $text = wp_kses_post($props['text'] ?? '');
   $style = nomentor_build_style($props, $id);
+  $extra = nomentor_extra_classes($props);
+  $cls_attr = $extra ? ' class="' . ltrim($extra) . '"' : '';
   if ($id) {
     $safe_id = esc_attr($id);
     if ($style) nomentor_add_css("#nm-{$safe_id}", $style);
-    return "<div id=\"nm-{$safe_id}\">{$text}</div>\n";
+    return "<div id=\"nm-{$safe_id}\"{$cls_attr}>{$text}</div>\n";
   }
   $attr = $style ? " style=\"{$style}\"" : '';
-  return "<div{$attr}>{$text}</div>\n";
+  return "<div{$attr}{$cls_attr}>{$text}</div>\n";
 }
 
 function nomentor_render_image($element) {
@@ -707,7 +725,9 @@ function nomentor_render_image($element) {
   }
   $style = (!$id && $style_parts) ? ' style="' . implode('; ', $style_parts) . '"' : '';
 
-  $class = $id ? ' class="nm-img-' . esc_attr($id) . '"' : '';
+  $extra = nomentor_extra_classes($props);
+  $img_cls = ($id ? 'nm-img-' . esc_attr($id) : '') . $extra;
+  $class = $img_cls !== '' ? ' class="' . ltrim($img_cls) . '"' : '';
 
   // Collect responsive overrides
   if ($id) {
@@ -754,6 +774,7 @@ function nomentor_render_grid($element) {
     $cell_cls = 'nm-cell';
     if ($cell_id) $cell_cls .= ' nm-cell-' . esc_attr($cell_id);
     if ($cell_id && !empty($cell['props']['hideOn'])) $cell_cls .= ' nm-el-' . esc_attr($cell_id);
+    $cell_cls .= nomentor_extra_classes($cell['props'] ?? []);
     $cell_style = nomentor_build_cell_style($cell['props'] ?? []);
     if ($cell_style && $cell_id) {
       nomentor_add_css('.nm-cell-' . esc_attr($cell_id), $cell_style);
@@ -776,7 +797,8 @@ function nomentor_render_grid($element) {
   if (!isset($_nomentor_responsive_props[$grid_id])) $_nomentor_responsive_props[$grid_id] = ['desktop' => [], 'tablet' => [], 'mobile' => []];
   $_nomentor_responsive_props[$grid_id]['desktop'][] = 'grid-template-columns: repeat(' . $cols . ', 1fr)';
   $_nomentor_responsive_props[$grid_id]['mobile'][] = 'grid-template-columns: 1fr';
-  return '<div class="nm-grid nm-el-' . $grid_id . '" id="' . $grid_id . '">' . "\n" . $cells . '</div>' . "\n";
+  $grid_extra = nomentor_extra_classes($gprops);
+  return '<div class="nm-grid nm-el-' . $grid_id . $grid_extra . '" id="' . $grid_id . '">' . "\n" . $cells . '</div>' . "\n";
 }
 
 function nomentor_build_cell_style($props) {
@@ -797,6 +819,7 @@ function nomentor_render_button($element) {
   $text = esc_html($props['text'] ?? 'Button');
   $url = esc_url($props['url'] ?? '#');
   $new_tab = !empty($props['newTab']) ? ' target="_blank" rel="noopener noreferrer"' : '';
+  $extra_cls = nomentor_extra_classes($props);
 
   static $default_sizes = [
     'xs' => 0.75, 'sm' => 0.875, 'base' => 1, 'lg' => 1.125,
@@ -857,7 +880,7 @@ function nomentor_render_button($element) {
     $success_msg = esc_attr($props['successMessage'] ?? 'Thank you!');
     $redirect_url = esc_url($props['redirectUrl'] ?? '');
 
-    return "<button id=\"{$btn_id}\" type=\"button\" class=\"nm-btn\">{$inner}</button>\n"
+    return "<button id=\"{$btn_id}\" type=\"button\" class=\"nm-btn{$extra_cls}\">{$inner}</button>\n"
       . "<script>\n(function(){\n"
       . "var btn=document.getElementById('{$btn_id}');if(!btn)return;\n"
       . "var cb={$callback_js}||null;\n"
@@ -887,16 +910,16 @@ function nomentor_render_button($element) {
 
   if ($action === 'redirect') {
     $redirect_url = esc_url($props['redirectUrl'] ?? '#');
-    return "<a id=\"{$btn_id}\" href=\"{$redirect_url}\" class=\"nm-btn\">{$inner}</a>\n";
+    return "<a id=\"{$btn_id}\" href=\"{$redirect_url}\" class=\"nm-btn{$extra_cls}\">{$inner}</a>\n";
   }
 
   if ($action === 'showMessage') {
     $msg = esc_attr($props['successMessage'] ?? 'Thank you!');
-    return "<button id=\"{$btn_id}\" type=\"button\" class=\"nm-btn\" onclick=\"this.outerHTML='<div style=\\'text-align:center;padding:12px;font-weight:600;color:#2ecc71\\'>{$msg}</div>'\">{$inner}</button>\n";
+    return "<button id=\"{$btn_id}\" type=\"button\" class=\"nm-btn{$extra_cls}\" onclick=\"this.outerHTML='<div style=\\'text-align:center;padding:12px;font-weight:600;color:#2ecc71\\'>{$msg}</div>'\">{$inner}</button>\n";
   }
 
   // Default: link
-  return "<a id=\"{$btn_id}\" href=\"{$url}\"{$new_tab} class=\"nm-btn\">{$inner}</a>\n";
+  return "<a id=\"{$btn_id}\" href=\"{$url}\"{$new_tab} class=\"nm-btn{$extra_cls}\">{$inner}</a>\n";
 }
 
 function nomentor_render_timer($element) {
@@ -942,9 +965,10 @@ function nomentor_render_timer($element) {
   $target_js = $has_target ? "'" . esc_js($target) . "'" : 'null';
   // Inline style (not CSS rule) so the JS can clear it and let the class's display:flex take over.
   $hidden_attr = $has_target ? '' : ' style="display:none"';
+  $extra_cls = nomentor_extra_classes($props);
 
   return <<<HTML
-<div id="nm-timer-{$safe_id}" class="nm-timer-wrap" data-nm-id="{$safe_id}"{$hidden_attr}>
+<div id="nm-timer-{$safe_id}" class="nm-timer-wrap{$extra_cls}" data-nm-id="{$safe_id}"{$hidden_attr}>
   <div class="nm-timer-box"><span class="nm-tn" data-u="d">00</span><span class="nm-timer-label">{$labels[0]}</span></div>
   <div class="nm-timer-box"><span class="nm-tn" data-u="h">00</span><span class="nm-timer-label">{$labels[1]}</span></div>
   <div class="nm-timer-box"><span class="nm-tn" data-u="m">00</span><span class="nm-timer-label">{$labels[2]}</span></div>
@@ -1106,8 +1130,9 @@ form.addEventListener('submit',async function(e){e.preventDefault();await form._
 </script>
 SCRIPT;
 
+  $extra_cls = nomentor_extra_classes($props);
   return <<<HTML
-<form id="nm-form-{$safe_id}" class="nm-form" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
+<form id="nm-form-{$safe_id}" class="nm-form{$extra_cls}" data-nm-rules="{$validations_attr}" onsubmit="return false" novalidate>
 {$before_html}
 {$fields_html}
 {$validate_script}
@@ -1122,6 +1147,7 @@ function nomentor_render_separator($element) {
   $props = $element['props'] ?? [];
   $id = $element['id'] ?? '';
   $safe_id = esc_attr($id);
+  $extra_cls = nomentor_extra_classes($props);
 
   $color = esc_attr(nomentor_resolve_color($props['lineColor'] ?? '#ddd'));
   $thickness = intval($props['lineThickness'] ?? 1);
@@ -1154,12 +1180,12 @@ function nomentor_render_separator($element) {
   if ($id) {
     nomentor_add_css("#nm-{$safe_id}", $wrap_parts);
     nomentor_add_css("#nm-{$safe_id} hr", $hr_parts);
-    return "<div id=\"nm-{$safe_id}\" class=\"nm-separator\"><hr></div>\n";
+    return "<div id=\"nm-{$safe_id}\" class=\"nm-separator{$extra_cls}\"><hr></div>\n";
   }
 
   $wrap_style = implode('; ', $wrap_parts);
   $hr_style = implode('; ', $hr_parts);
-  return "<div class=\"nm-separator\" style=\"{$wrap_style}\"><hr style=\"{$hr_style}\"></div>\n";
+  return "<div class=\"nm-separator{$extra_cls}\" style=\"{$wrap_style}\"><hr style=\"{$hr_style}\"></div>\n";
 }
 
 function nomentor_render_form_field($f) {
@@ -1257,7 +1283,8 @@ function nomentor_render_list($element) {
     nomentor_add_css("#nm-{$safe_id} .nm-list-icon", ['color: ' . esc_attr($icon_color)]);
   }
 
-  $html = "<{$list_type} class=\"nm-list\" id=\"nm-{$safe_id}\">\n";
+  $extra_cls = nomentor_extra_classes($props);
+  $html = "<{$list_type} class=\"nm-list{$extra_cls}\" id=\"nm-{$safe_id}\">\n";
   $icon_weight = floatval($props['iconWeight'] ?? 2);
   foreach ($items as $idx => $item) {
     $text = esc_html($item['text'] ?? '');
