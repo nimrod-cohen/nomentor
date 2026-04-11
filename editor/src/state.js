@@ -96,6 +96,7 @@ export function revertToVersion(index) {
 export const sidebarMode = signal('toolbox');
 export const leftSidebarOpen = signal(true);
 export const rightSidebarOpen = signal(true);
+export const sidebarWidth = signal(parseInt(localStorage.getItem('nm_sidebar_width')) || 260);
 
 // ── Viewport preview ──
 export const viewportMode = signal('desktop');

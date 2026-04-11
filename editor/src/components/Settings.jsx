@@ -320,15 +320,16 @@ export function Settings({ mode }) {
           Switch viewport in the toolbar to set different values for tablet and mobile.
         </div>
 
-        {!isGlobal && (
-          <div class="prop-field">
-            <label class="prop-label">Scripts</label>
-            <ScriptsEditor
-              scripts={raw?.scripts || []}
-              onChange={s => savePageSettings({ ...(pageSettings.value || {}), scripts: s })}
-            />
-          </div>
-        )}
+        <div class="prop-field">
+          <label class="prop-label">{isGlobal ? 'Global Scripts' : 'Page Scripts'}</label>
+          <ScriptsEditor
+            scripts={raw?.scripts || []}
+            onChange={s => {
+              if (isGlobal) saveGlobalSettings({ ...globalSettings.value, scripts: s });
+              else savePageSettings({ ...(pageSettings.value || {}), scripts: s });
+            }}
+          />
+        </div>
 
         {!isGlobal && (
           <div class="prop-field">

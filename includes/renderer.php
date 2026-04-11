@@ -183,24 +183,19 @@ function nomentor_generate_static_html($post) {
   }
   $_nomentor_element_css = [];
 
-  // Page scripts
+  // Scripts: global first, then page-level
   $head_scripts = '';
   $page_scripts = '';
-  $scripts_data = $page['scripts'] ?? '';
-  if (is_array($scripts_data)) {
-    foreach ($scripts_data as $s) {
-      $src = trim($s['url'] ?? '');
-      if (!$src) continue;
-      $tag = '<script src="' . esc_url($src) . '"></script>' . "\n";
-      if (($s['position'] ?? 'body') === 'head') $head_scripts .= '  ' . $tag;
-      else $page_scripts .= $tag;
-    }
-  } elseif (is_string($scripts_data) && $scripts_data) {
-    // Legacy string format
-    foreach (array_filter(explode("\n", $scripts_data)) as $src) {
-      $src = trim($src);
-      if ($src) $page_scripts .= '<script src="' . esc_url($src) . '"></script>' . "\n";
-    }
+  $all_scripts = array_merge(
+    (is_array($global['scripts'] ?? null)) ? $global['scripts'] : [],
+    (is_array($page['scripts'] ?? null)) ? $page['scripts'] : []
+  );
+  foreach ($all_scripts as $s) {
+    $src = trim($s['url'] ?? '');
+    if (!$src) continue;
+    $tag = '<script src="' . esc_url($src) . '"></script>' . "\n";
+    if (($s['position'] ?? 'body') === 'head') $head_scripts .= '  ' . $tag;
+    else $page_scripts .= $tag;
   }
 
   // Page direction

@@ -6,7 +6,7 @@ import { Settings } from './components/Settings';
 import { Canvas } from './components/Canvas';
 import { Navigator } from './components/Navigator';
 import { MediaPicker } from './components/MediaPicker';
-import { sidebarMode, rows, syncIdCounter, loadHistory, loadPageSettings, leftSidebarOpen, rightSidebarOpen } from './state';
+import { sidebarMode, rows, syncIdCounter, loadHistory, loadPageSettings, leftSidebarOpen, rightSidebarOpen, sidebarWidth } from './state';
 
 // Load saved layout on mount
 (async function loadLayout() {
@@ -46,24 +46,51 @@ import { sidebarMode, rows, syncIdCounter, loadHistory, loadPageSettings, leftSi
   }
 })();
 
+function ResizeHandle({ side, offset }) {
+  function onMouseDown(e) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sidebarWidth.value;
+    function onMove(ev) {
+      const delta = side === 'left' ? ev.clientX - startX : startX - ev.clientX;
+      sidebarWidth.value = Math.max(200, Math.min(500, startW + delta));
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      localStorage.setItem('nm_sidebar_width', sidebarWidth.value);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+  const pos = side === 'left' ? { left: offset + 'px' } : { right: offset + 'px' };
+  return <div class="sidebar-resize-handle" style={pos} onMouseDown={onMouseDown} />;
+}
+
 export function App() {
   const { title, backUrl, viewUrl } = window.nomentor;
   const mode = sidebarMode.value;
   const showLeft = leftSidebarOpen.value;
   const showRight = rightSidebarOpen.value;
+  const sw = sidebarWidth.value;
 
   const editorClass = `nomentor-editor ${!showLeft ? 'no-left' : ''} ${!showRight ? 'no-right' : ''}`;
+  const gridStyle = {
+    gridTemplateColumns: `${showLeft ? sw + 'px' : '0px'} 1fr ${showRight ? sw + 'px' : '0px'}`,
+  };
 
   return (
     <>
       <Toolbar backUrl={backUrl} viewUrl={viewUrl} />
-      <div class={editorClass}>
+      <div class={editorClass} style={gridStyle}>
         {mode === 'globalSettings' || mode === 'pageSettings' ? <Settings mode={mode} />
           : mode === 'properties' ? <Properties />
           : mode === 'toolbox' ? <Toolbox />
           : <History />}
         <Canvas />
         <Navigator />
+        {showLeft && <ResizeHandle side="left" offset={sw} />}
+        {showRight && <ResizeHandle side="right" offset={sw} />}
       </div>
       <MediaPicker />
     </>

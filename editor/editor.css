@@ -93,12 +93,15 @@ html, body, #nomentor-root {
   top: var(--toolbar-height);
   left: 0; right: 0; bottom: 0;
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
-  transition: grid-template-columns 0.25s ease;
 }
-.nomentor-editor.no-left { grid-template-columns: 0px 1fr var(--sidebar-width); }
-.nomentor-editor.no-right { grid-template-columns: var(--sidebar-width) 1fr 0px; }
-.nomentor-editor.no-left.no-right { grid-template-columns: 0px 1fr 0px; }
+
+/* ── Sidebar resize handles ── */
+.sidebar-resize-handle {
+  position: absolute; top: 0; bottom: 0; width: 5px; z-index: 100;
+  cursor: col-resize; background: transparent; transition: background 0.15s;
+  transform: translateX(-50%);
+}
+.sidebar-resize-handle:hover, .sidebar-resize-handle:active { background: var(--accent); opacity: 0.4; }
 
 .nomentor-sidebar-left,
 .nomentor-sidebar-right {
