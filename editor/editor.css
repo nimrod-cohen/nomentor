@@ -103,7 +103,7 @@ html, body, #nomentor-root {
   position: absolute; top: 50%; transform: translateY(-50%) translateX(-50%);
   width: 12px; height: 32px; cursor: col-resize;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 4px; background: var(--bg-sidebar); border: 1px solid var(--border-color);
+  border-radius: 4px; background: #d2d5de; border: 1px solid var(--border-color);
   opacity: 0.5; transition: opacity 0.15s;
 }
 .sidebar-resize-grip:hover { opacity: 1; background: #f0f4ff; }
