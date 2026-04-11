@@ -46,14 +46,13 @@ import { sidebarMode, rows, syncIdCounter, loadHistory, loadPageSettings, leftSi
   }
 })();
 
-function ResizeHandle({ side, offset }) {
+function ResizeHandle() {
   function onMouseDown(e) {
     e.preventDefault();
     const startX = e.clientX;
     const startW = sidebarWidth.value;
     function onMove(ev) {
-      const delta = side === 'left' ? ev.clientX - startX : startX - ev.clientX;
-      sidebarWidth.value = Math.max(200, Math.min(500, startW + delta));
+      sidebarWidth.value = Math.max(200, Math.min(500, startW + (ev.clientX - startX)));
     }
     function onUp() {
       document.removeEventListener('mousemove', onMove);
@@ -63,8 +62,13 @@ function ResizeHandle({ side, offset }) {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   }
-  const pos = side === 'left' ? { left: offset + 'px' } : { right: offset + 'px' };
-  return <div class="sidebar-resize-handle" style={pos} onMouseDown={onMouseDown} />;
+  return (
+    <div class="sidebar-resize-handle" style={{ left: sidebarWidth.value + 'px' }}>
+      <div class="sidebar-resize-grip" onMouseDown={onMouseDown} title="Drag to resize">
+        <svg width="4" height="16" viewBox="0 0 4 16"><circle cx="2" cy="3" r="1" fill="#999"/><circle cx="2" cy="8" r="1" fill="#999"/><circle cx="2" cy="13" r="1" fill="#999"/></svg>
+      </div>
+    </div>
+  );
 }
 
 export function App() {
@@ -76,7 +80,7 @@ export function App() {
 
   const editorClass = `nomentor-editor ${!showLeft ? 'no-left' : ''} ${!showRight ? 'no-right' : ''}`;
   const gridStyle = {
-    gridTemplateColumns: `${showLeft ? sw + 'px' : '0px'} 1fr ${showRight ? sw + 'px' : '0px'}`,
+    gridTemplateColumns: `${showLeft ? sw + 'px' : '0px'} 1fr ${showRight ? '260px' : '0px'}`,
   };
 
   return (
@@ -89,8 +93,7 @@ export function App() {
           : <History />}
         <Canvas />
         <Navigator />
-        {showLeft && <ResizeHandle side="left" offset={sw} />}
-        {showRight && <ResizeHandle side="right" offset={sw} />}
+        {showLeft && <ResizeHandle />}
       </div>
       <MediaPicker />
     </>
