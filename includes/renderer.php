@@ -921,7 +921,9 @@ function nomentor_render_button($element) {
   if ($action === 'submitForm') {
     $form_target = esc_attr($props['formTarget'] ?? '');
     $callback = $props['callbackFn'] ?? '';
-    $callback_js = $callback ? esc_attr($callback) : 'null';
+    // callbackFn is admin-authored JS expression injected into a <script>; output
+    // raw (like customCss). esc_attr would corrupt arrows (=>) and quotes.
+    $callback_js = $callback !== '' ? $callback : 'null';
     $after = esc_attr($props['afterSubmit'] ?? 'message');
     $success_msg = esc_attr($props['successMessage'] ?? 'Thank you!');
     $redirect_url = esc_url($props['redirectUrl'] ?? '');
