@@ -7,5 +7,7 @@ export function HeadingElement({ element }) {
   const headingSizes = getHeadingSizeMap(viewportMode.value);
   if (headingSizes[Tag]) style.fontSize = headingSizes[Tag];
 
-  return <Tag style={style}>{element.props.text}</Tag>;
+  // Render inline formatting (e.g. <u>, <b>) so the canvas matches the
+  // server output, which allows safe inline tags in headings.
+  return <Tag style={style} dangerouslySetInnerHTML={{ __html: element.props.text || '' }} />;
 }
