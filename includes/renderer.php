@@ -231,8 +231,8 @@ function nomentor_generate_static_html($post) {
     html { scroll-behavior: smooth; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: {$font_family}; line-height: 1.6; font-size: {$desktop['base']}px; }
-    .nm-grid { display: grid; gap: 1rem; width: 100%; }
-    .nm-cell { display:flex; flex-direction:column; min-height:1rem; }
+    .nm-grid { display: grid; gap: 1rem; width: 100%; min-width: 0; }
+    .nm-cell { display:flex; flex-direction:column; min-height:1rem; min-width: 0; }
     img { max-width: 100%; height: auto; }
     .nm-btn { display:inline-flex; align-items:center; justify-content:center; gap:0.4em; padding:0.6em 1.5em; border:none; text-decoration:none; font-family:inherit; line-height:1.4; text-align:center; cursor:pointer; }
     .nm-timer-wrap { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
