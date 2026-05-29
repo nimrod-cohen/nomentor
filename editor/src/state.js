@@ -320,6 +320,7 @@ const defaultProps = (type) => {
     };
     case 'timer': return { targetDate: '', timezone: 'Asia/Jerusalem', bgColor: '#eef2f7', color: '#1a2744', labelDays: 'ימים', labelHours: 'שעות', labelMinutes: 'דקות', labelSeconds: 'שניות', expiredText: 'הזמן נגמר!' };
     case 'separator': return { lineColor: '#ddd', lineThickness: '1', lineWidth: '', lineStyle: 'solid' };
+    case 'video': return { url: '', aspectRatio: '16:9', autoplay: false, maxWidth: '', borderRadius: '8' };
     default: return {};
   }
 };

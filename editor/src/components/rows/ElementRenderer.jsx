@@ -7,6 +7,7 @@ import { TimerElement } from './TimerElement';
 import { FormElement } from './FormElement';
 import { ListElement } from './ListElement';
 import { SeparatorElement } from './SeparatorElement';
+import { VideoElement } from './VideoElement';
 import { selectedId, selectElement, viewportMode } from '../../state';
 
 const RENDERERS = {
@@ -19,6 +20,7 @@ const RENDERERS = {
   form: FormElement,
   list: ListElement,
   separator: SeparatorElement,
+  video: VideoElement,
 };
 
 function isHiddenOnViewport(props, viewport) {

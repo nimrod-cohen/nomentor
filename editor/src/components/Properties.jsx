@@ -109,8 +109,51 @@ function ElementProps({ element }) {
     case 'timer': return <TimerProps element={element} />;
     case 'form': return <FormProps element={element} />;
     case 'separator': return <SeparatorProps element={element} />;
+    case 'video': return <VideoProps element={element} />;
     default: return null;
   }
+}
+
+// ── Video ──
+
+const VIDEO_RATIOS = ['16:9', '4:3', '1:1', '9:16'];
+
+function VideoProps({ element }) {
+  const { url, aspectRatio, autoplay, maxWidth, borderRadius } = element.props;
+  function update(p) { updateElementProps(element.id, p); commitChange('Edit video'); }
+
+  return (
+    <>
+      <PropField label="Video URL">
+        <input type="text" class="prop-input" value={url || ''} placeholder="https://vimeo.com/123456789 or YouTube URL"
+          onInput={e => updateElementProps(element.id, { url: e.target.value })}
+          onBlur={() => commitChange('Set video URL')} />
+      </PropField>
+      <PropField label="Aspect Ratio">
+        <div class="prop-btn-group">
+          {VIDEO_RATIOS.map(r => (
+            <button key={r} class={`prop-btn ${(aspectRatio || '16:9') === r ? 'active' : ''}`} onClick={() => update({ aspectRatio: r })}>{r}</button>
+          ))}
+        </div>
+      </PropField>
+      <PropField label="Max Width">
+        <input type="text" class="prop-input" value={maxWidth || ''} placeholder="e.g. 700px (blank = full width)"
+          onInput={e => updateElementProps(element.id, { maxWidth: e.target.value })}
+          onBlur={() => commitChange('Set video width')} />
+      </PropField>
+      <PropField label="Corner Radius (px)">
+        <input type="text" class="prop-input" value={borderRadius ?? ''} placeholder="8"
+          onInput={e => updateElementProps(element.id, { borderRadius: e.target.value.replace(/[^0-9]/g, '') })}
+          onBlur={() => commitChange('Set video radius')} />
+      </PropField>
+      <PropField label="Autoplay">
+        <label class="prop-checkbox">
+          <input type="checkbox" checked={!!autoplay} onChange={e => update({ autoplay: e.target.checked })} />
+          <span>Autoplay (muted)</span>
+        </label>
+      </PropField>
+    </>
+  );
 }
 
 // ── Heading ──

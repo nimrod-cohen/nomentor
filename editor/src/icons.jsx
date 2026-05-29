@@ -21,3 +21,4 @@ export const MousePointerClick = (p) => I(p, <><rect width="18" height="10" x="3
 export const Trash = (p) => I(p, <><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></>);
 export const GripVertical = (p) => I(p, <><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></>);
 export const UnfoldVertical = (p) => I(p, <><path d="M12 22v-6"/><path d="M12 8V2"/><path d="M4 12h16"/><path d="m15 19-3 3-3-3"/><path d="m15 5-3-3-3 3"/></>);
+export const Video = (p) => I(p, <><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></>);

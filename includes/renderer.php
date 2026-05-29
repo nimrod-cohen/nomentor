@@ -536,6 +536,7 @@ function nomentor_render_element($element) {
     case 'timer': $result = nomentor_render_timer($element); break;
     case 'form': $result = nomentor_render_form($element); break;
     case 'separator': $result = nomentor_render_separator($element); break;
+    case 'video': $result = nomentor_render_video($element); break;
     default: return '';
   }
 
@@ -750,6 +751,56 @@ function nomentor_render_image($element) {
     return "<picture>\n  <source srcset=\"{$webp}\" type=\"image/webp\">\n  <img src=\"{$src}\" alt=\"{$alt}\"{$class}{$style} loading=\"lazy\">\n</picture>\n";
   }
   return "<img src=\"{$src}\" alt=\"{$alt}\"{$class}{$style} loading=\"lazy\">\n";
+}
+
+/**
+ * Turn a YouTube / Vimeo watch URL (or a raw embed URL) into an embeddable
+ * iframe src. Returns '' for empty input, or the original URL if it doesn't
+ * match a known provider (assumed to already be an embed src).
+ */
+function nomentor_video_embed_src($url) {
+  $url = trim((string) $url);
+  if ($url === '') return '';
+  if (preg_match('~(?:youtube\.com/(?:watch\?v=|embed/|shorts/|live/)|youtu\.be/)([A-Za-z0-9_-]{6,})~i', $url, $m)) {
+    return 'https://www.youtube.com/embed/' . $m[1];
+  }
+  if (preg_match('~vimeo\.com/(?:video/)?(\d+)(?:[/?]([A-Za-z0-9]+))?~i', $url, $m)) {
+    $src = 'https://player.vimeo.com/video/' . $m[1];
+    if (!empty($m[2])) $src .= '?h=' . $m[2];
+    return $src;
+  }
+  return $url;
+}
+
+function nomentor_render_video($element) {
+  $props = $element['props'] ?? [];
+  $id = $element['id'] ?? '';
+  $embed = nomentor_video_embed_src($props['url'] ?? '');
+  if ($embed === '') return '';
+
+  // Aspect ratio "W:H" → bottom padding percentage for the responsive box.
+  $ar = $props['aspectRatio'] ?? '16:9';
+  $rp = array_map('floatval', explode(':', $ar) + [9 => 9]);
+  $w = $rp[0] ?? 16; $h = $rp[1] ?? 9;
+  $pct = ($w > 0) ? round($h / $w * 100, 4) : 56.25;
+
+  // Optional autoplay (muted is required by browsers for autoplay to work).
+  $qs = [];
+  if (!empty($props['autoplay'])) { $qs[] = 'autoplay=1'; $qs[] = 'muted=1'; }
+  if ($qs) { $embed .= (strpos($embed, '?') !== false ? '&' : '?') . implode('&', $qs); }
+
+  // Outer wrapper carries common styling (margin/padding/border/maxWidth).
+  $outer = nomentor_build_style($props, $id);
+  $mw = $props['maxWidth'] ?? '';
+  if ($mw !== '') $outer .= ($outer ? '; ' : '') . 'max-width: ' . esc_attr($mw) . '; margin-inline: auto';
+  $radius = !empty($props['borderRadius']) ? 'border-radius:' . intval($props['borderRadius']) . 'px;overflow:hidden;' : '';
+  $outer_attr = $outer ? " style=\"{$outer}\"" : '';
+
+  $box = "position:relative;width:100%;height:0;padding-bottom:{$pct}%;{$radius}";
+  $iframe = '<iframe src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
+    . 'style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
+
+  return "<div{$outer_attr}>\n  <div style=\"{$box}\">{$iframe}</div>\n</div>\n";
 }
 
 function nomentor_render_grid($element) {
