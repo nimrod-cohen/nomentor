@@ -699,7 +699,10 @@ function nomentor_build_style($props, $id = '') {
 function nomentor_render_text($element) {
   $props = $element['props'] ?? [];
   $id = $element['id'] ?? '';
-  $text = wp_kses_post($props['text'] ?? '');
+  // Expand shortcodes first (their output may contain HTML such as a price
+  // box), then sanitize the final markup. Running kses first would mangle any
+  // HTML embedded inside a shortcode's attributes (e.g. a format="<span ...>").
+  $text = wp_kses_post(do_shortcode($props['text'] ?? ''));
   $style = nomentor_build_style($props, $id);
   $extra = nomentor_extra_classes($props);
   $cls_attr = $extra ? ' class="' . ltrim($extra) . '"' : '';

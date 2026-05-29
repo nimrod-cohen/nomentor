@@ -6,7 +6,7 @@
  * Plugin Name:       Nomentor
  * Plugin URI:        https://github.com/nimrod-cohen/nomentor
  * Description:       A lightweight WYSIWYG page builder that generates clean, modern, static HTML. No bloat, no overhead.
- * Version:           0.8.2
+ * Version:           0.8.3
  * Author:            nimrod-cohen
  * Author URI:        https://github.com/nimrod-cohen
  * License:           GPL-2.0+
@@ -258,10 +258,25 @@ function nomentor_add_row_actions($actions, $post) {
   $actions['nm_export'] = '<a href="#" class="nomentor-export-link" data-post-id="' . $post->ID . '">Export</a>';
   $actions['nm_import'] = '<a href="#" class="nomentor-import-link" data-post-id="' . $post->ID . '">Import</a>';
 
+  // Place "Design" immediately after the core "Edit" action.
+  if (isset($actions['design'])) {
+    $design = $actions['design'];
+    unset($actions['design']);
+    $reordered = [];
+    foreach ($actions as $key => $val) {
+      $reordered[$key] = $val;
+      if ($key === 'edit') $reordered['design'] = $design;
+    }
+    if (!isset($reordered['design'])) $reordered['design'] = $design;
+    $actions = $reordered;
+  }
+
   return $actions;
 }
-add_filter('post_row_actions', 'nomentor_add_row_actions', 10, 2);
-add_filter('page_row_actions', 'nomentor_add_row_actions', 10, 2);
+// Priority 99 so other plugins' actions (e.g. Duplicate, Clear Cache) are
+// already present and the reorder lands Design right after Edit.
+add_filter('post_row_actions', 'nomentor_add_row_actions', 99, 2);
+add_filter('page_row_actions', 'nomentor_add_row_actions', 99, 2);
 
 // Add "Design" button and slug editor on the edit screen
 add_action('edit_form_after_title', function ($post) {
