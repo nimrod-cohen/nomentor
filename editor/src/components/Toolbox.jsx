@@ -1,4 +1,4 @@
-import { Grid, Heading, AlignLeft, Image, MousePointerClick, Timer, ClipboardList, List, UnfoldVertical, Video, BarChart } from '../icons';
+import { Grid, Heading, AlignLeft, Image, MousePointerClick, Timer, ClipboardList, List, UnfoldVertical, Video } from '../icons';
 import { dragging } from '../state';
 
 const COMPONENTS = [
@@ -7,7 +7,6 @@ const COMPONENTS = [
   { type: 'text', label: 'Text', icon: AlignLeft },
   { type: 'image', label: 'Image', icon: Image },
   { type: 'video', label: 'Video', icon: Video },
-  { type: 'chart', label: 'Chart', icon: BarChart },
   { type: 'button', label: 'Button', icon: MousePointerClick },
   { type: 'list', label: 'List', icon: List },
   { type: 'timer', label: 'Timer', icon: Timer },

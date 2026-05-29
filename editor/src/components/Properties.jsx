@@ -110,36 +110,8 @@ function ElementProps({ element }) {
     case 'form': return <FormProps element={element} />;
     case 'separator': return <SeparatorProps element={element} />;
     case 'video': return <VideoProps element={element} />;
-    case 'chart': return <ChartProps element={element} />;
     default: return null;
   }
-}
-
-// ── Chart ──
-
-function ChartProps({ element }) {
-  const { lineColor, barColor, areaColor, tipColor, maxWidth } = element.props;
-  function set(k, v) { updateElementProps(element.id, { [k]: v }); commitChange('Edit chart ' + k); }
-  function input(k) {
-    return (
-      <input type="text" class="prop-input" value={element.props[k] || ''} placeholder="#111a45"
-        onInput={e => updateElementProps(element.id, { [k]: e.target.value })}
-        onBlur={() => commitChange('Edit chart ' + k)} />
-    );
-  }
-  return (
-    <>
-      <PropField label="Line color">{input('lineColor')}</PropField>
-      <PropField label="Bars color">{input('barColor')}</PropField>
-      <PropField label="Area fill color">{input('areaColor')}</PropField>
-      <PropField label="Arrow tip color">{input('tipColor')}</PropField>
-      <PropField label="Max Width">
-        <input type="text" class="prop-input" value={maxWidth || ''} placeholder="560px"
-          onInput={e => updateElementProps(element.id, { maxWidth: e.target.value })}
-          onBlur={() => commitChange('Set chart width')} />
-      </PropField>
-    </>
-  );
 }
 
 // ── Video ──

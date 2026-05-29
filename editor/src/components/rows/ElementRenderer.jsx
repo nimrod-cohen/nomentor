@@ -8,7 +8,6 @@ import { FormElement } from './FormElement';
 import { ListElement } from './ListElement';
 import { SeparatorElement } from './SeparatorElement';
 import { VideoElement } from './VideoElement';
-import { ChartElement } from './ChartElement';
 import { selectedId, selectElement, viewportMode } from '../../state';
 
 const RENDERERS = {
@@ -22,7 +21,6 @@ const RENDERERS = {
   list: ListElement,
   separator: SeparatorElement,
   video: VideoElement,
-  chart: ChartElement,
 };
 
 function isHiddenOnViewport(props, viewport) {
