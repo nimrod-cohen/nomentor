@@ -1,5 +1,6 @@
 import { rows, selectedId, selectElement, removeRow, removeElement, addGridCell, removeGridCell, commitChange, reorderRow, moveElement, findElementById, addRow, duplicateElement, duplicateRow } from '../state';
 import { signal } from '@preact/signals';
+import { useEffect, useRef } from 'preact/hooks';
 
 const contextMenu = signal(null);
 const navDrag = signal(null);
@@ -49,11 +50,21 @@ if (typeof document !== 'undefined') {
 
 export function Navigator() {
   const rowList = rows.value;
+  const sel = selectedId.value;
+  const contentRef = useRef(null);
+
+  // When the selection changes (e.g. clicking an element in the canvas),
+  // scroll the matching navigator item into view.
+  useEffect(() => {
+    if (!sel || !contentRef.current) return;
+    const node = contentRef.current.querySelector('.nav-item.selected');
+    if (node) node.scrollIntoView({ block: 'nearest' });
+  }, [sel]);
 
   return (
     <aside class="nomentor-sidebar-right">
       <div class="sidebar-header">Navigator</div>
-      <div class="sidebar-content">
+      <div class="sidebar-content" ref={contentRef}>
         {!rowList.length ? (
           <div class="nav-empty">No elements yet</div>
         ) : (
