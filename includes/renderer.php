@@ -560,7 +560,14 @@ function nomentor_render_heading($element) {
   $props = $element['props'] ?? [];
   $id = $element['id'] ?? '';
   $level = $props['level'] ?? 'h2';
-  $text = esc_html($props['text'] ?? '');
+  // Allow safe inline formatting (matches what the editor's rich-text lets users
+  // apply to headings: bold, underline, italic, line breaks, spans/links).
+  $text = wp_kses($props['text'] ?? '', [
+    'b' => [], 'strong' => [], 'i' => [], 'em' => [], 'u' => [], 'br' => [],
+    'mark' => [], 'sub' => [], 'sup' => [], 'small' => [],
+    'span' => ['style' => [], 'class' => []],
+    'a' => ['href' => [], 'target' => [], 'rel' => [], 'class' => []],
+  ]);
   $allowed = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
   if (!in_array($level, $allowed)) $level = 'h2';
   $style = nomentor_build_style($props, $id);
