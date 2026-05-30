@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'preact/hooks';
-import { rows, dragging, dropTargetId, dropOnCanvas, dropOnContainer, selectedId, selectElement, removeRow, removeElement, commitChange, viewportMode, getEffectiveDirection } from '../state';
+import { rows, dragging, dropTargetId, dropOnCanvas, dropOnContainer, selectedId, selectElement, removeRow, removeElement, commitChange, viewportMode, getEffectiveDirection, getEffectiveColors } from '../state';
 
 function isHiddenOnViewport(props, viewport) {
   return !!props?.hideOn?.[viewport];
@@ -78,8 +78,15 @@ export function Canvas() {
   const isDragging = !!dragging.value;
   const viewport = viewportMode.value;
 
+  // Expose the palette as CSS variables on the canvas (mirrors the renderer's
+  // :root vars) so customCss can use `var(--nm-<name>)` and preview correctly.
+  const paletteCss = getEffectiveColors()
+    .map(c => `  --nm-${c.name.replace(/\s+/g, '-')}: ${c.value};`)
+    .join('\n');
+
   return (
     <main class="nomentor-canvas">
+      {paletteCss && <style>{`.canvas-page {\n${paletteCss}\n}`}</style>}
       <div
         ref={pageRef}
         class={`canvas-page ${isDragging ? 'drag-over' : ''} viewport-${viewport}`}
