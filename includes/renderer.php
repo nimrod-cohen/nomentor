@@ -334,6 +334,8 @@ function nomentor_render_row($row) {
   $cls .= nomentor_extra_classes($row['props'] ?? []);
   $cls .= nomentor_effect_classes($row['props']['effects'] ?? null);
   nomentor_mark_effects_used($row['props']['effects'] ?? null);
+  $row_html_id = esc_attr($row['props']['anchorId'] ?? $id);
+  nomentor_apply_effect_speeds($row_html_id, $row['props']['effects'] ?? null, $row['props']['effectSpeeds'] ?? null);
 
   $style = nomentor_build_row_style($row['props'] ?? [], $id);
   if ($style && $id) {
@@ -579,6 +581,7 @@ function nomentor_element_attrs($id, $props, $extra_classes = '') {
   $safe_id  = esc_attr($id);
   $html_id  = esc_attr($props['anchorId'] ?? $id);
   $cls      = trim(($extra_classes ? $extra_classes . ' ' : '') . 'nm-el-' . $safe_id . $extras . $effects);
+  nomentor_apply_effect_speeds($html_id, $props['effects'] ?? null, $props['effectSpeeds'] ?? null);
   return [
     'html_id'  => $html_id,
     'cls'      => $cls,

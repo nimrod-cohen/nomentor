@@ -61,6 +61,34 @@ function nomentor_effect_classes($effects) {
 }
 
 /**
+ * Effect keys that ignore the speed slider (no animation/transition).
+ */
+function nomentor_effects_no_speed() {
+  return ['shadow-sm', 'shadow-md', 'shadow-lg'];
+}
+
+/**
+ * Emit per-element speed-multiplier CSS vars for any selected effect with
+ * a non-default speed. Call after the element's id has been determined.
+ */
+function nomentor_apply_effect_speeds($html_id, $effects, $speeds) {
+  if (!$html_id || !is_array($effects) || !is_array($speeds)) return;
+  $no_speed = nomentor_effects_no_speed();
+  $catalog = nomentor_effects_catalog();
+  $parts = [];
+  foreach ($effects as $k) {
+    if (!is_string($k) || !isset($catalog[$k]) || in_array($k, $no_speed, true)) continue;
+    if (!isset($speeds[$k])) continue;
+    $v = floatval($speeds[$k]);
+    if ($v <= 0 || abs($v - 1.0) < 0.01) continue;
+    // Clamp to reasonable range so a bad value can't break the page.
+    $v = max(0.1, min(5.0, $v));
+    $parts[] = '--nm-fx-' . esc_attr($k) . '-speed: ' . rtrim(rtrim(number_format($v, 2, '.', ''), '0'), '.');
+  }
+  if ($parts) nomentor_add_css('#' . $html_id, $parts);
+}
+
+/**
  * Has any element on the current render opted into an entrance effect?
  * Tracked via the global $_nomentor_has_entrance flag during rendering.
  */
@@ -77,17 +105,24 @@ function nomentor_mark_effects_used($effects) {
 function nomentor_effects_css() {
   return <<<CSS
 
-    /* ── Effects library ── */
+    /* ── Effects library ──
+       Per-effect speed multipliers come via CSS vars (--nm-fx-{key}-speed,
+       default 1). Smaller = faster, larger = slower. */
     /* entrance — start hidden, .nm-fx-in (added by IntersectionObserver) reveals */
     .nm-fx-fade,
     .nm-fx-slide-up, .nm-fx-slide-down, .nm-fx-slide-left, .nm-fx-slide-right,
-    .nm-fx-zoom-in { opacity: 0; will-change: opacity, transform;
-                     transition: opacity 500ms ease-out, transform 500ms cubic-bezier(.2,.7,.2,1); }
-    .nm-fx-slide-up    { transform: translateY(20px); }
-    .nm-fx-slide-down  { transform: translateY(-20px); }
-    .nm-fx-slide-left  { transform: translateX(20px); }
-    .nm-fx-slide-right { transform: translateX(-20px); }
-    .nm-fx-zoom-in     { transform: scale(.92); }
+    .nm-fx-zoom-in { opacity: 0; will-change: opacity, transform; }
+    .nm-fx-fade        { transition: opacity calc(500ms * var(--nm-fx-fade-speed, 1)) ease-out; }
+    .nm-fx-slide-up    { transform: translateY(20px);  transition: opacity calc(500ms * var(--nm-fx-slide-up-speed, 1)) ease-out,
+                                                                   transform calc(500ms * var(--nm-fx-slide-up-speed, 1)) cubic-bezier(.2,.7,.2,1); }
+    .nm-fx-slide-down  { transform: translateY(-20px); transition: opacity calc(500ms * var(--nm-fx-slide-down-speed, 1)) ease-out,
+                                                                   transform calc(500ms * var(--nm-fx-slide-down-speed, 1)) cubic-bezier(.2,.7,.2,1); }
+    .nm-fx-slide-left  { transform: translateX(20px);  transition: opacity calc(500ms * var(--nm-fx-slide-left-speed, 1)) ease-out,
+                                                                   transform calc(500ms * var(--nm-fx-slide-left-speed, 1)) cubic-bezier(.2,.7,.2,1); }
+    .nm-fx-slide-right { transform: translateX(-20px); transition: opacity calc(500ms * var(--nm-fx-slide-right-speed, 1)) ease-out,
+                                                                   transform calc(500ms * var(--nm-fx-slide-right-speed, 1)) cubic-bezier(.2,.7,.2,1); }
+    .nm-fx-zoom-in     { transform: scale(.92);        transition: opacity calc(500ms * var(--nm-fx-zoom-in-speed, 1)) ease-out,
+                                                                   transform calc(500ms * var(--nm-fx-zoom-in-speed, 1)) cubic-bezier(.2,.7,.2,1); }
     .nm-fx-in.nm-fx-fade,
     .nm-fx-in.nm-fx-slide-up, .nm-fx-in.nm-fx-slide-down,
     .nm-fx-in.nm-fx-slide-left, .nm-fx-in.nm-fx-slide-right,
@@ -97,16 +132,17 @@ function nomentor_effects_css() {
     @keyframes nm-fx-float-kf { from { transform: translateY(0); } to { transform: translateY(-6px); } }
     @keyframes nm-fx-pulse-kf { from { transform: scale(1); } to { transform: scale(1.04); } }
     @keyframes nm-fx-sway-kf  { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
-    .nm-fx-float { animation: nm-fx-float-kf 3s ease-in-out infinite alternate; }
-    .nm-fx-pulse { animation: nm-fx-pulse-kf 2.4s ease-in-out infinite alternate; }
-    .nm-fx-sway  { animation: nm-fx-sway-kf 4.2s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+    .nm-fx-float { animation: nm-fx-float-kf calc(3s   * var(--nm-fx-float-speed, 1)) ease-in-out infinite alternate; }
+    .nm-fx-pulse { animation: nm-fx-pulse-kf calc(2.4s * var(--nm-fx-pulse-speed, 1)) ease-in-out infinite alternate; }
+    .nm-fx-sway  { animation: nm-fx-sway-kf  calc(4.2s * var(--nm-fx-sway-speed, 1))  ease-in-out infinite alternate; transform-origin: 50% 100%; }
 
     /* hover */
-    .nm-fx-hover-lift  { transition: transform 220ms ease-out, box-shadow 220ms ease-out; }
+    .nm-fx-hover-lift  { transition: transform calc(220ms * var(--nm-fx-hover-lift-speed, 1)) ease-out,
+                                     box-shadow calc(220ms * var(--nm-fx-hover-lift-speed, 1)) ease-out; }
     .nm-fx-hover-lift:hover  { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,.12); }
-    .nm-fx-hover-glow  { transition: box-shadow 220ms ease-out; }
+    .nm-fx-hover-glow  { transition: box-shadow calc(220ms * var(--nm-fx-hover-glow-speed, 1)) ease-out; }
     .nm-fx-hover-glow:hover  { box-shadow: 0 0 0 4px rgba(74,144,217,.18), 0 8px 24px rgba(74,144,217,.25); }
-    .nm-fx-hover-scale { transition: transform 220ms ease-out; }
+    .nm-fx-hover-scale { transition: transform calc(220ms * var(--nm-fx-hover-scale-speed, 1)) ease-out; }
     .nm-fx-hover-scale:hover { transform: scale(1.03); }
 
     /* shadow presets */

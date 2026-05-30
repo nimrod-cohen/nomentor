@@ -36,7 +36,12 @@ export function Properties() {
           <PropField label="Box Shadow">
             <BoxShadowEditor value={row.props?.boxShadow} onChange={v => { updateRowProps(row.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
           </PropField>
-          <EffectsField value={row.props?.effects} onChange={v => { updateRowProps(row.id, { effects: v }); commitChange('Edit effects'); }} />
+          <EffectsField
+            value={row.props?.effects}
+            onChange={v => { updateRowProps(row.id, { effects: v }); commitChange('Edit effects'); }}
+            speeds={row.props?.effectSpeeds}
+            onSpeedsChange={v => { updateRowProps(row.id, { effectSpeeds: v }); commitChange('Edit effect speed'); }}
+          />
           <SpacingFields label="padding" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit padding'); }} />
           <SpacingFields label="margin" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit margin'); }} />
           <CssEditor value={row.props?.customCss || ''} selector="selector"
@@ -84,7 +89,12 @@ export function Properties() {
         <PropField label="Box Shadow">
           <BoxShadowEditor value={element.props.boxShadow} onChange={v => { updateElementProps(element.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
         </PropField>
-        <EffectsField value={element.props.effects} onChange={v => { updateElementProps(element.id, { effects: v }); commitChange('Edit effects'); }} />
+        <EffectsField
+          value={element.props.effects}
+          onChange={v => { updateElementProps(element.id, { effects: v }); commitChange('Edit effects'); }}
+          speeds={element.props.effectSpeeds}
+          onSpeedsChange={v => { updateElementProps(element.id, { effectSpeeds: v }); commitChange('Edit effect speed'); }}
+        />
         <SpacingFields label="padding" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit padding'); }} />
         <SpacingFields label="margin" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit margin'); }} />
         <CssEditor value={element.props.customCss || ''} selector="selector"

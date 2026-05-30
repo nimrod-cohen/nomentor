@@ -1027,3 +1027,43 @@ html, body, #nomentor-root {
 @media (prefers-reduced-motion: reduce) {
   .element-wrapper.nm-fx-float, .element-wrapper.nm-fx-pulse, .element-wrapper.nm-fx-sway { animation: none; }
 }
+
+/* ── Effects: collapsible header + speed rows ── */
+.effects-field { padding: 0; border-top: 1px solid var(--border-color); margin-top: 8px; }
+.effects-field .effects-header {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; padding: 10px 0; background: none; border: none;
+  cursor: pointer; font-family: inherit; text-align: inherit;
+}
+.effects-field .effects-header .prop-label { flex: 1; cursor: pointer; }
+.effects-field .effects-header:hover .prop-label { color: var(--accent); }
+.effects-field.collapsed { padding-bottom: 4px; }
+.effects-body { padding-bottom: 8px; }
+
+.effects-toolbar { display: flex; justify-content: flex-end; margin-bottom: 2px; }
+.effects-clear {
+  border: none; background: none; color: var(--text-dim); font-size: 11px;
+  cursor: pointer; padding: 2px 4px; font-family: inherit;
+}
+.effects-clear:hover { color: var(--accent); }
+
+.effects-speeds { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.effect-speed-row { display: grid; grid-template-columns: 60px 1fr 36px; align-items: center; gap: 8px; }
+.effect-speed-label { font-size: 11px; color: var(--text-secondary); }
+.effect-speed-slider {
+  width: 100%; height: 2px; -webkit-appearance: none; appearance: none;
+  background: var(--border-color); border-radius: 1px; cursor: pointer; padding: 0;
+}
+.effect-speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%; background: var(--accent);
+  border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); cursor: grab;
+}
+.effect-speed-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--accent);
+  border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); cursor: grab;
+}
+.effect-speed-value {
+  font-size: 11px; color: var(--text-dim); text-align: right;
+  font-variant-numeric: tabular-nums;
+}
