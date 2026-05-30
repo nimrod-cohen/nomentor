@@ -259,6 +259,11 @@ function nomentor_generate_static_html($post) {
     .nm-list-item { display:flex; align-items:center; gap:8px; }
     .nm-list-icon { display:flex; align-items:center; flex-shrink:0; }
     .nm-separator hr { border:none; display:block; padding:0; }
+    .nm-video-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0); border:none; padding:0; cursor:pointer; z-index:2; transition:background 200ms ease-out; }
+    .nm-video-play:hover { background:rgba(0,0,0,.15); }
+    .nm-video-play:hover .nm-video-play-circle { transform:scale(1.06); background:#fff; }
+    .nm-video-play-circle { width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,.95); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(0,0,0,.28); color:#1a2744; transition:transform 180ms ease-out, background 180ms ease-out; }
+    .nm-video-play-circle svg { margin-inline-start:3px; }
     textarea.nm-field-input { resize:vertical; }
     @media (max-width: 1024px) { body { {$tablet_font}font-size: {$tablet['base']}px; } }
     @media (max-width: 768px) {
@@ -845,22 +850,17 @@ function nomentor_render_video($element) {
   $w = $rp[0] ?? 16; $h = $rp[1] ?? 9;
   $pct = ($w > 0) ? round($h / $w * 100, 4) : 56.25;
 
-  // Autoplay / muted / hideControls — both YouTube and Vimeo accept these
-  // query params. Muted defaults on because browsers block sound-on
-  // autoplay (the user can opt into unmuted with the eyes-open caveat).
+  // Both YouTube and Vimeo accept these query params. Muted is hard-coupled
+  // to autoplay because browsers reliably block sound-on autoplay — letting
+  // the user toggle it produces silently broken pages.
   $qs = [];
-  if (!empty($props['autoplay'])) {
-    $qs[] = 'autoplay=1';
-    $muted = isset($props['autoplayMuted']) ? !empty($props['autoplayMuted']) : true;
-    if ($muted) $qs[] = 'muted=1';
-  }
+  if (!empty($props['autoplay'])) { $qs[] = 'autoplay=1'; $qs[] = 'muted=1'; }
   if (!empty($props['hideControls'])) { $qs[] = 'controls=0'; }
   if ($qs) { $embed .= (strpos($embed, '?') !== false ? '&' : '?') . implode('&', $qs); }
 
-  // Optional autoplay delay (seconds). When set, the iframe src is held in
-  // a data attribute and swapped in after the delay so the video doesn't
-  // start loading + playing immediately.
-  $delay = !empty($props['autoplay']) ? floatval($props['autoplayDelay'] ?? 0) : 0;
+  $hide_controls = !empty($props['hideControls']);
+  // Autoplay delay only applies when the iframe loads itself (no overlay).
+  $delay = (!empty($props['autoplay']) && !$hide_controls) ? floatval($props['autoplayDelay'] ?? 0) : 0;
 
   // Outer wrapper carries common styling (margin/padding/border/maxWidth).
   // It must declare its own width — when this div is a flex-column child
@@ -879,18 +879,29 @@ function nomentor_render_video($element) {
 
   $box = "position:relative;width:100%;height:0;padding-bottom:{$pct}%;{$radius}";
   $iframe_style = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;';
-  if ($delay > 0 && $html_id) {
+
+  $overlay = '';
+  $script  = '';
+  if ($hide_controls && $html_id) {
+    // Controls are hidden — clicking inside the iframe does nothing, so
+    // give the visitor a centered play button. We hold the iframe src in a
+    // data attribute and swap it in on click; because that's a user
+    // gesture, the browser permits the resulting autoplay-with-sound.
+    $iframe = '<iframe data-nm-src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
+      . 'style="' . $iframe_style . '"></iframe>';
+    $overlay = '<button type="button" class="nm-video-play" aria-label="Play video"><span class="nm-video-play-circle"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span></button>';
+    $script  = "<script>(function(){var el=document.getElementById('" . esc_js($html_id) . "');if(!el)return;var btn=el.querySelector('.nm-video-play'),iframe=el.querySelector('iframe[data-nm-src]');if(!btn||!iframe)return;btn.addEventListener('click',function(){var s=iframe.getAttribute('data-nm-src')||'';s=s.replace(/([?&])muted=1(&|$)/,function(m,a,b){return b==='&'?a:'';}).replace(/[?&]$/,'');s+=(s.indexOf('?')!==-1?'&':'?')+'autoplay=1';iframe.src=s;iframe.removeAttribute('data-nm-src');btn.remove();});})();</script>\n";
+  } elseif ($delay > 0 && $html_id) {
     $iframe = '<iframe data-nm-src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
       . 'style="' . $iframe_style . '"></iframe>';
     $ms = intval(round($delay * 1000));
-    $delay_script = "<script>(function(){var el=document.querySelector('#" . esc_js($html_id) . " iframe[data-nm-src]');if(!el)return;setTimeout(function(){el.src=el.getAttribute('data-nm-src');el.removeAttribute('data-nm-src');},{$ms});})();</script>\n";
+    $script = "<script>(function(){var el=document.querySelector('#" . esc_js($html_id) . " iframe[data-nm-src]');if(!el)return;setTimeout(function(){el.src=el.getAttribute('data-nm-src');el.removeAttribute('data-nm-src');},{$ms});})();</script>\n";
   } else {
     $iframe = '<iframe src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
       . 'style="' . $iframe_style . '"></iframe>';
-    $delay_script = '';
   }
 
-  return "<div{$a['id_attr']}{$a['cls_attr']}{$outer_attr}>\n  <div style=\"{$box}\">{$iframe}</div>\n</div>\n{$delay_script}";
+  return "<div{$a['id_attr']}{$a['cls_attr']}{$outer_attr}>\n  <div style=\"{$box}\">{$iframe}{$overlay}</div>\n</div>\n{$script}";
 }
 
 function nomentor_render_grid($element) {

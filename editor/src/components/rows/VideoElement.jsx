@@ -25,14 +25,7 @@ export function VideoElement({ element }) {
   if (embed) {
     const qs = [];
     if (props.hideControls) qs.push('controls=0');
-    // Mirror the renderer's autoplay / muted semantics so the canvas preview
-    // matches what gets shipped. Delay is intentionally ignored — the editor
-    // isn't a runtime simulation.
-    if (props.autoplay) {
-      qs.push('autoplay=1');
-      const muted = props.autoplayMuted === undefined ? true : !!props.autoplayMuted;
-      if (muted) qs.push('muted=1');
-    }
+    if (props.autoplay) { qs.push('autoplay=1'); qs.push('muted=1'); }
     if (qs.length) embed += (embed.indexOf('?') !== -1 ? '&' : '?') + qs.join('&');
   }
   const box = { position: 'relative', width: '100%', height: 0, paddingBottom: aspectPct(props.aspectRatio) + '%', ...radius };
@@ -57,6 +50,13 @@ export function VideoElement({ element }) {
       <div style={box}>
         <iframe src={embed} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0, pointerEvents: 'none' }} />
+        {props.hideControls && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(0,0,0,0.28)', color: '#1a2744' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ marginInlineStart: 3 }} aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

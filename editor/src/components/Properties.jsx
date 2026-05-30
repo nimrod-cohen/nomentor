@@ -178,9 +178,7 @@ function ElementProps({ element }) {
 const VIDEO_RATIOS = ['16:9', '4:3', '1:1', '9:16'];
 
 function VideoProps({ element }) {
-  const { url, aspectRatio, autoplay, autoplayMuted, autoplayDelay, hideControls, maxWidth, borderRadius } = element.props;
-  // Default muted is on (browsers block sound-on autoplay); treat undefined as true.
-  const muted = autoplayMuted === undefined ? true : !!autoplayMuted;
+  const { url, aspectRatio, autoplay, autoplayDelay, hideControls, maxWidth, borderRadius } = element.props;
   function update(p) { updateElementProps(element.id, p); commitChange('Edit video'); }
 
   return (
@@ -210,22 +208,16 @@ function VideoProps({ element }) {
       <PropField label="Autoplay">
         <label class="prop-checkbox">
           <input type="checkbox" checked={!!autoplay} onChange={e => update({ autoplay: e.target.checked })} />
-          <span>Autoplay</span>
+          <span>Autoplay (muted — browsers block sound-on autoplay)</span>
         </label>
         {autoplay && (
-          <>
-            <label class="prop-checkbox" style={{ marginTop: 4 }}>
-              <input type="checkbox" checked={muted} onChange={e => update({ autoplayMuted: e.target.checked })} />
-              <span>Muted {muted ? '' : '(most browsers block sound-on autoplay)'}</span>
-            </label>
-            <label class="prop-checkbox" style={{ marginTop: 4, alignItems: 'center', gap: 6 }}>
-              <span>Delay</span>
-              <input type="number" min="0" step="0.1" class="prop-input" style={{ width: 60 }}
-                value={autoplayDelay ?? 0}
-                onInput={e => update({ autoplayDelay: parseFloat(e.target.value) || 0 })} />
-              <span>seconds</span>
-            </label>
-          </>
+          <label class="prop-checkbox" style={{ marginTop: 4, alignItems: 'center', gap: 6 }}>
+            <span>Delay</span>
+            <input type="number" min="0" step="0.1" class="prop-input" style={{ width: 60 }}
+              value={autoplayDelay ?? 0}
+              onInput={e => update({ autoplayDelay: parseFloat(e.target.value) || 0 })} />
+            <span>seconds</span>
+          </label>
         )}
       </PropField>
       <PropField label="Controls">
