@@ -63,9 +63,10 @@ export function TimerElement({ element }) {
   ];
 
   const wrapStyle = { display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', ...extraStyle };
+  const id = element.props.anchorId || element.id;
 
   return (
-    <div class="timer-element" style={wrapStyle}>
+    <div id={id} class="timer-element" style={wrapStyle}>
       {units.map(u => (
         <div key={u.label} class="timer-box" style={boxStyle}>
           <span class="timer-number">{pad(u.value)}</span>

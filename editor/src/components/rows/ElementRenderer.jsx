@@ -36,10 +36,10 @@ export function ElementRenderer({ element, gridDepth = 0 }) {
   const hidden = isHiddenOnViewport(element.props, viewportMode.value);
   const stretch = !['button', 'image'].includes(element.type);
 
-  const scoped = scopedCustomCss(element.props?.customCss, element.id);
+  const htmlId = element.props?.anchorId || element.id;
+  const scoped = scopedCustomCss(element.props?.customCss, htmlId);
   return (
     <div
-      id={element.id}
       class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''} ${stretch ? 'el-stretch' : ''}`}
       data-element-id={element.id}
       onClick={e => { e.stopPropagation(); selectElement(element.id); }}

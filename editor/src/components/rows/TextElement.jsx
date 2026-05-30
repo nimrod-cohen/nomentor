@@ -194,6 +194,7 @@ export function TextElement({ element }) {
       )}
       <div
         ref={ref}
+        id={element.props.anchorId || element.id}
         class="text-editable"
         contentEditable
         style={style}

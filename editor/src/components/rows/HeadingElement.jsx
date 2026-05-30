@@ -7,11 +7,10 @@ export function HeadingElement({ element }) {
   const headingSizes = getHeadingSizeMap(viewportMode.value);
   if (headingSizes[Tag]) style.fontSize = headingSizes[Tag];
 
-  // Emit a CSS rule (not inline style) so customCss — rendered later in the
-  // wrapper as #<wrapperId> > :not(.element-label) {…} — can override the
-  // heading's own line-height/color/etc. via specificity + cascade. Mirrors
-  // the renderer's nomentor_add_css('#nm-{id}', …) approach.
-  const id = `nm-${element.id}`;
+  // Emit a CSS rule (not inline style) so customCss — scoped to the same id —
+  // can override the heading's own line-height/color/etc. via the cascade.
+  // Mirrors the renderer's nomentor_add_css('#{html_id}', …) approach.
+  const id = element.props.anchorId || element.id;
   const rule = styleObjToCss(style);
 
   return (

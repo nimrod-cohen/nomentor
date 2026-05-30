@@ -17,8 +17,9 @@ export function FormElement({ element, gridDepth = 0 }) {
   const beforeSlot = element.children.find(c => c.slot === 'before') || element.children[0];
   const afterSlot = element.children.find(c => c.slot === 'after') || element.children[1];
 
+  const id = element.props.anchorId || element.id;
   return (
-    <div class="form-element" style={style} data-form-id={element.id}>
+    <div id={id} class="form-element" style={style} data-form-id={element.id}>
       <FormDropZone slot={beforeSlot} gridDepth={gridDepth} label="Drop elements before fields" />
       <div class="form-fields-block">
         {(fields || []).map(f => (

@@ -36,8 +36,9 @@ export function SeparatorElement({ element }) {
     hrStyle.borderTop = `${thickness}px ${style} ${color}`;
   }
 
+  const id = element.props.anchorId || element.id;
   return (
-    <div style={{ width: '100%', ...extraStyle }}>
+    <div id={id} style={{ width: '100%', ...extraStyle }}>
       <hr style={hrStyle} />
     </div>
   );

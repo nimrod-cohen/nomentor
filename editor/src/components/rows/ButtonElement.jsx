@@ -47,8 +47,9 @@ export function ButtonElement({ element }) {
   const iconHtml = icon ? renderIconSvg(icon, '1em') : '';
   const hasText = !!text;
 
+  const id = element.props.anchorId || element.id;
   return (
-    <a href={url || '#'} style={style} onClick={e => e.preventDefault()}>
+    <a id={id} href={url || '#'} style={style} onClick={e => e.preventDefault()}>
       {icon && pos === 'before' && <span class="btn-icon" dangerouslySetInnerHTML={{ __html: iconHtml }} />}
       {hasText && <span>{text}</span>}
       {icon && pos === 'after' && <span class="btn-icon" dangerouslySetInnerHTML={{ __html: iconHtml }} />}

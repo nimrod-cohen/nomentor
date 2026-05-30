@@ -30,9 +30,10 @@ export function ListElement({ element }) {
   if (element.props.itemShadow) liStyle.boxShadow = shadowToCSS(element.props.itemShadow);
 
   const Tag = listType === 'ol' ? 'ol' : 'ul';
+  const id = element.props.anchorId || element.id;
 
   return (
-    <Tag style={wrapStyle} class="list-element">
+    <Tag id={id} style={wrapStyle} class="list-element">
       {(items || []).map((item, i) => {
         const itemIcon = item.icon ?? icon;
         const perItemStyle = { ...liStyle };

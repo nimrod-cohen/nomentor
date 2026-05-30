@@ -24,9 +24,11 @@ export function VideoElement({ element }) {
   const embed = videoEmbedSrc(props.url);
   const box = { position: 'relative', width: '100%', height: 0, paddingBottom: aspectPct(props.aspectRatio) + '%', ...radius };
 
+  const id = element.props.anchorId || element.id;
+
   if (!embed) {
     return (
-      <div style={{ ...style, ...mw }}>
+      <div id={id} style={{ ...style, ...mw }}>
         <div class="image-placeholder" style={box}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
@@ -38,7 +40,7 @@ export function VideoElement({ element }) {
   }
 
   return (
-    <div style={{ ...style, ...mw }}>
+    <div id={id} style={{ ...style, ...mw }}>
       <div style={box}>
         <iframe src={embed} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0, pointerEvents: 'none' }} />

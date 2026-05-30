@@ -76,17 +76,14 @@ const parseCustomCss = (css, s) => {
 };
 
 /**
- * For canvas preview: when customCss has nested rules, wrap it under the
- * element-wrapper's data-element-id and let native CSS nesting (Chrome 112+,
- * Safari 16.4+, Firefox 117+) handle it. Mirrors nomentor_extract_scoped_css
- * on the renderer side.
+ * For canvas preview: when customCss has nested rules, scope it under the
+ * element's own id and let native CSS nesting (Chrome 112+, Safari 16.4+,
+ * Firefox 117+) handle it. Mirrors nomentor_extract_scoped_css on the
+ * renderer side. Element components attach the id directly to their root tag.
  */
-export function scopedCustomCss(css, elementId) {
-  if (!css || !elementId || css.indexOf('{') === -1) return '';
-  // ID-level selector so this rule beats the element's own `#nm-<id>` rule
-  // (also ID-level) by an extra class-level via :not(). The wrapper must
-  // carry `id={elementId}` (ElementRenderer adds it).
-  return `#${elementId} > :not(.element-label) {\n${css}\n}`;
+export function scopedCustomCss(css, htmlId) {
+  if (!css || !htmlId || css.indexOf('{') === -1) return '';
+  return `#${htmlId} {\n${css}\n}`;
 }
 
 /**

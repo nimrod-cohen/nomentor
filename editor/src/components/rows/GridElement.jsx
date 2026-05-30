@@ -40,8 +40,10 @@ export function GridElement({ element, gridDepth = 0 }) {
     commitChange('Add ' + type + ' to cell');
   }
 
+  const id = element.props.anchorId || element.id;
+
   return (
-    <div class="grid-element" style={buildGridStyle(element.props, cols)}>
+    <div id={id} class="grid-element" style={buildGridStyle(element.props, cols)}>
       {element.children.map(cell => {
         const isSelected = selectedId.value === cell.id;
         const cellHidden = !!cell.props?.hideOn?.[viewportMode.value];
