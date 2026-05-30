@@ -645,10 +645,29 @@ function nomentor_extract_scoped_css($id, $props, $css) {
 /**
  * Check if customCss is simple inline (no nested selectors) or nested.
  * Returns only the inline-safe portion for use in style attributes.
+ *
+ * Each ';' segment must look like "prop: value" — segments without a colon
+ * (i.e. a raw CSS value pasted without a property name) are dropped, since
+ * emitting them produces invalid HTML style attributes (the browser parses
+ * `style="0 22px 50px"` as nothing at all, and even drops sibling rules
+ * that the parser is mid-way through reading).
  */
 function nomentor_inline_css($css) {
   if (!$css || strpos($css, '{') !== false) return '';
-  return esc_attr($css);
+  $valid = [];
+  foreach (explode(';', $css) as $seg) {
+    $seg = trim($seg);
+    if ($seg === '') continue;
+    $colon = strpos($seg, ':');
+    if ($colon === false || $colon === 0) continue;
+    $prop = trim(substr($seg, 0, $colon));
+    $val  = trim(substr($seg, $colon + 1));
+    if ($prop === '' || $val === '') continue;
+    // Disallow property names that don't look like CSS identifiers.
+    if (!preg_match('/^-?[a-zA-Z][a-zA-Z0-9_-]*$/', $prop)) continue;
+    $valid[] = "{$prop}: {$val}";
+  }
+  return $valid ? esc_attr(implode('; ', $valid)) : '';
 }
 
 function nomentor_resolve_border($props) {
@@ -757,11 +776,11 @@ function nomentor_render_image($element) {
   nomentor_apply_common_style($style_parts, $props, $id);
   $img_style = $style_parts ? ' style="' . implode('; ', $style_parts) . '"' : '';
 
-  // <picture> (when WebP) carries the id + class for anchor links / customCss;
-  // the <img> carries the "nm-img-{id}" class so the responsive CSS in
-  // nomentor_generate_static_html() targets the actual visual element.
-  $a = nomentor_element_attrs($id, $props);
-  $img_class = $id ? ' class="nm-img-' . esc_attr($id) . '"' : '';
+  // <picture> (when WebP) carries the element id+class; the <img> picks up
+  // the same id+class for anchor/customCss/responsive selectors and also
+  // gets a "nm-img-{id}" extra class for legacy responsive hooks.
+  $a     = nomentor_element_attrs($id, $props);
+  $a_img = nomentor_element_attrs($id, $props, $id ? 'nm-img-' . esc_attr($id) : '');
 
   // Collect responsive overrides
   if ($id) {
@@ -786,9 +805,13 @@ function nomentor_render_image($element) {
   $webp = $_nomentor_current_slug ? nomentor_maybe_convert_to_webp($props['src'] ?? '', $_nomentor_current_slug) : null;
 
   if ($webp) {
-    return "<picture{$a['id_attr']}{$a['cls_attr']}>\n  <source srcset=\"{$webp}\" type=\"image/webp\">\n  <img src=\"{$src}\" alt=\"{$alt}\"{$img_class}{$img_style} loading=\"lazy\">\n</picture>\n";
+    // picture owns the id (anchor + customCss target); img keeps the extra
+    // legacy class only, no id (browsers reject duplicate ids on the page).
+    $img_cls_only = $a_img['cls'] ? " class=\"{$a_img['cls']}\"" : '';
+    return "<picture{$a['id_attr']}{$a['cls_attr']}>\n  <source srcset=\"{$webp}\" type=\"image/webp\">\n  <img src=\"{$src}\" alt=\"{$alt}\"{$img_cls_only}{$img_style} loading=\"lazy\">\n</picture>\n";
   }
-  return "<img src=\"{$src}\" alt=\"{$alt}\"{$a['id_attr']}{$a['cls_attr']}{$img_class}{$img_style} loading=\"lazy\">\n";
+  // No webp wrapper — id+class+style all on the img.
+  return "<img src=\"{$src}\" alt=\"{$alt}\"{$a_img['id_attr']}{$a_img['cls_attr']}{$img_style} loading=\"lazy\">\n";
 }
 
 /**
