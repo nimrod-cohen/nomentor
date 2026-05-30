@@ -333,7 +333,7 @@ function nomentor_render_row($row) {
   $attr = ($style && !$id) ? " style=\"{$style}\"" : '';
   $html_id = esc_attr($row['props']['anchorId'] ?? $id);
   $id_attr = $id ? ' id="' . $html_id . '"' : '';
-  $scoped = nomentor_extract_scoped_css($id, $row['props']['customCss'] ?? '');
+  $scoped = nomentor_extract_scoped_css($id, $row['props'] ?? [], $row['props']['customCss'] ?? '');
   return $scoped . '<div class="' . $cls . '"' . $id_attr . $attr . '>' . $inner . '</div>' . "\n";
 }
 
