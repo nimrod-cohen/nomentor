@@ -734,13 +734,13 @@ function nomentor_render_image($element) {
   $alt = esc_attr($props['alt'] ?? '');
   if (empty($src)) return '';
 
-  // Dimensions go inline on the <img> itself — <picture> is display:inline
-  // by default, so width/height applied to it have no visual effect when the
-  // img is WebP-wrapped. Keeping them on the img makes both webp and non-webp
-  // cases sized consistently.
+  // All styling (dimensions, margin, padding, border, customCss) goes inline
+  // on the <img> itself — <picture> is display:inline by default, so styles
+  // applied to it have no visual effect when the img is WebP-wrapped.
   $style_parts = [];
   if (!empty($props['width'])) $style_parts[] = 'width: ' . esc_attr($props['width']);
   if (!empty($props['height'])) $style_parts[] = 'height: ' . esc_attr($props['height']);
+  nomentor_apply_common_style($style_parts, $props, $id);
   $img_style = $style_parts ? ' style="' . implode('; ', $style_parts) . '"' : '';
 
   // <picture> (when WebP) carries the id + class for anchor links / customCss;
