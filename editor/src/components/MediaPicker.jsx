@@ -27,6 +27,7 @@ function MediaPickerModal({ onSelect, onClose }) {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [preview, setPreview] = useState(null);
   const fileRef = useRef(null);
   const searchTimer = useRef(null);
@@ -61,20 +62,42 @@ function MediaPickerModal({ onSelect, onClose }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     const { ajaxUrl, nonce } = window.nomentor;
     const formData = new FormData();
     formData.append('action', 'nomentor_upload');
     formData.append('nonce', nonce);
     formData.append('file', file);
     fetch(ajaxUrl, { method: 'POST', body: formData })
-      .then(r => r.json())
+      .then(async r => {
+        // Surface non-JSON / non-200 responses (e.g. check_ajax_referer dying
+        // with '-1' on nonce mismatch) instead of swallowing them silently.
+        const ct = r.headers.get('content-type') || '';
+        const text = await r.text();
+        if (!ct.includes('application/json')) {
+          throw new Error(`HTTP ${r.status}: ${text.slice(0, 120) || '(empty)'}`);
+        }
+        return JSON.parse(text);
+      })
       .then(r => {
         setUploading(false);
         if (r.success) {
           onSelect({ url: r.data.url, alt: r.data.alt || '' });
+        } else {
+          const msg = typeof r.data === 'string' ? r.data : (r.data?.message || 'Upload failed');
+          setUploadError(msg);
+          console.error('[Nomentor] Upload failed:', r);
         }
       })
-      .catch(() => setUploading(false));
+      .catch(err => {
+        setUploading(false);
+        setUploadError(err.message || 'Upload failed');
+        console.error('[Nomentor] Upload error:', err);
+      })
+      .finally(() => {
+        // Reset so picking the same file again still triggers onChange.
+        if (fileRef.current) fileRef.current.value = '';
+      });
   }
 
   function onBackdropClick(e) {
@@ -101,6 +124,12 @@ function MediaPickerModal({ onSelect, onClose }) {
           </button>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onUpload} />
         </div>
+        {uploadError && (
+          <div class="media-picker-upload-error" role="alert"
+               style={{ padding: '8px 12px', margin: '0 12px 8px', background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '13px' }}>
+            <strong>Upload failed:</strong> {uploadError}
+          </div>
+        )}
         <div class="media-picker-grid">
           {items.map(img => (
             <div key={img.id} class="media-picker-item" onClick={() => setPreview(img)} title={img.title}>
