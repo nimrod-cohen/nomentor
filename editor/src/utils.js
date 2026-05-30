@@ -83,7 +83,10 @@ const parseCustomCss = (css, s) => {
  */
 export function scopedCustomCss(css, elementId) {
   if (!css || !elementId || css.indexOf('{') === -1) return '';
-  return `[data-element-id="${elementId}"] {\n${css}\n}`;
+  // Match the renderer: scope to the wrapper's element-child so top-level
+  // customCss declarations apply to the actual element (not the wrapper div),
+  // while descendant selectors like `.uline` still match content inside.
+  return `[data-element-id="${elementId}"] > :not(.element-label) {\n${css}\n}`;
 }
 
 /**

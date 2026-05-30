@@ -606,7 +606,12 @@ function nomentor_render_heading($element) {
 function nomentor_extract_scoped_css($id, $css) {
   if (!$id || !$css || strpos($css, '{') === false) return '';
   $safe_id = esc_attr($id);
-  return "<style>\n#{$safe_id} {\n{$css}\n}\n</style>\n";
+  // Scope to the wrapper's element-child (the rendered <h2>/<button>/<div>/
+  // <form>/etc.), not the wrapper itself, so top-level customCss declarations
+  // apply to the element the user is editing. `:not(.element-label)` keeps
+  // the editor's overlay label out; in the published output there's no label,
+  // so the only direct child is the element. Works universally across types.
+  return "<style>\n#{$safe_id} > :not(.element-label) {\n{$css}\n}\n</style>\n";
 }
 
 /**
