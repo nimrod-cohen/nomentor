@@ -39,6 +39,7 @@ export function ElementRenderer({ element, gridDepth = 0 }) {
   const scoped = scopedCustomCss(element.props?.customCss, element.id);
   return (
     <div
+      id={element.id}
       class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''} ${stretch ? 'el-stretch' : ''}`}
       data-element-id={element.id}
       onClick={e => { e.stopPropagation(); selectElement(element.id); }}

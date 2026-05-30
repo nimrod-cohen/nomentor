@@ -83,10 +83,23 @@ const parseCustomCss = (css, s) => {
  */
 export function scopedCustomCss(css, elementId) {
   if (!css || !elementId || css.indexOf('{') === -1) return '';
-  // Match the renderer: scope to the wrapper's element-child so top-level
-  // customCss declarations apply to the actual element (not the wrapper div),
-  // while descendant selectors like `.uline` still match content inside.
-  return `[data-element-id="${elementId}"] > :not(.element-label) {\n${css}\n}`;
+  // ID-level selector so this rule beats the element's own `#nm-<id>` rule
+  // (also ID-level) by an extra class-level via :not(). The wrapper must
+  // carry `id={elementId}` (ElementRenderer adds it).
+  return `#${elementId} > :not(.element-label) {\n${css}\n}`;
+}
+
+/**
+ * Camel-case style object → ;-joined CSS declarations. Used to emit CSS
+ * rules (instead of inline style) for canvas elements so customCss can
+ * override them via the cascade.
+ */
+export function styleObjToCss(s) {
+  if (!s) return '';
+  return Object.entries(s).map(([k, v]) => {
+    const kebab = k.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
+    return `${kebab}: ${v}`;
+  }).filter(Boolean).join('; ');
 }
 
 /**
