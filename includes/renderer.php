@@ -845,13 +845,22 @@ function nomentor_render_video($element) {
   $w = $rp[0] ?? 16; $h = $rp[1] ?? 9;
   $pct = ($w > 0) ? round($h / $w * 100, 4) : 56.25;
 
-  // Optional autoplay (muted is required by browsers for autoplay to work).
-  // Optional hideControls — both YouTube and Vimeo accept controls=0 to hide
-  // the player chrome; the user can still click the video to play/pause.
+  // Autoplay / muted / hideControls — both YouTube and Vimeo accept these
+  // query params. Muted defaults on because browsers block sound-on
+  // autoplay (the user can opt into unmuted with the eyes-open caveat).
   $qs = [];
-  if (!empty($props['autoplay']))     { $qs[] = 'autoplay=1'; $qs[] = 'muted=1'; }
+  if (!empty($props['autoplay'])) {
+    $qs[] = 'autoplay=1';
+    $muted = isset($props['autoplayMuted']) ? !empty($props['autoplayMuted']) : true;
+    if ($muted) $qs[] = 'muted=1';
+  }
   if (!empty($props['hideControls'])) { $qs[] = 'controls=0'; }
   if ($qs) { $embed .= (strpos($embed, '?') !== false ? '&' : '?') . implode('&', $qs); }
+
+  // Optional autoplay delay (seconds). When set, the iframe src is held in
+  // a data attribute and swapped in after the delay so the video doesn't
+  // start loading + playing immediately.
+  $delay = !empty($props['autoplay']) ? floatval($props['autoplayDelay'] ?? 0) : 0;
 
   // Outer wrapper carries common styling (margin/padding/border/maxWidth).
   // It must declare its own width — when this div is a flex-column child
@@ -869,10 +878,19 @@ function nomentor_render_video($element) {
   $outer_attr = $outer ? " style=\"{$outer}\"" : '';
 
   $box = "position:relative;width:100%;height:0;padding-bottom:{$pct}%;{$radius}";
-  $iframe = '<iframe src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
-    . 'style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
+  $iframe_style = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;';
+  if ($delay > 0 && $html_id) {
+    $iframe = '<iframe data-nm-src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
+      . 'style="' . $iframe_style . '"></iframe>';
+    $ms = intval(round($delay * 1000));
+    $delay_script = "<script>(function(){var el=document.querySelector('#" . esc_js($html_id) . " iframe[data-nm-src]');if(!el)return;setTimeout(function(){el.src=el.getAttribute('data-nm-src');el.removeAttribute('data-nm-src');},{$ms});})();</script>\n";
+  } else {
+    $iframe = '<iframe src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
+      . 'style="' . $iframe_style . '"></iframe>';
+    $delay_script = '';
+  }
 
-  return "<div{$a['id_attr']}{$a['cls_attr']}{$outer_attr}>\n  <div style=\"{$box}\">{$iframe}</div>\n</div>\n";
+  return "<div{$a['id_attr']}{$a['cls_attr']}{$outer_attr}>\n  <div style=\"{$box}\">{$iframe}</div>\n</div>\n{$delay_script}";
 }
 
 function nomentor_render_grid($element) {

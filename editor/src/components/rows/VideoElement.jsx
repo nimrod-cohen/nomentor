@@ -22,8 +22,18 @@ export function VideoElement({ element }) {
   const mw = props.maxWidth ? { maxWidth: props.maxWidth, marginInline: 'auto' } : {};
   const radius = props.borderRadius ? { borderRadius: props.borderRadius + 'px', overflow: 'hidden' } : {};
   let embed = videoEmbedSrc(props.url);
-  if (embed && props.hideControls) {
-    embed += (embed.indexOf('?') !== -1 ? '&' : '?') + 'controls=0';
+  if (embed) {
+    const qs = [];
+    if (props.hideControls) qs.push('controls=0');
+    // Mirror the renderer's autoplay / muted semantics so the canvas preview
+    // matches what gets shipped. Delay is intentionally ignored — the editor
+    // isn't a runtime simulation.
+    if (props.autoplay) {
+      qs.push('autoplay=1');
+      const muted = props.autoplayMuted === undefined ? true : !!props.autoplayMuted;
+      if (muted) qs.push('muted=1');
+    }
+    if (qs.length) embed += (embed.indexOf('?') !== -1 ? '&' : '?') + qs.join('&');
   }
   const box = { position: 'relative', width: '100%', height: 0, paddingBottom: aspectPct(props.aspectRatio) + '%', ...radius };
 
