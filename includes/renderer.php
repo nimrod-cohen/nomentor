@@ -884,13 +884,14 @@ function nomentor_render_video($element) {
   $script  = '';
   if ($hide_controls && $html_id) {
     // Controls are hidden — clicking inside the iframe does nothing, so
-    // give the visitor a centered play button. We hold the iframe src in a
-    // data attribute and swap it in on click; because that's a user
-    // gesture, the browser permits the resulting autoplay-with-sound.
-    $iframe = '<iframe data-nm-src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
+    // give the visitor a centered play button. The iframe still loads
+    // normally so the player's poster shows through; on click we swap the
+    // src to add autoplay=1, and because that's a user gesture the browser
+    // permits sound-on autoplay.
+    $iframe = '<iframe src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
       . 'style="' . $iframe_style . '"></iframe>';
     $overlay = '<button type="button" class="nm-video-play" aria-label="Play video"><span class="nm-video-play-circle"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span></button>';
-    $script  = "<script>(function(){var el=document.getElementById('" . esc_js($html_id) . "');if(!el)return;var btn=el.querySelector('.nm-video-play'),iframe=el.querySelector('iframe[data-nm-src]');if(!btn||!iframe)return;btn.addEventListener('click',function(){var s=iframe.getAttribute('data-nm-src')||'';s=s.replace(/([?&])muted=1(&|$)/,function(m,a,b){return b==='&'?a:'';}).replace(/[?&]$/,'');s+=(s.indexOf('?')!==-1?'&':'?')+'autoplay=1';iframe.src=s;iframe.removeAttribute('data-nm-src');btn.remove();});})();</script>\n";
+    $script  = "<script>(function(){var el=document.getElementById('" . esc_js($html_id) . "');if(!el)return;var btn=el.querySelector('.nm-video-play'),iframe=el.querySelector('iframe');if(!btn||!iframe)return;btn.addEventListener('click',function(){var s=iframe.src||'';if(s.indexOf('autoplay=1')===-1){s+=(s.indexOf('?')!==-1?'&':'?')+'autoplay=1';iframe.src=s;}btn.remove();});})();</script>\n";
   } elseif ($delay > 0 && $html_id) {
     $iframe = '<iframe data-nm-src="' . esc_url($embed) . '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen '
       . 'style="' . $iframe_style . '"></iframe>';

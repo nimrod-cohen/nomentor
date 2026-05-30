@@ -653,9 +653,9 @@ function ListProps({ element }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
               <span style={{ fontSize: '11px', color: '#999' }}>Weight</span>
-              <input type="range" min={0.5} max={4} step={0.25} value={element.props.iconWeight || 2}
+              <input type="range" min={0.5} max={3} step={0.25} value={element.props.iconWeight ?? 1.5}
                 onInput={e => update({ iconWeight: parseFloat(e.target.value) })} style={{ flex: 1 }} />
-              <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#666', minWidth: '24px' }}>{element.props.iconWeight || 2}</span>
+              <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#666', minWidth: '24px' }}>{element.props.iconWeight ?? 1.5}</span>
             </div>
           </>
         )}
