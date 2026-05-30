@@ -143,6 +143,7 @@ html, body, #nomentor-root {
   display: flex; justify-content: space-between; align-items: center;
 }
 .sidebar-content { flex: 1; overflow-y: auto; padding: 12px; }
+.nomentor-sidebar-right .sidebar-content { scroll-behavior: smooth; }
 
 /* ── Toolbox ── */
 .toolbox-grid {
