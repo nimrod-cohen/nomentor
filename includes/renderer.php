@@ -851,11 +851,17 @@ function nomentor_render_video($element) {
   if ($qs) { $embed .= (strpos($embed, '?') !== false ? '&' : '?') . implode('&', $qs); }
 
   // Outer wrapper carries common styling (margin/padding/border/maxWidth).
+  // It must declare its own width — when this div is a flex-column child
+  // (rows + cells are display:flex), margin-inline:auto silently disables
+  // align-items:stretch, so without width:100% the wrapper collapses to
+  // zero content-width and the aspect-ratio padding has nothing to compute
+  // against, hiding the video entirely.
   $a = nomentor_element_attrs($id, $props, 'nm-video');
   $html_id = $a['html_id'];
   $outer = nomentor_build_style($props, $id);
+  $outer .= ($outer ? '; ' : '') . 'width: 100%';
   $mw = $props['maxWidth'] ?? '';
-  if ($mw !== '') $outer .= ($outer ? '; ' : '') . 'max-width: ' . esc_attr($mw) . '; margin-inline: auto';
+  if ($mw !== '') $outer .= '; max-width: ' . esc_attr($mw) . '; margin-inline: auto';
   $radius = !empty($props['borderRadius']) ? 'border-radius:' . intval($props['borderRadius']) . 'px;overflow:hidden;' : '';
   $outer_attr = $outer ? " style=\"{$outer}\"" : '';
 
