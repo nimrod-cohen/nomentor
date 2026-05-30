@@ -1,7 +1,7 @@
 import { useRef } from 'preact/hooks';
 import { signal } from '@preact/signals';
 import { Eye } from '../icons';
-import { saveStatus, sidebarMode, exitPreview, previewIndex, leftSidebarOpen, rightSidebarOpen, viewportMode, pageTitle, renamePost, selectedId, exportPage } from '../state';
+import { saveStatus, saveError, sidebarMode, exitPreview, previewIndex, leftSidebarOpen, rightSidebarOpen, viewportMode, pageTitle, renamePost, selectedId, exportPage } from '../state';
 
 const menuOpen = signal(false);
 
@@ -135,7 +135,12 @@ export function Toolbar({ backUrl, viewUrl }) {
 
       <span class="spacer" />
 
-      <span class={`save-status ${status}`}>
+      <span
+        class={`save-status ${status}`}
+        title={status === 'error' ? (saveError.value ? 'Double-click to see error' : 'Save failed') : ''}
+        style={status === 'error' ? { cursor: 'pointer' } : undefined}
+        onDblClick={status === 'error' && saveError.value ? () => alert(saveError.value) : undefined}
+      >
         {status === 'saving' ? 'Saving...' : status === 'error' ? 'Save failed' : 'Saved'}
       </span>
       <span class="toolbar-version">v{window.nomentor?.version}</span>

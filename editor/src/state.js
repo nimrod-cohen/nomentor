@@ -2,6 +2,7 @@ import { signal } from '@preact/signals';
 
 // ── Save state ──
 export const saveStatus = signal('saved');
+export const saveError = signal('');
 export const history = signal([]);
 const MAX_HISTORY = 100;
 
@@ -40,9 +41,26 @@ const autoSave = () => {
   });
 
   fetch(ajaxUrl, { method: 'POST', body })
-    .then(r => r.json())
-    .then(r => { saveStatus.value = r.success ? 'saved' : 'error'; })
-    .catch(() => { saveStatus.value = 'error'; });
+    .then(async r => {
+      const ct = r.headers.get('content-type') || '';
+      const text = await r.text();
+      if (!ct.includes('application/json')) {
+        throw new Error(`HTTP ${r.status}: ${text.slice(0, 500) || '(empty)'}`);
+      }
+      const j = JSON.parse(text);
+      if (j.success) {
+        saveStatus.value = 'saved';
+        saveError.value = '';
+      } else {
+        const msg = typeof j.data === 'string' ? j.data : (j.data?.message || JSON.stringify(j.data || j) || 'Unknown error');
+        saveStatus.value = 'error';
+        saveError.value = msg;
+      }
+    })
+    .catch(err => {
+      saveStatus.value = 'error';
+      saveError.value = err?.message || String(err) || 'Network error';
+    });
 };
 
 export function loadHistory(entries) {
