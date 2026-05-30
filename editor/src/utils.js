@@ -60,6 +60,10 @@ const ALIGN_MAP = {
 
 const parseCustomCss = (css, s) => {
   if (!css) return;
+  // If customCss contains nested rules ({ ... }), don't try to parse them as
+  // inline declarations — they'd leak as malformed style on the element. The
+  // scoped <style> is emitted separately (see scopedCustomCss()).
+  if (css.indexOf('{') !== -1) return;
   for (const rule of css.split(';')) {
     const [key, ...rest] = rule.split(':');
     if (!key || !rest.length) continue;
@@ -70,6 +74,17 @@ const parseCustomCss = (css, s) => {
     s[camel] = val;
   }
 };
+
+/**
+ * For canvas preview: when customCss has nested rules, wrap it under the
+ * element-wrapper's data-element-id and let native CSS nesting (Chrome 112+,
+ * Safari 16.4+, Firefox 117+) handle it. Mirrors nomentor_extract_scoped_css
+ * on the renderer side.
+ */
+export function scopedCustomCss(css, elementId) {
+  if (!css || !elementId || css.indexOf('{') === -1) return '';
+  return `[data-element-id="${elementId}"] {\n${css}\n}`;
+}
 
 /**
  * Build an inline style object from element props.

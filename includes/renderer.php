@@ -562,11 +562,14 @@ function nomentor_render_heading($element) {
   $level = $props['level'] ?? 'h2';
   // Allow safe inline formatting (matches what the editor's rich-text lets users
   // apply to headings: bold, underline, italic, line breaks, spans/links).
+  $inline_attrs = ['class' => [], 'style' => []];
   $text = wp_kses($props['text'] ?? '', [
-    'b' => [], 'strong' => [], 'i' => [], 'em' => [], 'u' => [], 'br' => [],
-    'mark' => [], 'sub' => [], 'sup' => [], 'small' => [],
-    'span' => ['style' => [], 'class' => []],
-    'a' => ['href' => [], 'target' => [], 'rel' => [], 'class' => []],
+    'b' => $inline_attrs, 'strong' => $inline_attrs,
+    'i' => $inline_attrs, 'em' => $inline_attrs,
+    'u' => $inline_attrs, 'br' => [],
+    'mark' => $inline_attrs, 'sub' => $inline_attrs, 'sup' => $inline_attrs, 'small' => $inline_attrs,
+    'span' => $inline_attrs,
+    'a' => ['href' => [], 'target' => [], 'rel' => [], 'class' => [], 'style' => []],
   ]);
   $allowed = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
   if (!in_array($level, $allowed)) $level = 'h2';
@@ -590,28 +593,20 @@ function nomentor_render_heading($element) {
 }
 
 /**
- * If customCss contains nested selectors (has '{'), extract it as a scoped <style> block.
- * Returns HTML string or empty.
+ * If customCss contains nested rules (has '{'), wrap the whole thing in a
+ * scope selector and let native CSS nesting (Chrome 112+, Safari 16.4+,
+ * Firefox 117+) handle the rest. Examples that all work:
+ *   .uline { background: yellow }            -> #id .uline { ... }
+ *   &:hover { color: red }                   -> #id:hover { ... }
+ *   .uline { position: relative; &:after { content: "" } }
+ *                                            -> #id .uline { ... } / #id .uline:after { ... }
+ * Vastly simpler and more correct than the previous regex prefixer, which
+ * broke when property declarations preceded nested rules.
  */
 function nomentor_extract_scoped_css($id, $css) {
   if (!$id || !$css || strpos($css, '{') === false) return '';
   $safe_id = esc_attr($id);
-  // Scope all selectors under this element's ID
-  // The user writes: input[type="text"] { background:#efefef; }
-  // We output: #ID input[type="text"] { background:#efefef; }
-  $scoped = preg_replace_callback('/([^{}]+)\{/', function($m) use ($safe_id) {
-    $selector = trim($m[1]);
-    if (!$selector) return $m[0];
-    // Split comma-separated selectors and scope each individually
-    $parts = array_map('trim', explode(',', $selector));
-    $scoped_parts = array_map(function($p) use ($safe_id) {
-      if (!$p) return $p;
-      if (strpos($p, '#' . $safe_id) !== false) return $p;
-      return '#' . $safe_id . ' ' . $p;
-    }, $parts);
-    return implode(', ', $scoped_parts) . ' {';
-  }, $css);
-  return "<style>{$scoped}</style>\n";
+  return "<style>\n#{$safe_id} {\n{$css}\n}\n</style>\n";
 }
 
 /**

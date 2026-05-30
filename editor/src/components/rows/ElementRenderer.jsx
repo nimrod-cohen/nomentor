@@ -9,6 +9,7 @@ import { ListElement } from './ListElement';
 import { SeparatorElement } from './SeparatorElement';
 import { VideoElement } from './VideoElement';
 import { selectedId, selectElement, viewportMode } from '../../state';
+import { scopedCustomCss } from '../../utils';
 
 const RENDERERS = {
   heading: HeadingElement,
@@ -35,12 +36,14 @@ export function ElementRenderer({ element, gridDepth = 0 }) {
   const hidden = isHiddenOnViewport(element.props, viewportMode.value);
   const stretch = !['button', 'image'].includes(element.type);
 
+  const scoped = scopedCustomCss(element.props?.customCss, element.id);
   return (
     <div
       class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''} ${stretch ? 'el-stretch' : ''}`}
       data-element-id={element.id}
       onClick={e => { e.stopPropagation(); selectElement(element.id); }}
     >
+      {scoped && <style>{scoped}</style>}
       <div class="element-label">{element.type}{hidden ? ' (hidden)' : ''}</div>
       <Comp element={element} gridDepth={gridDepth} />
     </div>
