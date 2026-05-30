@@ -178,7 +178,7 @@ function ElementProps({ element }) {
 const VIDEO_RATIOS = ['16:9', '4:3', '1:1', '9:16'];
 
 function VideoProps({ element }) {
-  const { url, aspectRatio, autoplay, maxWidth, borderRadius } = element.props;
+  const { url, aspectRatio, autoplay, hideControls, maxWidth, borderRadius } = element.props;
   function update(p) { updateElementProps(element.id, p); commitChange('Edit video'); }
 
   return (
@@ -209,6 +209,12 @@ function VideoProps({ element }) {
         <label class="prop-checkbox">
           <input type="checkbox" checked={!!autoplay} onChange={e => update({ autoplay: e.target.checked })} />
           <span>Autoplay (muted)</span>
+        </label>
+      </PropField>
+      <PropField label="Controls">
+        <label class="prop-checkbox">
+          <input type="checkbox" checked={!!hideControls} onChange={e => update({ hideControls: e.target.checked })} />
+          <span>Hide player controls (click video to play/pause)</span>
         </label>
       </PropField>
     </>

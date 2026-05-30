@@ -846,8 +846,11 @@ function nomentor_render_video($element) {
   $pct = ($w > 0) ? round($h / $w * 100, 4) : 56.25;
 
   // Optional autoplay (muted is required by browsers for autoplay to work).
+  // Optional hideControls — both YouTube and Vimeo accept controls=0 to hide
+  // the player chrome; the user can still click the video to play/pause.
   $qs = [];
-  if (!empty($props['autoplay'])) { $qs[] = 'autoplay=1'; $qs[] = 'muted=1'; }
+  if (!empty($props['autoplay']))     { $qs[] = 'autoplay=1'; $qs[] = 'muted=1'; }
+  if (!empty($props['hideControls'])) { $qs[] = 'controls=0'; }
   if ($qs) { $embed .= (strpos($embed, '?') !== false ? '&' : '?') . implode('&', $qs); }
 
   // Outer wrapper carries common styling (margin/padding/border/maxWidth).

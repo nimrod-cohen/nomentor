@@ -21,7 +21,10 @@ export function VideoElement({ element }) {
   const style = buildStyle(props);
   const mw = props.maxWidth ? { maxWidth: props.maxWidth, marginInline: 'auto' } : {};
   const radius = props.borderRadius ? { borderRadius: props.borderRadius + 'px', overflow: 'hidden' } : {};
-  const embed = videoEmbedSrc(props.url);
+  let embed = videoEmbedSrc(props.url);
+  if (embed && props.hideControls) {
+    embed += (embed.indexOf('?') !== -1 ? '&' : '?') + 'controls=0';
+  }
   const box = { position: 'relative', width: '100%', height: 0, paddingBottom: aspectPct(props.aspectRatio) + '%', ...radius };
 
   const id = element.props.anchorId || element.id;
