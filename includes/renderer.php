@@ -734,20 +734,20 @@ function nomentor_render_image($element) {
   $alt = esc_attr($props['alt'] ?? '');
   if (empty($src)) return '';
 
-  // Desktop dimensions → CSS
+  // Dimensions go inline on the <img> itself — <picture> is display:inline
+  // by default, so width/height applied to it have no visual effect when the
+  // img is WebP-wrapped. Keeping them on the img makes both webp and non-webp
+  // cases sized consistently.
   $style_parts = [];
   if (!empty($props['width'])) $style_parts[] = 'width: ' . esc_attr($props['width']);
   if (!empty($props['height'])) $style_parts[] = 'height: ' . esc_attr($props['height']);
+  $img_style = $style_parts ? ' style="' . implode('; ', $style_parts) . '"' : '';
 
-  // The <img> (and the surrounding <picture> when WebP is present) carries the
-  // element id + class so anchor links + customCss + responsive selectors all
-  // target the same element. The img also keeps the "nm-img-{id}" class for
-  // legacy CSS hooks; dimension CSS now targets the element id directly.
-  $a = nomentor_element_attrs($id, $props, $id ? 'nm-img-' . esc_attr($id) : '');
-  if ($a['html_id'] && $style_parts) {
-    nomentor_add_css('#' . $a['html_id'], $style_parts);
-  }
-  $style = (!$a['html_id'] && $style_parts) ? ' style="' . implode('; ', $style_parts) . '"' : '';
+  // <picture> (when WebP) carries the id + class for anchor links / customCss;
+  // the <img> carries the "nm-img-{id}" class so the responsive CSS in
+  // nomentor_generate_static_html() targets the actual visual element.
+  $a = nomentor_element_attrs($id, $props);
+  $img_class = $id ? ' class="nm-img-' . esc_attr($id) . '"' : '';
 
   // Collect responsive overrides
   if ($id) {
@@ -772,9 +772,9 @@ function nomentor_render_image($element) {
   $webp = $_nomentor_current_slug ? nomentor_maybe_convert_to_webp($props['src'] ?? '', $_nomentor_current_slug) : null;
 
   if ($webp) {
-    return "<picture{$a['id_attr']}{$a['cls_attr']}>\n  <source srcset=\"{$webp}\" type=\"image/webp\">\n  <img src=\"{$src}\" alt=\"{$alt}\"{$style} loading=\"lazy\">\n</picture>\n";
+    return "<picture{$a['id_attr']}{$a['cls_attr']}>\n  <source srcset=\"{$webp}\" type=\"image/webp\">\n  <img src=\"{$src}\" alt=\"{$alt}\"{$img_class}{$img_style} loading=\"lazy\">\n</picture>\n";
   }
-  return "<img src=\"{$src}\" alt=\"{$alt}\"{$a['id_attr']}{$a['cls_attr']}{$style} loading=\"lazy\">\n";
+  return "<img src=\"{$src}\" alt=\"{$alt}\"{$a['id_attr']}{$a['cls_attr']}{$img_class}{$img_style} loading=\"lazy\">\n";
 }
 
 /**
