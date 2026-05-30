@@ -94,6 +94,10 @@ function nomentor_generate_static_html($post) {
   global $_nomentor_element_css;
   $_nomentor_element_css = [];
 
+  // Reset effects tracking
+  global $_nomentor_has_entrance;
+  $_nomentor_has_entrance = false;
+
   // Set current slug for image optimizer
   global $_nomentor_current_slug;
   $_nomentor_current_slug = $post->post_name;
@@ -197,6 +201,9 @@ function nomentor_generate_static_html($post) {
     if (($s['position'] ?? 'body') === 'head') $head_scripts .= '  ' . $tag;
     else $page_scripts .= $tag;
   }
+  // Effects: CSS goes inline in <style>, entrance observer at end of body
+  $effects_css = nomentor_effects_css();
+  $page_scripts .= nomentor_effects_entrance_script();
 
   // Page direction
   $direction = 'rtl';
@@ -258,7 +265,7 @@ function nomentor_generate_static_html($post) {
       body { {$mobile_font}font-size: {$mobile['base']}px; }
 
     }
-{$responsive_css}  </style>
+{$responsive_css}{$effects_css}  </style>
 {$head_scripts}</head>
 <body>
 <main>
@@ -325,6 +332,8 @@ function nomentor_render_row($row) {
   nomentor_collect_responsive_props($id, $row['props'] ?? []);
   if ($id) $cls .= ' nm-el-' . esc_attr($id);
   $cls .= nomentor_extra_classes($row['props'] ?? []);
+  $cls .= nomentor_effect_classes($row['props']['effects'] ?? null);
+  nomentor_mark_effects_used($row['props']['effects'] ?? null);
 
   $style = nomentor_build_row_style($row['props'] ?? [], $id);
   if ($style && $id) {
@@ -559,15 +568,17 @@ function nomentor_render_element($element) {
  * Returns ['html_id'=>string, 'cls'=>string, 'id_attr'=>string, 'cls_attr'=>string].
  */
 function nomentor_element_attrs($id, $props, $extra_classes = '') {
-  $extras = nomentor_extra_classes($props); // leading-space "" or " a b"
+  $extras  = nomentor_extra_classes($props);           // user-supplied cssClasses
+  $effects = nomentor_effect_classes($props['effects'] ?? null);
+  nomentor_mark_effects_used($props['effects'] ?? null);
   $extra_classes = trim((string) $extra_classes);
   if (!$id) {
-    $cls = trim($extra_classes . $extras);
+    $cls = trim($extra_classes . $extras . $effects);
     return ['html_id' => '', 'cls' => $cls, 'id_attr' => '', 'cls_attr' => $cls ? " class=\"{$cls}\"" : ''];
   }
   $safe_id  = esc_attr($id);
   $html_id  = esc_attr($props['anchorId'] ?? $id);
-  $cls      = trim(($extra_classes ? $extra_classes . ' ' : '') . 'nm-el-' . $safe_id . $extras);
+  $cls      = trim(($extra_classes ? $extra_classes . ' ' : '') . 'nm-el-' . $safe_id . $extras . $effects);
   return [
     'html_id'  => $html_id,
     'cls'      => $cls,

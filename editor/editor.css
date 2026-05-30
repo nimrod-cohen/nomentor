@@ -953,3 +953,77 @@ html, body, #nomentor-root {
   letter-spacing: 0; font-weight: 500; white-space: nowrap;
 }
 .history-exit-btn:hover { text-decoration: underline; }
+
+/* ── Effects field (Properties panel) ── */
+.effects-field { padding: 8px 0; border-top: 1px solid var(--border-color); margin-top: 8px; }
+.effects-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.effects-header .prop-label { flex: 1; }
+.effects-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 6px; border-radius: 9px;
+  background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
+}
+.effects-clear {
+  border: none; background: none; color: var(--text-dim); font-size: 11px;
+  cursor: pointer; padding: 2px 4px; font-family: inherit;
+}
+.effects-clear:hover { color: var(--accent); }
+.effects-group { margin-top: 10px; }
+.effects-group:first-of-type { margin-top: 4px; }
+.effects-group-label {
+  font-size: 10px; font-weight: 600; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.effects-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.effect-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 10px; min-height: 28px;
+  background: #fff; border: 1px solid var(--border-color); border-radius: 14px;
+  color: var(--text-secondary); font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: background 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+  white-space: nowrap;
+}
+.effect-chip:hover { border-color: var(--accent); color: var(--accent); }
+.effect-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; padding-right: 8px; }
+.effect-chip.on:hover { background: #3a7fc7; border-color: #3a7fc7; }
+.effect-chip-label { line-height: 1; }
+.effect-chip-check { display: inline-flex; align-items: center; opacity: 0.92; }
+.effect-chip svg { flex-shrink: 0; }
+
+/* ── Effects library (canvas preview) ── */
+.element-wrapper.nm-fx-fade,
+.element-wrapper.nm-fx-slide-up, .element-wrapper.nm-fx-slide-down,
+.element-wrapper.nm-fx-slide-left, .element-wrapper.nm-fx-slide-right,
+.element-wrapper.nm-fx-zoom-in { opacity: 0; will-change: opacity, transform;
+                                 transition: opacity 500ms ease-out, transform 500ms cubic-bezier(.2,.7,.2,1); }
+.element-wrapper.nm-fx-slide-up    { transform: translateY(20px); }
+.element-wrapper.nm-fx-slide-down  { transform: translateY(-20px); }
+.element-wrapper.nm-fx-slide-left  { transform: translateX(20px); }
+.element-wrapper.nm-fx-slide-right { transform: translateX(-20px); }
+.element-wrapper.nm-fx-zoom-in     { transform: scale(.92); }
+.element-wrapper.nm-fx-in.nm-fx-fade,
+.element-wrapper.nm-fx-in.nm-fx-slide-up, .element-wrapper.nm-fx-in.nm-fx-slide-down,
+.element-wrapper.nm-fx-in.nm-fx-slide-left, .element-wrapper.nm-fx-in.nm-fx-slide-right,
+.element-wrapper.nm-fx-in.nm-fx-zoom-in { opacity: 1; transform: none; }
+
+@keyframes nm-fx-float-kf { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+@keyframes nm-fx-pulse-kf { from { transform: scale(1); } to { transform: scale(1.04); } }
+@keyframes nm-fx-sway-kf  { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+.element-wrapper.nm-fx-float { animation: nm-fx-float-kf 3s ease-in-out infinite alternate; }
+.element-wrapper.nm-fx-pulse { animation: nm-fx-pulse-kf 2.4s ease-in-out infinite alternate; }
+.element-wrapper.nm-fx-sway  { animation: nm-fx-sway-kf 4.2s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+
+.element-wrapper.nm-fx-hover-lift  { transition: transform 220ms ease-out, box-shadow 220ms ease-out; }
+.element-wrapper.nm-fx-hover-lift:hover  { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,.12); }
+.element-wrapper.nm-fx-hover-glow  { transition: box-shadow 220ms ease-out; }
+.element-wrapper.nm-fx-hover-glow:hover  { box-shadow: 0 0 0 4px rgba(74,144,217,.18), 0 8px 24px rgba(74,144,217,.25); }
+.element-wrapper.nm-fx-hover-scale { transition: transform 220ms ease-out; }
+.element-wrapper.nm-fx-hover-scale:hover { transform: scale(1.03); }
+
+.element-wrapper.nm-fx-shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.08); }
+.element-wrapper.nm-fx-shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06); }
+.element-wrapper.nm-fx-shadow-lg { box-shadow: 0 10px 25px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.08); }
+
+@media (prefers-reduced-motion: reduce) {
+  .element-wrapper.nm-fx-float, .element-wrapper.nm-fx-pulse, .element-wrapper.nm-fx-sway { animation: none; }
+}

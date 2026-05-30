@@ -38,9 +38,15 @@ export function ElementRenderer({ element, gridDepth = 0 }) {
 
   const htmlId = element.props?.anchorId || element.id;
   const scoped = scopedCustomCss(element.props?.customCss, htmlId);
+  // Effects classes live on the wrapper so motion/shadow/hover preview in
+  // the canvas. Entrance effects (.nm-fx-fade etc) auto-trigger via a
+  // .nm-fx-in class added on mount (see editor.css fallback).
+  const fx = Array.isArray(element.props?.effects)
+    ? element.props.effects.map(k => `nm-fx-${k}`).join(' ')
+    : '';
   return (
     <div
-      class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''} ${stretch ? 'el-stretch' : ''}`}
+      class={`element-wrapper ${isSelected ? 'selected' : ''} ${hidden ? 'vp-hidden' : ''} ${stretch ? 'el-stretch' : ''} nm-fx-in ${fx}`}
       data-element-id={element.id}
       onClick={e => { e.stopPropagation(); selectElement(element.id); }}
     >

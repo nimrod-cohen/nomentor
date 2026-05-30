@@ -3,6 +3,7 @@ import { openMediaPicker } from './MediaPicker';
 import { IconPicker } from './IconPicker';
 import { ColorSelector } from './ColorSelector';
 import { BoxShadowEditor, shadowToCSS } from './BoxShadowEditor';
+import { EffectsField } from './EffectsField';
 import {
   PropField, ColorField, AlignField, DirectionField, DirectionPicker, AlignmentPicker,
   VisibilityField, CssEditor, CssClassesField, SpacingFields, GapFields, BorderFields, LineHeightField,
@@ -35,6 +36,7 @@ export function Properties() {
           <PropField label="Box Shadow">
             <BoxShadowEditor value={row.props?.boxShadow} onChange={v => { updateRowProps(row.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
           </PropField>
+          <EffectsField value={row.props?.effects} onChange={v => { updateRowProps(row.id, { effects: v }); commitChange('Edit effects'); }} />
           <SpacingFields label="padding" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit padding'); }} />
           <SpacingFields label="margin" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit margin'); }} />
           <CssEditor value={row.props?.customCss || ''} selector="selector"
@@ -82,6 +84,7 @@ export function Properties() {
         <PropField label="Box Shadow">
           <BoxShadowEditor value={element.props.boxShadow} onChange={v => { updateElementProps(element.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
         </PropField>
+        <EffectsField value={element.props.effects} onChange={v => { updateElementProps(element.id, { effects: v }); commitChange('Edit effects'); }} />
         <SpacingFields label="padding" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit padding'); }} />
         <SpacingFields label="margin" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit margin'); }} />
         <CssEditor value={element.props.customCss || ''} selector="selector"
