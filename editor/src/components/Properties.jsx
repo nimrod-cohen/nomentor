@@ -1,9 +1,35 @@
+import { signal } from '@preact/signals';
 import { selectedId, rows, findElementById, findCellById, updateElementProps, updateRowProps, updateCellProps, commitChange, getEffectiveColors, viewportMode } from '../state';
 import { openMediaPicker } from './MediaPicker';
 import { IconPicker } from './IconPicker';
 import { ColorSelector } from './ColorSelector';
 import { BoxShadowEditor, shadowToCSS } from './BoxShadowEditor';
 import { EffectsField } from './EffectsField';
+
+// Per-section open/closed state, persists across element switches in the
+// session. Effects starts collapsed; everything else expanded.
+const groupOpen = signal({ content: true, layout: true, style: true, effects: false, advanced: true });
+function Group({ id, title, children }) {
+  const open = !!groupOpen.value[id];
+  return (
+    <div class={`prop-group ${open ? '' : 'collapsed'}`}>
+      <button
+        type="button"
+        class="prop-group-header"
+        onClick={() => { groupOpen.value = { ...groupOpen.value, [id]: !open }; }}
+        aria-expanded={open}
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+             style={{ transform: `rotate(${open ? 90 : 0}deg)`, transition: 'transform 180ms ease-out' }}>
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <span>{title}</span>
+      </button>
+      {open && <div class="prop-group-body">{children}</div>}
+    </div>
+  );
+}
 import {
   PropField, ColorField, AlignField, DirectionField, DirectionPicker, AlignmentPicker,
   VisibilityField, CssEditor, CssClassesField, SpacingFields, GapFields, BorderFields, LineHeightField,
@@ -30,29 +56,39 @@ export function Properties() {
       <aside class="nomentor-sidebar-left">
         <div class="sidebar-header">Container Properties</div>
         <div class="sidebar-content">
-          <ContainerProps row={row} />
-          <VisibilityField props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit visibility'); }} />
-          <BorderFields props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit border'); }} />
-          <PropField label="Box Shadow">
-            <BoxShadowEditor value={row.props?.boxShadow} onChange={v => { updateRowProps(row.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
-          </PropField>
-          <EffectsField
-            value={row.props?.effects}
-            onChange={v => { updateRowProps(row.id, { effects: v }); commitChange('Edit effects'); }}
-            speeds={row.props?.effectSpeeds}
-            onSpeedsChange={v => { updateRowProps(row.id, { effectSpeeds: v }); commitChange('Edit effect speed'); }}
-          />
-          <SpacingFields label="padding" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit padding'); }} />
-          <SpacingFields label="margin" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit margin'); }} />
-          <CssEditor value={row.props?.customCss || ''} selector="selector"
-            onChange={v => updateRowProps(row.id, { customCss: v })} onBlur={() => commitChange('Edit container CSS')} />
-          <CssClassesField value={row.props?.cssClasses || ''}
-            onChange={v => updateRowProps(row.id, { cssClasses: v })} onBlur={() => commitChange('Edit container classes')} />
-          <PropField label="Container ID">
-            <input type="text" class="prop-input prop-css" value={row.props?.anchorId || ''} placeholder={row.id}
-              onInput={e => updateRowProps(row.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
-              onBlur={() => commitChange('Set container ID')} />
-          </PropField>
+          <Group id="content" title="Content">
+            <ContainerProps row={row} />
+          </Group>
+          <Group id="layout" title="Layout">
+            <SpacingFields label="padding" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit padding'); }} />
+            <SpacingFields label="margin" props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit margin'); }} />
+            <VisibilityField props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit visibility'); }} />
+          </Group>
+          <Group id="style" title="Style">
+            <BorderFields props={row.props || {}} onUpdate={(k, v) => { updateRowProps(row.id, { [k]: v }); commitChange('Edit border'); }} />
+            <PropField label="Box Shadow">
+              <BoxShadowEditor value={row.props?.boxShadow} onChange={v => { updateRowProps(row.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
+            </PropField>
+          </Group>
+          <Group id="effects" title="Effects">
+            <EffectsField
+              value={row.props?.effects}
+              onChange={v => { updateRowProps(row.id, { effects: v }); commitChange('Edit effects'); }}
+              speeds={row.props?.effectSpeeds}
+              onSpeedsChange={v => { updateRowProps(row.id, { effectSpeeds: v }); commitChange('Edit effect speed'); }}
+            />
+          </Group>
+          <Group id="advanced" title="Advanced">
+            <CssEditor value={row.props?.customCss || ''} selector="selector"
+              onChange={v => updateRowProps(row.id, { customCss: v })} onBlur={() => commitChange('Edit container CSS')} />
+            <CssClassesField value={row.props?.cssClasses || ''}
+              onChange={v => updateRowProps(row.id, { cssClasses: v })} onBlur={() => commitChange('Edit container classes')} />
+            <PropField label="Container ID">
+              <input type="text" class="prop-input prop-css" value={row.props?.anchorId || ''} placeholder={row.id}
+                onInput={e => updateRowProps(row.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
+                onBlur={() => commitChange('Set container ID')} />
+            </PropField>
+          </Group>
         </div>
       </aside>
     );
@@ -82,30 +118,40 @@ export function Properties() {
     <aside class="nomentor-sidebar-left">
       <div class="sidebar-header">{element.type.charAt(0).toUpperCase() + element.type.slice(1)} Properties</div>
       <div class="sidebar-content">
-        <ElementProps element={element} />
-        <VisibilityField props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit visibility'); }} />
-        <DirectionField element={element} />
-        <BorderFields props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit border'); }} />
-        <PropField label="Box Shadow">
-          <BoxShadowEditor value={element.props.boxShadow} onChange={v => { updateElementProps(element.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
-        </PropField>
-        <EffectsField
-          value={element.props.effects}
-          onChange={v => { updateElementProps(element.id, { effects: v }); commitChange('Edit effects'); }}
-          speeds={element.props.effectSpeeds}
-          onSpeedsChange={v => { updateElementProps(element.id, { effectSpeeds: v }); commitChange('Edit effect speed'); }}
-        />
-        <SpacingFields label="padding" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit padding'); }} />
-        <SpacingFields label="margin" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit margin'); }} />
-        <CssEditor value={element.props.customCss || ''} selector="selector"
-          onChange={v => updateElementProps(element.id, { customCss: v })} onBlur={() => commitChange('Edit custom CSS')} />
-        <CssClassesField value={element.props.cssClasses || ''}
-          onChange={v => updateElementProps(element.id, { cssClasses: v })} onBlur={() => commitChange('Edit element classes')} />
-        <PropField label="Element ID">
-          <input type="text" class="prop-input prop-css" value={element.props.anchorId || ''} placeholder={element.id}
-            onInput={e => updateElementProps(element.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
-            onBlur={() => commitChange('Set element ID')} />
-        </PropField>
+        <Group id="content" title="Content">
+          <ElementProps element={element} />
+        </Group>
+        <Group id="layout" title="Layout">
+          <DirectionField element={element} />
+          <SpacingFields label="padding" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit padding'); }} />
+          <SpacingFields label="margin" props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit margin'); }} />
+          <VisibilityField props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit visibility'); }} />
+        </Group>
+        <Group id="style" title="Style">
+          <BorderFields props={element.props} onUpdate={(k, v) => { updateElementProps(element.id, { [k]: v }); commitChange('Edit border'); }} />
+          <PropField label="Box Shadow">
+            <BoxShadowEditor value={element.props.boxShadow} onChange={v => { updateElementProps(element.id, { boxShadow: v }); commitChange('Edit shadow'); }} />
+          </PropField>
+        </Group>
+        <Group id="effects" title="Effects">
+          <EffectsField
+            value={element.props.effects}
+            onChange={v => { updateElementProps(element.id, { effects: v }); commitChange('Edit effects'); }}
+            speeds={element.props.effectSpeeds}
+            onSpeedsChange={v => { updateElementProps(element.id, { effectSpeeds: v }); commitChange('Edit effect speed'); }}
+          />
+        </Group>
+        <Group id="advanced" title="Advanced">
+          <CssEditor value={element.props.customCss || ''} selector="selector"
+            onChange={v => updateElementProps(element.id, { customCss: v })} onBlur={() => commitChange('Edit custom CSS')} />
+          <CssClassesField value={element.props.cssClasses || ''}
+            onChange={v => updateElementProps(element.id, { cssClasses: v })} onBlur={() => commitChange('Edit element classes')} />
+          <PropField label="Element ID">
+            <input type="text" class="prop-input prop-css" value={element.props.anchorId || ''} placeholder={element.id}
+              onInput={e => updateElementProps(element.id, { anchorId: e.target.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '') })}
+              onBlur={() => commitChange('Set element ID')} />
+          </PropField>
+        </Group>
       </div>
     </aside>
   );

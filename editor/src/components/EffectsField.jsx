@@ -1,5 +1,5 @@
 /**
- * EffectsField — collapsible multi-select chip grid + per-effect speed sliders.
+ * EffectsField — multi-select chip grid + per-effect speed sliders.
  *
  * Storage on element/row props:
  *   props.effects        = ['fade', 'float', ...]       (enabled keys)
@@ -8,10 +8,8 @@
  *
  * Shadow effects are static and don't get a speed slider.
  *
- * The fold-open state is held in a module signal so it persists across
- * element selections within an editor session.
+ * Fold state lives on the parent group header in Properties.jsx.
  */
-import { signal } from '@preact/signals';
 
 const EFFECTS = [
   { group: 'Entrance', items: [
@@ -43,9 +41,6 @@ const ALL_KEYS = EFFECTS.flatMap(g => g.items.map(i => i.key));
 const NO_SPEED = new Set(['shadow-sm', 'shadow-md', 'shadow-lg']);
 const ITEM_LABEL = Object.fromEntries(EFFECTS.flatMap(g => g.items.map(i => [i.key, i.label])));
 
-// Persist open/closed across element selections within the session.
-const expanded = signal(false);
-
 function ArrowIcon({ dir }) {
   const common = { width: 12, height: 12, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
   switch (dir) {
@@ -56,16 +51,6 @@ function ArrowIcon({ dir }) {
     case 'zoom':  return <svg {...common}><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>;
     default:      return null;
   }
-}
-
-function ChevronIcon({ open }) {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
-         style={{ transform: `rotate(${open ? 90 : 0}deg)`, transition: 'transform 180ms ease-out' }}>
-      <polyline points="9 18 15 12 9 6"/>
-    </svg>
-  );
 }
 
 function CheckIcon() {
@@ -112,28 +97,15 @@ export function EffectsField({ value, onChange, speeds, onSpeedsChange }) {
     onSpeedsChange(next);
   }
 
-  const open = expanded.value;
-
   return (
-    <div class={`prop-field effects-field ${open ? '' : 'collapsed'}`}>
-      <button
-        type="button"
-        class="effects-header"
-        onClick={() => { expanded.value = !open; }}
-        aria-expanded={open}
-      >
-        <ChevronIcon open={open} />
-        <span class="prop-label">Effects</span>
-        {list.length > 0 && <span class="effects-count">{list.length}</span>}
-      </button>
-
-      {open && (
-        <div class="effects-body">
-          {list.length > 0 && (
-            <div class="effects-toolbar">
-              <button type="button" class="effects-clear" onClick={clearAll}>Clear all</button>
-            </div>
-          )}
+    <div class="prop-field effects-field">
+      {list.length > 0 && (
+        <div class="effects-toolbar">
+          <span class="effects-count">{list.length} selected</span>
+          <button type="button" class="effects-clear" onClick={clearAll}>Clear all</button>
+        </div>
+      )}
+      <div class="effects-body">
           {EFFECTS.map(group => {
             const groupSelected = group.items.filter(i => selected.has(i.key) && !NO_SPEED.has(i.key));
             return (
@@ -173,8 +145,7 @@ export function EffectsField({ value, onChange, speeds, onSpeedsChange }) {
               </div>
             );
           })}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

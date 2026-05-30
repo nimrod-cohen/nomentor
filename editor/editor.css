@@ -1067,3 +1067,23 @@ html, body, #nomentor-root {
   font-size: 11px; color: var(--text-dim); text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* ── Properties panel: foldable groups ── */
+.prop-group { border-top: 1px solid var(--border-color); }
+.prop-group:first-of-type { border-top: none; }
+.prop-group-header {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 10px 0; background: none; border: none;
+  cursor: pointer; font-family: inherit; text-align: inherit;
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.prop-group-header:hover { color: var(--accent); }
+.prop-group-header svg { flex-shrink: 0; color: var(--text-dim); }
+.prop-group-header:hover svg { color: var(--accent); }
+.prop-group-body { padding-bottom: 8px; }
+
+/* Effects field now sits inside the group body — drop its own header chrome */
+.prop-group .effects-field { padding: 0; border-top: none; margin-top: 0; }
+.effects-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.effects-toolbar .effects-count { font-size: 11px; color: var(--text-dim); background: none; padding: 0; }
