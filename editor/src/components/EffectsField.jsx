@@ -44,7 +44,7 @@ const NO_SPEED = new Set(['shadow-sm', 'shadow-md', 'shadow-lg']);
 const ITEM_LABEL = Object.fromEntries(EFFECTS.flatMap(g => g.items.map(i => [i.key, i.label])));
 
 // Persist open/closed across element selections within the session.
-const expanded = signal(true);
+const expanded = signal(false);
 
 function ArrowIcon({ dir }) {
   const common = { width: 12, height: 12, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
